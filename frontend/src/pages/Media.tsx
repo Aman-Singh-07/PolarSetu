@@ -1,59 +1,92 @@
 import { useState, useEffect } from 'react';
+import { MapPin } from 'lucide-react';
 import { api } from '../services/api';
 import type { MediaItem } from '../types';
-import { Image as ImageIcon, MapPin, ExternalLink } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 export default function Media() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMedia();
+    api.getMedia().then(data => {
+      setMediaItems(data);
+      setLoading(false);
+    });
   }, []);
 
-  const fetchMedia = async () => {
-    const data = await api.getMedia();
-    setMediaItems(data);
-    setLoading(false);
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-display font-bold mb-2">Media Explorer</h1>
-        <p className="text-slate-500">Official photographs and videos from polar expeditions.</p>
-      </div>
-
-      {loading ? (
-        <div className="text-center py-12 text-slate-500">Loading media...</div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mediaItems.map(item => (
-            <div key={item.id} className="bg-white border border-border rounded-lg overflow-hidden flex flex-col group">
-              <div className="aspect-[4/3] bg-slate-100 relative flex items-center justify-center">
-                <ImageIcon className="w-12 h-12 text-slate-300" />
-                <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors" />
-                <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm">
-                  {item.type}
-                </div>
-              </div>
-              <div className="p-4 flex flex-col flex-1">
-                <h3 className="font-semibold text-primary mb-1 text-sm line-clamp-1">{item.title}</h3>
-                <p className="text-xs text-slate-500 line-clamp-2 mb-3 flex-1">{item.caption || item.description}</p>
-                <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
-                  <span className="text-xs text-slate-400 flex items-center">
-                    <MapPin className="w-3 h-3 mr-1" /> {item.region}
-                  </span>
-                  <Link to={`/research/${item.id}`} className="text-secondary hover:text-accent text-xs font-medium flex items-center">
-                    Details <ExternalLink className="w-3 h-3 ml-1" />
-                  </Link>
-                </div>
-              </div>
+    <div className="flex flex-col w-full">
+      {/* Header */}
+      <section className="w-full bg-ice-white py-6 px-4 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+            <div className="flex flex-col gap-1 max-w-2xl">
+              <span className="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Field Media & Cryospheric Imagery</span>
+              <h1 className="font-headline-lg text-headline-lg font-bold text-polar-midnight-deep">Polar Media Explorer</h1>
+              <p className="font-body-md text-body-md text-on-surface-variant">
+                Verified visual dispatches from NCPOR research teams operating on polar ice floes, glaciological summits, and Antarctic research vessels.
+              </p>
             </div>
-          ))}
+            <div className="flex items-center gap-1 bg-pure-white p-1 rounded-xl shadow-sm self-start">
+              <span className="px-3 py-1.5 rounded-lg bg-surface-container-low text-polar-midnight-deep font-code-sm text-code-sm font-semibold">
+                {mediaItems.length} Assets
+              </span>
+            </div>
+          </div>
         </div>
-      )}
+      </section>
+
+      {/* Media Grid */}
+      <section className="w-full px-4 lg:px-8 py-10">
+        <div className="max-w-7xl mx-auto">
+          {loading ? (
+            <div className="text-center py-12 text-on-surface-variant font-body-md">Loading media...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              {/* Hero card */}
+              {mediaItems[0] && (
+                <div className="md:col-span-7 flex flex-col rounded-xl overflow-hidden bg-pure-white shadow-sm group">
+                  <div className="relative h-80 w-full overflow-hidden">
+                    <img alt={mediaItems[0].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src={mediaItems[0].thumbnailUrl || ''} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-polar-midnight-deep/90 via-transparent to-transparent"></div>
+                    <div className="absolute top-3 left-3 px-2.5 py-1 rounded bg-polar-midnight-deep/80 text-pure-white font-label-sm text-label-sm uppercase tracking-wider backdrop-blur-sm">
+                      Station Profile
+                    </div>
+                    <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-1 text-pure-white">
+                      <span className="font-code-sm text-code-sm text-glacial-sky">{mediaItems[0].region}</span>
+                      <h3 className="font-headline-md text-headline-md font-bold leading-tight">{mediaItems[0].title}</h3>
+                      <p className="font-body-sm text-body-sm text-inverse-primary line-clamp-2">{mediaItems[0].description}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Smaller cards */}
+              {mediaItems.slice(1).map(item => (
+                <div key={item.id} className="md:col-span-5 flex flex-col rounded-xl overflow-hidden bg-pure-white shadow-sm group">
+                  <div className="relative h-44 w-full overflow-hidden">
+                    <img alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src={item.thumbnailUrl || ''} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-polar-midnight-deep/80 via-transparent to-transparent"></div>
+                    <div className="absolute top-3 left-3 px-2 py-0.5 rounded bg-polar-midnight-deep/80 text-pure-white font-label-sm text-label-sm uppercase backdrop-blur-sm">
+                      {item.region}
+                    </div>
+                    <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-0.5 text-pure-white">
+                      <span className="font-code-sm text-code-sm text-glacial-sky">{item.type}</span>
+                      <h4 className="font-title-md text-title-md font-bold leading-snug">{item.title}</h4>
+                    </div>
+                  </div>
+                  <div className="p-3 flex items-center justify-between bg-pure-white text-on-surface-variant font-label-sm text-label-sm">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" /> {item.caption || item.region}
+                    </span>
+                    <span className="text-secondary font-semibold cursor-pointer hover:underline">View Details →</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
