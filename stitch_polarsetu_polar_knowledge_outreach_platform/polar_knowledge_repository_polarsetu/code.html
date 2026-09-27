@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>PolarSetu — India's Polar Science Knowledge &amp; Outreach Platform</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"tertiary-fixed-dim":"#8bd6b6","on-surface-variant":"#45464d","on-primary-container":"#7b83a0","outline":"#76767e","background":"#f8f9ff","on-tertiary":"#ffffff","tertiary-container":"#002116","secondary-container":"#5bb8fe","slate-border":"#E2E8F0","inverse-primary":"#bec5e5","polar-midnight-deep":"#0B132B","on-surface":"#0b1c30","on-error":"#ffffff","on-secondary-fixed-variant":"#004b73","inverse-on-surface":"#eaf1ff","surface":"#f8f9ff","aurora-emerald":"#10B981","on-tertiary-fixed-variant":"#00513b","surface-dim":"#cbdbf5","glacial-sky":"#38BDF8","on-tertiary-fixed":"#002116","on-secondary-container":"#00476e","ice-white":"#F8FAFC","slate-border-strong":"#CBD5E1","primary":"#000000","on-background":"#0b1c30","surface-container-low":"#eff4ff","on-secondary":"#ffffff","on-error-container":"#93000a","primary-fixed-dim":"#bec5e5","primary-container":"#131a33","on-primary-fixed":"#131a33","secondary":"#006398","draft-amber-bg":"#FEF3C7","aurora-cyan":"#06B6D4","polar-navy-surface":"#1C2541","inverse-surface":"#213145","surface-variant":"#d3e4fe","tertiary-fixed":"#a6f2d1","error-container":"#ffdad6","surface-container-high":"#dce9ff","surface-bright":"#f8f9ff","error":"#ba1a1a","on-secondary-fixed":"#001d31","outline-variant":"#c6c6ce","pure-white":"#FFFFFF","azure-accent":"#0EA5E9","on-primary-fixed-variant":"#3e4660","surface-container-lowest":"#ffffff","primary-fixed":"#dbe1ff","on-tertiary-container":"#479175","surface-container":"#e5eeff","secondary-fixed":"#cce5ff","surface-container-highest":"#d3e4fe","surface-tint":"#565d79","draft-amber-text":"#92400E","on-primary":"#ffffff","secondary-fixed-dim":"#93ccff","draft-amber-border":"#F59E0B","tertiary":"#000000"},borderRadius:{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},spacing:{"space-md":"1rem","margin":"2rem","gutter-mobile":"1rem","space-sm":"0.5rem","space-xl":"2.5rem","space-lg":"1.5rem","margin-mobile":"1rem","gutter":"1.5rem","space-xs":"0.25rem"},fontFamily:{"body-lg":["Inter"],"label-md":["Inter"],"headline-md":["Plus Jakarta Sans"],"label-sm":["Inter"],"headline-lg":["Plus Jakarta Sans"],"display-hero-mobile":["Plus Jakarta Sans"],"body-sm":["Inter"],"headline-lg-mobile":["Plus Jakarta Sans"],"display-hero":["Plus Jakarta Sans"],"code-sm":["Inter"],"body-md":["Inter"],"headline-sm":["Plus Jakarta Sans"],"title-md":["Plus Jakarta Sans"]},fontSize:{"body-lg":["18px",{lineHeight:"28px",fontWeight:"400"}],"label-md":["13px",{lineHeight:"18px",letterSpacing:"0.01em",fontWeight:"500"}],"headline-md":["24px",{lineHeight:"32px",letterSpacing:"-0.01em",fontWeight:"600"}],"label-sm":["11px",{lineHeight:"16px",letterSpacing:"0.04em",fontWeight:"600"}],"headline-lg":["36px",{lineHeight:"44px",letterSpacing:"-0.02em",fontWeight:"700"}],"display-hero-mobile":["32px",{lineHeight:"40px",letterSpacing:"-0.015em",fontWeight:"700"}],"body-sm":["13px",{lineHeight:"20px",fontWeight:"400"}],"headline-lg-mobile":["26px",{lineHeight:"34px",letterSpacing:"-0.015em",fontWeight:"700"}],"display-hero":["48px",{lineHeight:"56px",letterSpacing:"-0.02em",fontWeight:"700"}],"code-sm":["12px",{lineHeight:"16px",fontWeight:"500"}],"body-md":["15px",{lineHeight:"24px",fontWeight:"400"}],"headline-sm":["20px",{lineHeight:"28px",fontWeight:"600"}],"title-md":["16px",{lineHeight:"24px",fontWeight:"600"}]}}}};</script></head><body class="bg-surface font-body-md text-on-surface antialiased min-h-screen"><header class="fixed top-0 left-0 right-0 w-full z-50 bg-pure-white/95 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 w-full px-margin-mobile lg:px-margin flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md min-w-max"><a class="flex items-center gap-space-sm" data-path="home" href="#"><img alt="POLARSETU Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VXEr7AYLMmREImv4E52a7As9vSLcuPX2Tah0iKkNYpSXL-ZTRjw1tNmKkosj2FukeZj9LfB1KWGXuN-m1-MGKfRV6CkwD91Ufankky5MozJscRQ_7jMgBamSM7flV83WTRa8EwqmSG-PTLCeYe_96jRnhjagkkbl8PRO2Z8XF5RJlPUJrS0QAu0qZqx6bhG3wpA05rHjshP9RxV9o8N1MlnxYOPHjQnZ_hHTLWztoyBvyZuOTRw1g29_Gu"/><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm font-bold tracking-tight text-polar-midnight-deep">POLARSETU</span><span class="px-space-xs py-0.5 rounded bg-surface-container-high text-secondary font-label-sm text-label-sm uppercase tracking-wider">SIH26063 Prototype</span></div><span class="font-label-sm text-label-sm text-on-surface-variant hidden sm:inline">India's Polar Science Knowledge &amp; Outreach Platform</span></div></a></div><nav class="hidden xl:flex items-center gap-space-md" data-active-classes="text-secondary font-semibold bg-surface-container-low rounded-lg px-space-sm py-1"><a class="text-on-surface-variant hover:text-on-surface transition-colors font-body-sm text-body-sm px-space-sm py-1" data-path="home" href="#">Home</a><a class="text-on-surface-variant hover:text-on-surface transition-colors font-body-sm text-body-sm px-space-sm py-1" data-path="explore" href="#">Explore</a><a class="text-on-surface-variant hover:text-on-surface transition-colors font-body-sm text-body-sm px-space-sm py-1" data-path="expeditions" href="#">Expeditions</a><a class="text-on-surface-variant hover:text-on-surface transition-colors font-body-sm text-body-sm px-space-sm py-1" data-path="research" href="#">Research</a><a class="text-on-surface-variant hover:text-on-surface transition-colors font-body-sm text-body-sm px-space-sm py-1" data-path="media" href="#">Media</a><a class="text-on-surface-variant hover:text-on-surface transition-colors font-body-sm text-body-sm px-space-sm py-1" data-path="map" href="#">Polar Map</a></nav><div class="flex items-center gap-space-sm min-w-max"><a class="inline-flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-polar-midnight-deep text-on-primary font-label-md text-label-md hover:bg-polar-navy-surface transition-all" data-path="ask-polar-ai" href="#"><span class="material-symbols-outlined text-[18px] text-glacial-sky">auto_awesome</span><span>Ask Polar AI</span></a><a class="hidden md:inline-flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-surface-container-low text-secondary font-label-md text-label-md hover:bg-surface-container hover:text-on-secondary-container transition-all" data-path="outreach-studio" href="#"><span class="material-symbols-outlined text-[18px]">science</span><span>Outreach Studio</span></a><a class="hidden sm:inline-flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant font-label-md text-label-md hover:text-on-surface hover:bg-surface-container-low transition-all" data-path="sign-in" href="#">Institutional Admin</a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-20 bg-surface min-h-[calc(100vh-80px)]"><div class="flex flex-col w-full">
+<!-- Top Repository Banner & Context Header -->
+<section class="w-full bg-ice-white py-space-lg px-margin-mobile lg:px-margin">
+<div class="max-w-[1360px] mx-auto flex flex-col gap-space-md">
+<!-- Breadcrumb & Classification Row -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span class="flex items-center gap-1 text-secondary font-medium">
+<span class="material-symbols-outlined text-[16px]">account_balance</span>
+            MoES / NCPOR
+          </span>
+<span class="text-slate-border-strong">/</span>
+<span class="text-on-surface">Knowledge Core</span>
+<span class="text-slate-border-strong">/</span>
+<span class="text-secondary font-semibold">Repository Catalog</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded bg-draft-amber-bg text-draft-amber-text font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px] text-draft-amber-border">database</span>
+            PROTOTYPE DATASET DEMO (SIH26063)
+          </span>
+<span class="inline-flex items-center gap-1 px-space-sm py-1 rounded bg-surface-container-high text-secondary font-code-sm text-code-sm">
+<span class="material-symbols-outlined text-[14px] text-aurora-emerald">verified</span>
+            FAIR Level 3 Compliant
+          </span>
+</div>
+</div>
+<!-- Main Headline Block -->
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md">
+<div class="max-w-4xl flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest font-bold">Scientific Repository &amp; Lineage Core</span>
+<h1 class="font-headline-lg text-headline-lg text-polar-midnight-deep font-bold tracking-tight">
+            Polar Knowledge Repository
+          </h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+            Unified discovery across 1,048 vetted expedition reports, NPDC oceanographic datasets, peer-reviewed publications, and cryospheric field observations across Antarctica, the Arctic, and the Himalayas.
+          </p>
+</div>
+<!-- Quick Telemetry Chips -->
+<div class="flex items-center gap-space-xs bg-pure-white p-space-xs rounded-xl shadow-sm self-start lg:self-auto">
+<div class="flex items-center gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container-low text-polar-midnight-deep">
+<span class="material-symbols-outlined text-[18px] text-secondary">explore</span>
+<span class="font-code-sm text-code-sm font-semibold">44 Expeditions</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container-low text-polar-midnight-deep">
+<span class="material-symbols-outlined text-[18px] text-aurora-emerald">dataset</span>
+<span class="font-code-sm text-code-sm font-semibold">196 Datasets</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container-low text-polar-midnight-deep">
+<span class="material-symbols-outlined text-[18px] text-azure-accent">menu_book</span>
+<span class="font-code-sm text-code-sm font-semibold">284 Papers</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Query Controller, Category Tabs & Filter Rail -->
+<section class="w-full bg-pure-white shadow-sm py-space-md px-margin-mobile lg:px-margin sticky top-20 z-40">
+<div class="max-w-[1360px] mx-auto flex flex-col gap-space-md">
+<!-- Search Input & Direct Filters Bar -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-sm items-center">
+<!-- Deep Search Box -->
+<div class="lg:col-span-8 relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full pl-10 pr-24 py-2.5 bg-surface text-polar-midnight-deep font-body-md text-body-md rounded-lg focus:outline-none focus:ring-2 focus:ring-azure-accent transition-all" id="repoSearchInput" placeholder="Search across 1,040+ polar records by keyword, author, DOI, expedition, or research theme..." type="text"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 px-space-sm py-1 bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm rounded hover:bg-polar-navy-surface transition-colors flex items-center gap-1">
+<span>Filter</span>
+<span class="material-symbols-outlined text-[14px]">tune</span>
+</button>
+</div>
+<!-- Secondary Dropdowns (Geographic Realm & Themes) -->
+<div class="lg:col-span-4 flex items-center gap-space-xs">
+<div class="relative w-1/2">
+<select class="w-full appearance-none bg-surface text-polar-midnight-deep font-label-md text-label-md px-space-sm py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-azure-accent pr-8 cursor-pointer">
+<option>All Realms (Global)</option>
+<option>Antarctic Realm (Maitri/Bharati)</option>
+<option>Arctic Realm (Himadri/Svalbard)</option>
+<option>Himalayan Cryosphere (Himansh)</option>
+<option>Southern Ocean Pelagic</option>
+</select>
+<span class="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">arrow_drop_down</span>
+</div>
+<div class="relative w-1/2">
+<select class="w-full appearance-none bg-surface text-polar-midnight-deep font-label-md text-label-md px-space-sm py-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-azure-accent pr-8 cursor-pointer">
+<option>All Research Themes</option>
+<option>Cryosphere &amp; Glaciology</option>
+<option>Physical Oceanography</option>
+<option>Atmospheric Chem &amp; Aerosols</option>
+<option>Polar Microbiology &amp; Genomics</option>
+<option>Paleoclimate &amp; Deep Ice Cores</option>
+</select>
+<span class="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">arrow_drop_down</span>
+</div>
+</div>
+</div>
+<!-- Quick Category Pills & View Switchers -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs">
+<div class="flex flex-wrap items-center gap-1.5" id="typeFilters">
+<button class="px-space-sm py-1.5 rounded-lg bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm font-semibold transition-all">
+            All Records <span class="ml-1 opacity-80 font-code-sm">1,048</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-container-low text-secondary hover:bg-surface-container font-label-sm text-label-sm font-medium transition-all">
+            Technical Reports <span class="ml-1 text-on-surface-variant font-code-sm">412</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-container-low text-secondary hover:bg-surface-container font-label-sm text-label-sm font-medium transition-all">
+            Publications <span class="ml-1 text-on-surface-variant font-code-sm">284</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-container-low text-secondary hover:bg-surface-container font-label-sm text-label-sm font-medium transition-all">
+            NPDC Datasets <span class="ml-1 text-on-surface-variant font-code-sm">196</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-container-low text-secondary hover:bg-surface-container font-label-sm text-label-sm font-medium transition-all">
+            Expedition Charters <span class="ml-1 text-on-surface-variant font-code-sm">44</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-container-low text-secondary hover:bg-surface-container font-label-sm text-label-sm font-medium transition-all">
+            Field Media <span class="ml-1 text-on-surface-variant font-code-sm">92</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-container-low text-secondary hover:bg-surface-container font-label-sm text-label-sm font-medium transition-all">
+            Outreach Activity <span class="ml-1 text-on-surface-variant font-code-sm">20</span>
+</button>
+</div>
+<!-- Layout Controls & Sorting -->
+<div class="flex items-center gap-space-md ml-auto">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span>Sort:</span>
+<select class="bg-transparent text-polar-midnight-deep font-semibold focus:outline-none cursor-pointer">
+<option>Relevance (Semantic Match)</option>
+<option>Newest First (2026–2024)</option>
+<option>Highest Citation Count</option>
+<option>FAIR Compliance Score</option>
+</select>
+</div>
+<div class="flex items-center bg-surface p-0.5 rounded-lg">
+<button class="p-1 rounded bg-pure-white text-secondary shadow-xs" title="Grid Card View">
+<span class="material-symbols-outlined text-[18px]">grid_view</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-on-surface" title="Tabular Matrix View">
+<span class="material-symbols-outlined text-[18px]">table_rows</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Exploration Workspace: 12-Column Responsive Matrix -->
+<section class="w-full px-margin-mobile lg:px-margin py-space-xl">
+<div class="max-w-[1360px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- Left Facet Sidebar (Cols 1-3 / 280px equivalent) -->
+<aside class="lg:col-span-3 flex flex-col gap-space-lg">
+<!-- Facet Filter Card Container -->
+<div class="bg-pure-white rounded-xl shadow-sm p-space-md flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md font-bold text-polar-midnight-deep flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px] text-secondary">filter_list</span>
+              Discovery Facets
+            </span>
+<button class="font-label-sm text-label-sm text-secondary hover:underline cursor-pointer">
+              Reset All
+            </button>
+</div>
+<!-- Facet Group 1: Resource Assurance Tier -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Assurance Tier</span>
+<label class="flex items-center justify-between cursor-pointer py-1 group">
+<div class="flex items-center gap-2">
+<input checked="" class="w-4 h-4 rounded text-secondary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-secondary">Tier 1: Formal Mission Charters</span>
+</div>
+<span class="font-code-sm text-code-sm text-on-surface-variant bg-surface px-1.5 rounded">44</span>
+</label>
+<label class="flex items-center justify-between cursor-pointer py-1 group">
+<div class="flex items-center gap-2">
+<input checked="" class="w-4 h-4 rounded text-secondary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-secondary">Tier 2: NPDC Open Datasets</span>
+</div>
+<span class="font-code-sm text-code-sm text-on-surface-variant bg-surface px-1.5 rounded">196</span>
+</label>
+<label class="flex items-center justify-between cursor-pointer py-1 group">
+<div class="flex items-center gap-2">
+<input checked="" class="w-4 h-4 rounded text-secondary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-secondary">Tier 3: Peer-Reviewed Output</span>
+</div>
+<span class="font-code-sm text-code-sm text-on-surface-variant bg-surface px-1.5 rounded">284</span>
+</label>
+<label class="flex items-center justify-between cursor-pointer py-1 group">
+<div class="flex items-center gap-2">
+<input class="w-4 h-4 rounded text-secondary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-secondary">Field Imagery &amp; Audio</span>
+</div>
+<span class="font-code-sm text-code-sm text-on-surface-variant bg-surface px-1.5 rounded">92</span>
+</label>
+</div>
+<!-- Facet Group 2: Expedition Epoch Timeline -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Expedition Epoch</span>
+<div class="space-y-1.5">
+<div class="flex justify-between font-code-sm text-code-sm text-on-surface-variant">
+<span>1st ISEA (1981)</span>
+<span class="font-bold text-polar-midnight-deep">44th ISEA (2025)</span>
+</div>
+<input class="w-full accent-secondary cursor-pointer" max="2025" min="1981" type="range" value="2025"/>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm pt-1">
+<span class="bg-surface px-2 py-0.5 rounded">Contemporary (2020–2025)</span>
+<span class="text-secondary font-semibold font-code-sm">528 Items</span>
+</div>
+</div>
+</div>
+<!-- Facet Group 3: Institutional Provenance -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Originating Body</span>
+<label class="flex items-center justify-between cursor-pointer py-1 group">
+<div class="flex items-center gap-2">
+<input checked="" class="w-4 h-4 rounded text-secondary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-secondary">NCPOR (MoES)</span>
+</div>
+<span class="font-code-sm text-code-sm text-on-surface-variant bg-surface px-1.5 rounded">680</span>
+</label>
+<label class="flex items-center justify-between cursor-pointer py-1 group">
+<div class="flex items-center gap-2">
+<input checked="" class="w-4 h-4 rounded text-secondary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-secondary">Geological Survey of India</span>
+</div>
+<span class="font-code-sm text-code-sm text-on-surface-variant bg-surface px-1.5 rounded">114</span>
+</label>
+<label class="flex items-center justify-between cursor-pointer py-1 group">
+<div class="flex items-center gap-2">
+<input class="w-4 h-4 rounded text-secondary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-secondary">India Meteorological Dept.</span>
+</div>
+<span class="font-code-sm text-code-sm text-on-surface-variant bg-surface px-1.5 rounded">98</span>
+</label>
+<label class="flex items-center justify-between cursor-pointer py-1 group">
+<div class="flex items-center gap-2">
+<input class="w-4 h-4 rounded text-secondary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-secondary">IIT Roorkee / Kanpur</span>
+</div>
+<span class="font-code-sm text-code-sm text-on-surface-variant bg-surface px-1.5 rounded">72</span>
+</label>
+<label class="flex items-center justify-between cursor-pointer py-1 group">
+<div class="flex items-center gap-2">
+<input class="w-4 h-4 rounded text-secondary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface group-hover:text-secondary">Naval Hydrographic Office</span>
+</div>
+<span class="font-code-sm text-code-sm text-on-surface-variant bg-surface px-1.5 rounded">41</span>
+</label>
+</div>
+<!-- Facet Group 4: License & Access Mode -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Access Permissions</span>
+<label class="flex items-center gap-2 cursor-pointer py-1">
+<input checked="" class="w-4 h-4 rounded text-secondary focus:ring-0" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">Creative Commons CC-BY 4.0</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer py-1">
+<input class="w-4 h-4 rounded text-secondary focus:ring-0" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">MoES Institutional Access Only</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer py-1">
+<input checked="" class="w-4 h-4 rounded text-secondary focus:ring-0" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface">DOI Verified &amp; Indexed</span>
+</label>
+</div>
+</div>
+<!-- Interactive Research Help & Tip Module -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-space-sm shadow-xs">
+<div class="flex items-center gap-space-xs text-secondary">
+<span class="material-symbols-outlined text-[20px]">lightbulb</span>
+<span class="font-label-md text-label-md font-bold uppercase tracking-wider">Semantic Query Help</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            PolarSetu indexes data down to station loggers. Use Boolean tags like <code class="font-code-sm bg-surface px-1 rounded text-secondary font-semibold">realm:antarctica AND theme:CTD</code> or search by ship callsign <code class="font-code-sm bg-surface px-1 rounded text-secondary font-semibold">vessel:ORV-Sagar-Nidhi</code>.
+          </p>
+<a class="font-label-sm text-label-sm font-semibold text-secondary hover:underline inline-flex items-center gap-1 pt-1" href="#">
+<span>Read syntax guide</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+<!-- Station Real-Time Anchor Status Widget -->
+<div class="bg-polar-midnight-deep text-on-primary rounded-xl p-space-md flex flex-col gap-space-sm shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-glacial-sky uppercase tracking-wider font-bold">Field Feeds Connected</span>
+<span class="flex h-2 w-2 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-aurora-emerald opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-aurora-emerald"></span>
+</span>
+</div>
+<div class="flex flex-col gap-2 pt-1 font-body-sm text-body-sm">
+<div class="flex justify-between items-center text-inverse-on-surface">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-azure-accent">location_on</span>
+                Bharati Station
+              </span>
+<span class="font-code-sm text-code-sm text-glacial-sky">-18.4°C • 24kt SE</span>
+</div>
+<div class="flex justify-between items-center text-inverse-on-surface">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-azure-accent">location_on</span>
+                Maitri Station
+              </span>
+<span class="font-code-sm text-code-sm text-glacial-sky">-22.1°C • 12kt S</span>
+</div>
+<div class="flex justify-between items-center text-inverse-on-surface">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-azure-accent">location_on</span>
+                Himadri (Ny-Ålesund)
+              </span>
+<span class="font-code-sm text-code-sm text-glacial-sky">-6.8°C • Calving Alert</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Right Main Dossier Grid (Cols 4-12 / remaining 9 cols) -->
+<main class="lg:col-span-9 flex flex-col gap-space-lg">
+<!-- Live Results Counter & Dynamic Active Tag Bar -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm bg-pure-white p-space-sm rounded-lg shadow-xs">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-md text-label-md font-bold text-polar-midnight-deep">
+              Showing 1,048 catalogued polar records
+            </span>
+<span class="hidden sm:inline text-on-surface-variant font-code-sm text-code-sm bg-surface px-2 py-0.5 rounded">
+              Index Sync: 06 Mar 2025
+            </span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Active:</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container text-secondary font-label-sm text-label-sm">
+              All Epochs
+              <button class="hover:text-error ml-1"><span class="material-symbols-outlined text-[12px]">close</span></button>
+</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container text-secondary font-label-sm text-label-sm">
+              Open Access Verified
+              <button class="hover:text-error ml-1"><span class="material-symbols-outlined text-[12px]">close</span></button>
+</span>
+</div>
+</div>
+<!-- 6 High-Density Grounded Scientific Dossier Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Card 1: Technical Expedition Report -->
+<article class="bg-pure-white rounded-xl shadow-sm p-space-md flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="flex flex-col gap-space-xs">
+<!-- Header Metadata Row -->
+<div class="flex items-center justify-between">
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-secondary font-label-sm text-label-sm font-bold uppercase tracking-wider">
+                  Technical Report
+                </span>
+<span class="font-code-sm text-code-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span> 2024
+                </span>
+</div>
+<!-- Title -->
+<h2 class="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep group-hover:text-secondary transition-colors mt-space-xs">
+                ISEA-43 Glaciology &amp; Fast-Ice Core Mechanics Report (Vol. 4)
+              </h2>
+<!-- Geographic Realm & Station Badges -->
+<div class="flex flex-wrap items-center gap-space-xs pt-0.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface font-label-sm text-label-sm text-polar-midnight-deep">
+<span class="material-symbols-outlined text-[14px] text-azure-accent">location_on</span>
+                  Larsemann Hills, Antarctica
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">43rd Indian Antarctic Expedition</span>
+</div>
+<!-- Abstract Preview -->
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-3 mt-space-xs">
+                Comprehensive triaxial compressive tests and salinity profile analysis for fast-ice cores retrieved from Prydz Bay. Documents seasonal sea-ice decay, tensile yield strengths, and thermomechanical deformation rates under extreme Katabatic loads.
+              </p>
+<!-- Author & Institutional Attribution -->
+<div class="flex items-center gap-2 pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="font-semibold text-polar-midnight-deep">Lead: Dr. A. Sharma</span>
+<span>•</span>
+<span>NCPOR Cryosphere Division</span>
+</div>
+<!-- Provenance DOI Badge -->
+<div class="flex items-center gap-1.5 bg-surface p-1.5 rounded text-on-surface-variant font-code-sm text-code-sm mt-space-xs">
+<span class="material-symbols-outlined text-[14px] text-aurora-emerald">link</span>
+<span class="truncate">doi:10.5065/ncpor.isea43.glac.2024.04</span>
+</div>
+</div>
+<!-- Card Action Footer -->
+<div class="flex items-center justify-between pt-space-md mt-space-md border-t-0 bg-surface-container-lowest">
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1.5 rounded-lg bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm hover:bg-polar-navy-surface transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span>View Abstract</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface text-polar-midnight-deep hover:bg-surface-container font-label-sm text-label-sm transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">download</span>
+<span>PDF (4.2 MB)</span>
+</button>
+</div>
+<button class="p-1.5 rounded-lg bg-surface hover:bg-surface-container text-secondary flex items-center justify-center" title="Query with Polar AI">
+<span class="material-symbols-outlined text-[18px] text-azure-accent">auto_awesome</span>
+</button>
+</div>
+</article>
+<!-- Card 2: NPDC Oceanographic Dataset -->
+<article class="bg-pure-white rounded-xl shadow-sm p-space-md flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="flex flex-col gap-space-xs">
+<!-- Header Metadata Row -->
+<div class="flex items-center justify-between">
+<span class="px-space-xs py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">dataset</span> NPDC Dataset
+                </span>
+<span class="font-code-sm text-code-sm text-aurora-emerald font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span> Open Access
+                </span>
+</div>
+<!-- Title -->
+<h2 class="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep group-hover:text-secondary transition-colors mt-space-xs">
+                Prydz Bay High-Resolution CTD Cast &amp; Brine Rejection Matrix
+              </h2>
+<!-- Geographic Realm & Badges -->
+<div class="flex flex-wrap items-center gap-space-xs pt-0.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface font-label-sm text-label-sm text-polar-midnight-deep">
+<span class="material-symbols-outlined text-[14px] text-azure-accent">waves</span>
+                  Southern Ocean • 69°S, 76°E
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">420 Sensor Profiles</span>
+</div>
+<!-- Abstract Preview -->
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-3 mt-space-xs">
+                Continuous Conductivity-Temperature-Depth (CTD) hydrographic measurements gathered across the continental shelf slope during austral autumn aboard ORV Sagar Nidhi. Includes dissolved oxygen, chlorophyll fluorescence, and calibrated sound velocity data.
+              </p>
+<!-- Inline Visual Sparkline / Micro Data Visualization -->
+<div class="p-2 rounded bg-surface-container-low flex items-center justify-between mt-space-xs">
+<div class="flex flex-col">
+<span class="font-code-sm text-code-sm text-on-surface-variant">Depth Range: 0m to 2,840m</span>
+<span class="font-label-sm text-label-sm font-bold text-polar-midnight-deep">Max Salinity: 34.68 PSU</span>
+</div>
+<!-- Inline Mini Salinity Gradient SVG -->
+<svg class="text-secondary" fill="none" height="24" viewbox="0 0 100 24" width="100">
+<path d="M0 18 Q 20 22, 40 10 T 70 8 T 100 4" fill="none" stroke="currentColor" stroke-width="2"></path>
+<path d="M0 18 Q 20 22, 40 10 T 70 8 T 100 4 L 100 24 L 0 24 Z" fill="currentColor" fill-opacity="0.1"></path>
+</svg>
+</div>
+<!-- Author / Vessel -->
+<div class="flex items-center gap-2 pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="font-semibold text-polar-midnight-deep">Vessel: ORV Sagar Nidhi</span>
+<span>•</span>
+<span>MoES-NPDC Archive</span>
+</div>
+<!-- Provenance DOI Badge -->
+<div class="flex items-center gap-1.5 bg-surface p-1.5 rounded text-on-surface-variant font-code-sm text-code-sm mt-space-xs">
+<span class="material-symbols-outlined text-[14px] text-aurora-emerald">dataset</span>
+<span class="truncate">NPDC-DATA-SO-2024-8991 • NetCDF / GeoTIFF</span>
+</div>
+</div>
+<!-- Card Action Footer -->
+<div class="flex items-center justify-between pt-space-md mt-space-md border-t-0 bg-surface-container-lowest">
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1.5 rounded-lg bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm hover:bg-polar-navy-surface transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span>NetCDF (180 MB)</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface text-polar-midnight-deep hover:bg-surface-container font-label-sm text-label-sm transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schema</span>
+<span>Data Lineage</span>
+</button>
+</div>
+<button class="p-1.5 rounded-lg bg-surface hover:bg-surface-container text-secondary flex items-center justify-center" title="Query with Polar AI">
+<span class="material-symbols-outlined text-[18px] text-azure-accent">auto_awesome</span>
+</button>
+</div>
+</article>
+<!-- Card 3: Peer-Reviewed Scientific Publication -->
+<article class="bg-pure-white rounded-xl shadow-sm p-space-md flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="flex flex-col gap-space-xs">
+<!-- Header Metadata Row -->
+<div class="flex items-center justify-between">
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-polar-midnight-deep font-label-sm text-label-sm font-bold uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">menu_book</span> Peer-Reviewed Paper
+                </span>
+<span class="font-code-sm text-code-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-secondary">format_quote</span> 14 Citations
+                </span>
+</div>
+<!-- Title -->
+<h2 class="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep group-hover:text-secondary transition-colors mt-space-xs">
+                Early-Season Phytoplankton Bloom Kinetics Under Antarctic Fast Ice
+              </h2>
+<!-- Journal Attribution -->
+<div class="flex flex-wrap items-center gap-space-xs pt-0.5">
+<span class="font-label-sm text-label-sm font-semibold text-secondary">
+                  Journal of Polar Marine Biology (Elsevier)
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">• Vol. 48, Iss. 3, 2024</span>
+</div>
+<!-- Abstract Preview -->
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-3 mt-space-xs">
+                Quantifies chlorophyll-a irradiance triggers beneath 1.8-meter seasonal fast ice in Prydz Bay. Demonstrates earlier photoprotective pigment activation in diatom communities driven by thinning sub-surface snow covers during anomalous warm air events.
+              </p>
+<!-- Author List -->
+<div class="flex items-center gap-2 pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="font-semibold text-polar-midnight-deep">Lead: Dr. S. Mukherjee, Dr. P. R. Rao</span>
+<span>•</span>
+<span>NCPOR Bio-Sciences</span>
+</div>
+<!-- Provenance DOI Badge -->
+<div class="flex items-center gap-1.5 bg-surface p-1.5 rounded text-on-surface-variant font-code-sm text-code-sm mt-space-xs">
+<span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span>
+<span class="truncate">CrossRef DOI: 10.1016/j.polbio.2024.08.012</span>
+</div>
+</div>
+<!-- Card Action Footer -->
+<div class="flex items-center justify-between pt-space-md mt-space-md border-t-0 bg-surface-container-lowest">
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1.5 rounded-lg bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm hover:bg-polar-navy-surface transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+<span>Read Paper</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface text-polar-midnight-deep hover:bg-surface-container font-label-sm text-label-sm transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">terminal</span>
+<span>Cite (BibTeX)</span>
+</button>
+</div>
+<button class="p-1.5 rounded-lg bg-surface hover:bg-surface-container text-secondary flex items-center justify-center" title="Query with Polar AI">
+<span class="material-symbols-outlined text-[18px] text-azure-accent">auto_awesome</span>
+</button>
+</div>
+</article>
+<!-- Card 4: Arctic Mission Technical Report -->
+<article class="bg-pure-white rounded-xl shadow-sm p-space-md flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="flex flex-col gap-space-xs">
+<!-- Header Metadata Row -->
+<div class="flex items-center justify-between">
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-secondary font-label-sm text-label-sm font-bold uppercase tracking-wider">
+                  Technical Report
+                </span>
+<span class="font-code-sm text-code-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span> 2024
+                </span>
+</div>
+<!-- Title -->
+<h2 class="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep group-hover:text-secondary transition-colors mt-space-xs">
+                Atmospheric Halogen Deposition &amp; Black Carbon at Himadri Station
+              </h2>
+<!-- Geographic Realm & Badges -->
+<div class="flex flex-wrap items-center gap-space-xs pt-0.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface font-label-sm text-label-sm text-polar-midnight-deep">
+<span class="material-symbols-outlined text-[14px] text-azure-accent">location_on</span>
+                  Ny-Ålesund, Svalbard (78°55′N)
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">16th Indian Arctic Expedition</span>
+</div>
+<!-- Abstract Preview -->
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-3 mt-space-xs">
+                Time-series quantification of Reactive Halogen Species (RHS) and Aethalometer equivalent Black Carbon concentrations logged during the polar sunrise period. Identifies long-range Eurasia continental transboundary pollution plumes over Kongsfjorden.
+              </p>
+<!-- Inline Sensor Metadata Tag -->
+<div class="flex items-center gap-2 pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="font-semibold text-polar-midnight-deep">Lead: Dr. R. Joshi</span>
+<span>•</span>
+<span>MoES-NCPOR Atmospheric Node</span>
+</div>
+<!-- Provenance DOI Badge -->
+<div class="flex items-center gap-1.5 bg-surface p-1.5 rounded text-on-surface-variant font-code-sm text-code-sm mt-space-xs">
+<span class="material-symbols-outlined text-[14px] text-aurora-emerald">link</span>
+<span class="truncate">doi:10.5065/ncpor.arctic16.chem.2024.11</span>
+</div>
+</div>
+<!-- Card Action Footer -->
+<div class="flex items-center justify-between pt-space-md mt-space-md border-t-0 bg-surface-container-lowest">
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1.5 rounded-lg bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm hover:bg-polar-navy-surface transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span>View Report</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface text-polar-midnight-deep hover:bg-surface-container font-label-sm text-label-sm transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">download</span>
+<span>PDF (3.1 MB)</span>
+</button>
+</div>
+<button class="p-1.5 rounded-lg bg-surface hover:bg-surface-container text-secondary flex items-center justify-center" title="Query with Polar AI">
+<span class="material-symbols-outlined text-[18px] text-azure-accent">auto_awesome</span>
+</button>
+</div>
+</article>
+<!-- Card 5: Himalayan Cryospheric Dataset -->
+<article class="bg-pure-white rounded-xl shadow-sm p-space-md flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="flex flex-col gap-space-xs">
+<!-- Header Metadata Row -->
+<div class="flex items-center justify-between">
+<span class="px-space-xs py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">sensors</span> Telemetry Dataset
+                </span>
+<span class="font-code-sm text-code-sm text-aurora-emerald font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check</span> Real-Time Ingest
+                </span>
+</div>
+<!-- Title -->
+<h2 class="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep group-hover:text-secondary transition-colors mt-space-xs">
+                Himansh AWS High-Altitude Permafrost Thermal Profiles
+              </h2>
+<!-- Geographic Realm & Badges -->
+<div class="flex flex-wrap items-center gap-space-xs pt-0.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface font-label-sm text-label-sm text-polar-midnight-deep">
+<span class="material-symbols-outlined text-[14px] text-azure-accent">landscape</span>
+                  Chandra Basin, Spiti (4,080m a.s.l.)
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">10-Minute Cadence</span>
+</div>
+<!-- Abstract Preview -->
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-3 mt-space-xs">
+                Automated Weather Station (AWS) borehole thermistor arrays recording active layer thickness (ALT) cycles, sub-surface ground thermal flux, relative snow depth acoustic readings, and incident solar radiation at Himansh Research Station.
+              </p>
+<!-- Telemetry Metrics Graphic -->
+<div class="grid grid-cols-3 gap-2 p-2 rounded bg-surface-container-low mt-space-xs text-center font-code-sm text-code-sm">
+<div>
+<span class="text-on-surface-variant block text-[10px] uppercase">Mean Soil Temp</span>
+<span class="font-bold text-polar-midnight-deep">-4.2°C</span>
+</div>
+<div>
+<span class="text-on-surface-variant block text-[10px] uppercase">Snow Cover Depth</span>
+<span class="font-bold text-polar-midnight-deep">142 cm</span>
+</div>
+<div>
+<span class="text-on-surface-variant block text-[10px] uppercase">Frost Heave</span>
+<span class="font-bold text-polar-midnight-deep">1.8 mm/yr</span>
+</div>
+</div>
+<!-- Author / Facility -->
+<div class="flex items-center gap-2 pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="font-semibold text-polar-midnight-deep">Facility: Himansh Station (Spiti)</span>
+<span>•</span>
+<span>MoES Cryosphere Wing</span>
+</div>
+<!-- Provenance DOI Badge -->
+<div class="flex items-center gap-1.5 bg-surface p-1.5 rounded text-on-surface-variant font-code-sm text-code-sm mt-space-xs">
+<span class="material-symbols-outlined text-[14px] text-aurora-emerald">dataset</span>
+<span class="truncate">HIMANSH-AWS-2023-V2 • CSV / Parquet Format</span>
+</div>
+</div>
+<!-- Card Action Footer -->
+<div class="flex items-center justify-between pt-space-md mt-space-md border-t-0 bg-surface-container-lowest">
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1.5 rounded-lg bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm hover:bg-polar-navy-surface transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Access Raw Data</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface text-polar-midnight-deep hover:bg-surface-container font-label-sm text-label-sm transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">map</span>
+<span>View Station</span>
+</button>
+</div>
+<button class="p-1.5 rounded-lg bg-surface hover:bg-surface-container text-secondary flex items-center justify-center" title="Query with Polar AI">
+<span class="material-symbols-outlined text-[18px] text-azure-accent">auto_awesome</span>
+</button>
+</div>
+</article>
+<!-- Card 6: Field Media & Expedition Archive -->
+<article class="bg-pure-white rounded-xl shadow-sm p-space-md flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="flex flex-col gap-space-xs">
+<!-- Header Metadata Row -->
+<div class="flex items-center justify-between">
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-secondary font-label-sm text-label-sm font-bold uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">photo_library</span> Field Media Pack
+                </span>
+<span class="font-code-sm text-code-sm text-on-surface-variant flex items-center gap-1">
+                  64 High-Res Assets
+                </span>
+</div>
+<!-- Media Preview Image Container -->
+<div class="w-full h-36 rounded-lg overflow-hidden relative mt-1 bg-polar-midnight-deep">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="An Indian scientific research vessel with an orange hull cutting through dense pack ice and ice floes in the Antarctic Southern Ocean under moody polar skies with snowy glaciated mountains in the background. Photographed from high elevation in the crisp natural style of National Geographic polar documentation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq1_lK9dHyIkGxqgxg85IL1LaohHTGeLuKLUmwcOm31LDmln04WdP2BzVfelBpZEyFHiB9-kB5r909RtuIFny-Z1-vXzGIAQNVH4P2x4RhgwJF44rqRmdLyrzNPgmAoGHHkjfvq6lblBHDeO2c9bEClLlIxDrtavx-7DOhWM9KJdIDqhQTwWtbaxWaDxuQxBF9KUL0OizSiYnPs2ZJPh7wgSnbjrwEEF9DswpQRMVV2jZNcv8SfeYjBQ"/>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-polar-midnight-deep/80 text-pure-white backdrop-blur-xs font-code-sm text-code-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-glacial-sky">photo_camera</span>
+                  ISEA-43 Aerial Sea-Ice Survey
+                </div>
+</div>
+<!-- Title -->
+<h2 class="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep group-hover:text-secondary transition-colors mt-space-xs">
+                R/V Polar Discovery Sea-Ice Trajectory Imagery Archive
+              </h2>
+<!-- Description -->
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-space-xs">
+                Calibrated photogrammetric and multispectral drone survey imagery of calving fronts and pressure ridges in Prydz Bay, captured to validate sentinel SAR backscatter signatures.
+              </p>
+<!-- Metadata & License -->
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm pt-space-xs">
+<span class="font-semibold text-polar-midnight-deep">NCPOR Outreach Team</span>
+<span>•</span>
+<span>Creative Commons CC-BY 4.0</span>
+</div>
+</div>
+<!-- Card Action Footer -->
+<div class="flex items-center justify-between pt-space-md mt-space-md border-t-0 bg-surface-container-lowest">
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1.5 rounded-lg bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm hover:bg-polar-navy-surface transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">perm_media</span>
+<span>Explore Media Pack</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface text-polar-midnight-deep hover:bg-surface-container font-label-sm text-label-sm transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">info</span>
+<span>Metadata</span>
+</button>
+</div>
+<button class="p-1.5 rounded-lg bg-surface hover:bg-surface-container text-secondary flex items-center justify-center" title="Query with Polar AI">
+<span class="material-symbols-outlined text-[18px] text-azure-accent">auto_awesome</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Pagination & Bulk Export Bar -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-space-md bg-pure-white p-space-md rounded-xl shadow-sm">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span>Showing records <strong>1 – 6</strong> of <strong>1,048</strong></span>
+<span>•</span>
+<button class="text-secondary font-semibold hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">download</span> Export Search Results as CSV/JSON
+            </button>
+</div>
+<!-- Pagination Controls -->
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg bg-surface text-on-surface-variant disabled:opacity-40 cursor-not-allowed">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm font-semibold flex items-center justify-center">
+              1
+            </button>
+<button class="w-8 h-8 rounded-lg bg-surface text-on-surface hover:bg-surface-container font-label-sm text-label-sm font-semibold flex items-center justify-center">
+              2
+            </button>
+<button class="w-8 h-8 rounded-lg bg-surface text-on-surface hover:bg-surface-container font-label-sm text-label-sm font-semibold flex items-center justify-center">
+              3
+            </button>
+<span class="px-1 text-on-surface-variant">...</span>
+<button class="w-8 h-8 rounded-lg bg-surface text-on-surface hover:bg-surface-container font-label-sm text-label-sm font-semibold flex items-center justify-center">
+              175
+            </button>
+<button class="p-1.5 rounded-lg bg-surface text-on-surface hover:bg-surface-container">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</main>
+</div>
+</section>
+<!-- Institutional Provenance Bottom Guidance Card -->
+<section class="w-full bg-ice-white py-space-lg px-margin-mobile lg:px-margin border-t-0">
+<div class="max-w-[1360px] mx-auto bg-pure-white rounded-xl shadow-sm p-space-lg flex flex-col md:flex-row items-center justify-between gap-space-lg">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[28px]">policy</span>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep">
+            MoES Polar Data Stewardship Policy Notice
+          </h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-3xl">
+            In compliance with the Antarctic Treaty System and Government of India Open Geospatial Data Directives, raw observations gathered by national polar expeditions are placed in the public domain post standard 18-month embargo periods. Citations must reference NCPOR grant identifiers and assign proper researcher attribution.
+          </p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm shrink-0">
+<a class="px-space-md py-2.5 rounded-lg bg-polar-midnight-deep text-on-primary font-label-md text-label-md font-semibold hover:bg-polar-navy-surface transition-colors flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-[18px]">menu_book</span>
+<span>Data Usage Guidelines</span>
+</a>
+</div>
+</div>
+</section>
+</div>
+<script>
+  // Simple micro-interaction for filter pill toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    const filterContainer = document.getElementById('typeFilters');
+    if (filterContainer) {
+      const buttons = filterContainer.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          buttons.forEach(b => {
+            b.className = 'px-space-sm py-1.5 rounded-lg bg-surface-container-low text-secondary hover:bg-surface-container font-label-sm text-label-sm font-medium transition-all';
+          });
+          btn.className = 'px-space-sm py-1.5 rounded-lg bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm font-semibold transition-all';
+        });
+      });
+    }
+  });
+</script></main><footer class="w-full bg-polar-midnight-deep text-ice-white pt-space-xl pb-space-lg"><div class="w-full px-margin-mobile lg:px-margin max-w-7xl mx-auto flex flex-col gap-space-xl"><div class="p-space-md rounded-lg bg-draft-amber-bg text-draft-amber-text flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px] text-draft-amber-border">shield</span><span class="font-label-md text-label-md font-semibold tracking-wide uppercase">FAIR Data &amp; Provenance Notice</span></div><p class="font-body-sm text-body-sm">All scientific outputs remain under institutional provenance. AI tools provide grounded drafts requiring human editorial sign-off.</p></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-space-lg"><div class="lg:col-span-2 flex flex-col gap-space-sm"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm font-bold text-pure-white">POLARSETU</span><span class="px-space-xs py-0.5 rounded bg-polar-navy-surface text-glacial-sky font-code-sm text-code-sm uppercase">MoES / NCPOR</span></div><p class="font-body-sm text-body-sm text-inverse-primary max-w-md">Official digital outreach and polar cryospheric knowledge infrastructure under the Ministry of Earth Sciences (MoES), Government of India, and the National Centre for Polar and Ocean Research (NCPOR), Vasco da Gama, Goa.</p><p class="font-label-sm text-label-sm text-outline-variant mt-space-sm">Coordinating Indian research operations in Antarctica, the Arctic, and the Himalayas.</p></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md font-semibold text-glacial-sky uppercase tracking-wider mb-space-xs">Polar Stations</span><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="expeditions" href="#">Maitri Station (Antarctica)</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="expeditions" href="#">Bharati Station (Antarctica)</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="expeditions" href="#">Himadri (Ny-Ålesund, Arctic)</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="expeditions" href="#">Himansh (Spiti, Himalaya)</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="expeditions" href="#">IndARC Mooring System</a></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md font-semibold text-glacial-sky uppercase tracking-wider mb-space-xs">Programmes</span><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="research" href="#">Indian Antarctic Programme</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="research" href="#">Arctic Observation Network</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="research" href="#">Cryosphere &amp; Climate Hub</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="research" href="#">Open Repositories &amp; DOI Data</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="review-queue" href="#">Editorial Review Queue</a></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md font-semibold text-glacial-sky uppercase tracking-wider mb-space-xs">Quick Navigation</span><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="home" href="#">About PolarSetu</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="expeditions" href="#">Expedition Archives</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="research" href="#">Datasets &amp; Catalogs</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="outreach-studio" href="#">Outreach Studio</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="api-docs" href="#">Public API &amp; Standards</a><a class="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors" data-path="privacy" href="#">Data Policy &amp; Privacy</a></div></div><div class="pt-space-md flex flex-col sm:flex-row items-center justify-between gap-space-sm text-outline-variant font-label-sm text-label-sm"><p>© 2025 PolarSetu • Ministry of Earth Sciences (MoES), Govt. of India &amp; National Centre for Polar and Ocean Research (NCPOR). Prototype SIH26063.</p><div class="flex items-center gap-space-md"><span class="flex items-center gap-space-xs text-aurora-emerald"><span class="material-symbols-outlined text-[14px]">verified</span>NCPOR Provenance Verified</span><span>ISO/TC 211 &amp; FAIR Compliant</span></div></div></div></footer></body></html>
