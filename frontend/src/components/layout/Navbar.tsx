@@ -6,6 +6,7 @@ import { Sparkles, Beaker, Menu, X } from 'lucide-react';
 export default function Navbar() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -22,6 +23,7 @@ export default function Navbar() {
   // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
+    setAdminMenuOpen(false);
   }, [location.pathname]);
 
   // Prevent body scroll when mobile menu is open
@@ -90,8 +92,11 @@ export default function Navbar() {
             </Link>
             
             {isAuthenticated ? (
-              <div className="relative group hidden lg:block">
-                <button className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surface-container transition-colors focus:outline-none">
+              <div className="relative hidden lg:block">
+                <button 
+                  onClick={() => setAdminMenuOpen(prev => !prev)}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surface-container transition-colors focus:outline-none"
+                >
                   <div className="flex flex-col items-end">
                     <span className="font-label-sm text-label-sm font-bold text-polar-midnight-deep">Admin.Dr.Rao</span>
                     <span className="font-code-sm text-[10px] text-on-surface-variant uppercase tracking-wider">MoES Director</span>
@@ -100,13 +105,18 @@ export default function Navbar() {
                     DR
                   </div>
                 </button>
-                <div className="absolute right-0 top-full mt-0 w-48 bg-pure-white rounded-xl shadow-xl border border-surface-variant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col p-2 z-50">
-                   <Link to="/admin" className="px-3 py-2 text-label-sm font-label-md hover:bg-surface-container-low rounded-lg text-on-surface transition-colors">Dashboard</Link>
-                   <Link to="/admin/upload" className="px-3 py-2 text-label-sm font-label-md hover:bg-surface-container-low rounded-lg text-on-surface transition-colors">Ingest Resource</Link>
-                   <Link to="/admin/review" className="px-3 py-2 text-label-sm font-label-md hover:bg-surface-container-low rounded-lg text-on-surface transition-colors mb-2">Review Queue</Link>
-                   <div className="h-px bg-surface-variant mx-2 my-1"></div>
-                   <button onClick={handleLogout} className="px-3 py-2 text-label-sm font-label-md text-left text-draft-amber-text hover:bg-draft-amber-bg rounded-lg transition-colors mt-1 font-bold">Sign Out</button>
-                </div>
+                {adminMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setAdminMenuOpen(false)} />
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-pure-white rounded-xl shadow-xl border border-surface-variant flex flex-col p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                       <Link to="/admin" onClick={() => setAdminMenuOpen(false)} className="px-3 py-2.5 text-sm font-label-md font-bold hover:bg-surface-container-low rounded-lg text-on-surface transition-colors">Dashboard</Link>
+                       <Link to="/admin/upload" onClick={() => setAdminMenuOpen(false)} className="px-3 py-2.5 text-sm font-label-md hover:bg-surface-container-low rounded-lg text-on-surface transition-colors">Ingest Resource</Link>
+                       <Link to="/admin/review" onClick={() => setAdminMenuOpen(false)} className="px-3 py-2.5 text-sm font-label-md hover:bg-surface-container-low rounded-lg text-on-surface transition-colors">Review Queue</Link>
+                       <div className="h-px bg-surface-variant mx-2 my-1"></div>
+                       <button onClick={() => { setAdminMenuOpen(false); handleLogout(); }} className="px-3 py-2.5 text-sm font-label-md text-left text-error hover:bg-error/5 rounded-lg transition-colors font-bold">Sign Out</button>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               <Link to="/login" className="hidden lg:inline-flex items-center px-4 py-2 rounded-lg bg-surface-container text-on-surface-variant font-label-md text-label-md hover:text-on-surface hover:bg-surface-container-high transition-all">

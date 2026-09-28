@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search as SearchIcon, ArrowRight as ArrowRightIcon, Compass, Sparkles, Globe2, BadgeCheck, MapPin, Database as DatabaseIcon, FileText, Map as MapIcon2, Bot, MessageSquare, Gavel, Camera, PlayCircle } from 'lucide-react';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+const stationIcon = L.divIcon({
+  className: 'custom-station-icon',
+  html: `<div class="w-4 h-4 rounded-full bg-aurora-emerald border-2 border-pure-white shadow-lg ring-4 ring-aurora-emerald/20"></div>`,
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
 
 export default function Home() {
   const [activeResearchTab, setActiveResearchTab] = useState('all');
@@ -43,7 +53,7 @@ export default function Home() {
             <h1 className="font-display-hero text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-pure-white leading-tight">
               Discover India's <span className="text-transparent bg-clip-text bg-gradient-to-r from-glacial-sky via-secondary-container to-pure-white">Polar Science</span>
             </h1>
-            <p className="font-body-lg text-lg lg:text-xl text-inverse-primary leading-relaxed max-w-2xl">
+            <p className="font-body-lg text-lg lg:text-xl text-pure-white/80 leading-relaxed max-w-2xl">
               Explore expeditions, research, datasets, discoveries and stories from India's work across the Arctic and Antarctic.
             </p>
           </div>
@@ -341,7 +351,7 @@ export default function Home() {
             <div className="flex flex-col gap-2 max-w-2xl">
               <span className="font-label-sm text-label-sm text-glacial-sky font-bold uppercase tracking-widest">Geographic Locations</span>
               <h2 className="font-headline-lg text-headline-lg font-bold">Indian Polar & Himalayan Research Stations</h2>
-              <p className="font-body-md text-body-md text-inverse-primary max-w-xl">
+              <p className="font-body-md text-body-md text-pure-white/80 max-w-xl">
                 Discover research stations, expedition locations and scientific activity across India's polar and Himalayan research ecosystem.
               </p>
             </div>
@@ -351,8 +361,30 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="relative w-full rounded-2xl overflow-hidden bg-polar-navy-surface shadow-2xl border border-white/10 min-h-[500px] flex flex-col justify-between p-4 md:p-8">
-            <div className="absolute inset-0 w-full h-full bg-cover bg-center opacity-30 mix-blend-luminosity pointer-events-none" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCoh_p2zMxwZwU_Tz-12xqiAZAyn2SGIt01c1Hw3MNhXKESF8DCd1BaJot_jsT0LzOFYzVlA3Hez-MLsuhb_wY8ShfUEDvzvq91fuHEdW1i83wF-d43RhGObbdOOmaYKL7W3E-V6ai2p_IP8ZdEU48cTzcKUuCi6k2mMvaumxoZ3bjmef4tDLaXiP4XAoMcZXGwZJf-_x802BVm6_SnwoCVeo9KQIdjR-mmGrjZxZYxR6Q82lDbi31x6Q')" }}></div>
+          <div className="relative w-full rounded-2xl overflow-hidden bg-polar-midnight-deep shadow-2xl border border-white/10 min-h-[500px] flex flex-col justify-between p-4 md:p-8">
+            <div className="absolute inset-0 w-full h-full z-0">
+               <MapContainer
+                  center={[20, 78]}
+                  zoom={3}
+                  minZoom={2.5}
+                  zoomControl={false}
+                  scrollWheelZoom={false}
+                  dragging={false}
+                  maxBounds={[[-90, -180], [90, 180]]}
+                  className="w-full h-full opacity-60 mix-blend-luminosity grayscale"
+                  style={{ background: '#0B132B' }}
+                >
+                  <TileLayer
+                    url={`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${import.meta.env.VITE_CARTO_API_KEY || ''}`}
+                    noWrap={true}
+                  />
+                  <Marker position={[-69.4, 76.18]} icon={stationIcon} />
+                  <Marker position={[-70.75, 11.73]} icon={stationIcon} />
+                  <Marker position={[78.91, 11.93]} icon={stationIcon} />
+                  <Marker position={[32.4, 77.6]} icon={stationIcon} />
+               </MapContainer>
+               <div className="absolute inset-0 bg-gradient-to-t from-polar-navy-surface via-polar-navy-surface/30 to-transparent z-[5]"></div>
+            </div>
             
             <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 bg-polar-midnight-deep/80 backdrop-blur-md p-3.5 rounded-xl border border-white/5">
               <div className="flex items-center gap-4 text-label-sm font-label-sm">
@@ -360,7 +392,7 @@ export default function Home() {
                   <span className="w-2.5 h-2.5 rounded-full bg-glacial-sky animate-ping"></span> Latest Station Observations
                 </span>
                 <span className="hidden sm:inline text-white/20">|</span>
-                <span className="hidden sm:inline text-inverse-primary">Source: NCPOR (Simulated)</span>
+                <span className="hidden sm:inline text-pure-white/80">Source: NCPOR (Simulated)</span>
               </div>
               <div className="flex items-center gap-2 text-code-sm font-code-sm">
               </div>
@@ -375,7 +407,7 @@ export default function Home() {
                 </div>
                 <div className="flex flex-col text-code-sm font-code-sm text-glacial-sky">
                   <span className="">69°24′S, 76°11′E</span>
-                  <span className="text-inverse-primary font-body-sm text-body-sm pt-1">Larsemann Hills</span>
+                  <span className="text-pure-white/80 font-body-sm text-body-sm pt-1">Larsemann Hills</span>
                 </div>
                 <div className="pt-2 mt-auto border-t border-white/10 flex items-center justify-between text-label-sm font-label-sm text-ice-white">
                   <span className="">Temp: -18.4°C</span>
@@ -391,7 +423,7 @@ export default function Home() {
                 </div>
                 <div className="flex flex-col text-code-sm font-code-sm text-glacial-sky">
                   <span className="">70°45′S, 11°44′E</span>
-                  <span className="text-inverse-primary font-body-sm text-body-sm pt-1">Schirmacher Oasis</span>
+                  <span className="text-pure-white/80 font-body-sm text-body-sm pt-1">Schirmacher Oasis</span>
                 </div>
                 <div className="pt-2 mt-auto border-t border-white/10 flex items-center justify-between text-label-sm font-label-sm text-ice-white">
                   <span className="">Temp: -22.1°C</span>
@@ -407,7 +439,7 @@ export default function Home() {
                 </div>
                 <div className="flex flex-col text-code-sm font-code-sm text-glacial-sky">
                   <span className="">78°55′N, 11°56′E</span>
-                  <span className="text-inverse-primary font-body-sm text-body-sm pt-1">Ny-Ålesund, Svalbard</span>
+                  <span className="text-pure-white/80 font-body-sm text-body-sm pt-1">Ny-Ålesund, Svalbard</span>
                 </div>
                 <div className="pt-2 mt-auto border-t border-white/10 flex items-center justify-between text-label-sm font-label-sm text-ice-white">
                   <span className="">Temp: -12.8°C</span>
@@ -423,7 +455,7 @@ export default function Home() {
                 </div>
                 <div className="flex flex-col text-code-sm font-code-sm text-glacial-sky">
                   <span className="">32°24′N, 77°36′E</span>
-                  <span className="text-inverse-primary font-body-sm text-body-sm pt-1">Spiti Valley (4,000m)</span>
+                  <span className="text-pure-white/80 font-body-sm text-body-sm pt-1">Spiti Valley (4,000m)</span>
                 </div>
                 <div className="pt-2 mt-auto border-t border-white/10 flex items-center justify-between text-label-sm font-label-sm text-ice-white">
                   <span className="">Temp: -9.5°C</span>
@@ -534,7 +566,7 @@ export default function Home() {
                   <h2 className="font-headline-sm md:text-2xl font-bold">Ask Polar AI</h2>
                   <span className="px-3 py-1 rounded-full bg-draft-amber-bg text-draft-amber-text font-label-sm text-label-sm font-bold shadow-sm">Source-Grounded AI</span>
                 </div>
-                <p className="font-body-md text-body-md md:text-lg text-inverse-primary leading-relaxed">
+                <p className="font-body-md text-body-md md:text-lg text-pure-white/80 leading-relaxed">
                   Explore polar science through answers grounded in the PolarSetu knowledge repository. Every response links to exact document pages, diary entries, and sample catalogs.
                 </p>
               </div>

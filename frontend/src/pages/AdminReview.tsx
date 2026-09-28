@@ -1,22 +1,29 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import type { OutreachDraft } from '../types';
-import { CheckCircle2, XCircle, Clock, FileText, Edit3, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { CheckCircle2, XCircle, Clock, FileText, Edit3, ArrowLeft, Shield, Loader2 } from 'lucide-react';
 
 export default function AdminReview() {
+  const navigate = useNavigate();
   const [queue, setQueue] = useState<OutreachDraft[]>([]);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    fetchQueue();
+  }, [navigate]);
+
   const fetchQueue = async () => {
+    setLoading(true);
     const data = await api.getReviewQueue();
     setQueue(data);
     setLoading(false);
   };
-
-  useEffect(() => {
-    fetchQueue();
-  }, []);
 
   const handleApprove = async (id: string) => {
     await api.approveDraft(id);
@@ -24,84 +31,112 @@ export default function AdminReview() {
   };
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full bg-surface">
       {/* Header */}
-      <section className="w-full bg-ice-white py-6 px-4 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col gap-2">
-          <Link to="/admin" className="inline-flex items-center gap-1 text-secondary font-label-sm text-label-sm hover:text-polar-midnight-deep transition-colors self-start">
+      <section className="relative w-full overflow-hidden bg-polar-midnight-deep text-pure-white py-10 lg:py-12 px-4 lg:px-8">
+        <div className="absolute inset-0 bg-[radial-gradient(#38BDF8_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.07] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-polar-midnight-deep via-polar-midnight-deep/95 to-polar-navy-surface z-0"></div>
+        <div className="max-w-7xl mx-auto relative z-10 flex flex-col gap-3">
+          <Link to="/admin" className="inline-flex items-center gap-1.5 text-glacial-sky font-label-sm text-sm font-bold tracking-wider hover:text-white transition-colors self-start mb-1 uppercase">
             <ArrowLeft className="w-4 h-4" /> Back to Dashboard
           </Link>
-          <h1 className="font-headline-lg text-headline-lg font-bold text-polar-midnight-deep">Editorial Review Queue</h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">Approve or reject AI-generated outreach drafts before publication. Human review is mandatory.</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-draft-amber-border flex items-center justify-center shrink-0 shadow-md">
+              <Shield className="w-5 h-5 text-pure-white" />
+            </div>
+            <h1 className="font-headline-lg text-3xl lg:text-4xl font-bold tracking-tight uppercase">Editorial Review Queue</h1>
+          </div>
+          <p className="font-body-md text-base lg:text-lg text-pure-white/80 max-w-2xl mt-1 leading-relaxed">
+            Approve or reject AI-generated outreach drafts before publication. Human review is mandatory.
+          </p>
         </div>
       </section>
 
-      <section className="w-full px-4 lg:px-8 py-10">
+      <section className="w-full px-4 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto">
           {loading ? (
-            <div className="text-center py-12 text-on-surface-variant font-body-md">Loading queue...</div>
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <Loader2 className="w-8 h-8 text-secondary animate-spin" />
+              <span className="font-label-md text-polar-midnight-deep font-bold uppercase tracking-widest">Loading queue...</span>
+            </div>
           ) : queue.length === 0 ? (
-            <div className="bg-pure-white rounded-xl p-12 text-center shadow-sm">
-              <CheckCircle2 className="w-12 h-12 text-aurora-emerald mx-auto mb-4" />
-              <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">All caught up</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant">No pending drafts in the queue.</p>
+            <div className="bg-pure-white rounded-2xl p-12 lg:p-16 text-center shadow-sm border border-surface-variant max-w-2xl mx-auto flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-aurora-emerald/10 flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-aurora-emerald" />
+              </div>
+              <h3 className="text-2xl lg:text-3xl font-bold text-polar-midnight-deep font-display">All caught up</h3>
+              <p className="font-body-md text-base lg:text-lg text-on-surface-variant max-w-md">There are currently no pending drafts requiring editorial review.</p>
+              <Link to="/admin" className="mt-4 px-6 py-3 rounded-lg bg-polar-midnight-deep hover:bg-polar-navy-surface text-pure-white font-label-md font-bold uppercase tracking-wider transition-all shadow-sm">
+                Return to Dashboard
+              </Link>
             </div>
           ) : (
             <div className="flex flex-col gap-6">
+              {/* Queue count header */}
+              <div className="flex items-center justify-between">
+                <span className="font-label-sm text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+                  {queue.filter(d => d.status === 'DRAFT').length} pending · {queue.filter(d => d.status === 'APPROVED').length} approved
+                </span>
+              </div>
+
               {queue.map(draft => (
-                <div key={draft.id} className="bg-pure-white rounded-xl shadow-sm overflow-hidden flex flex-col lg:flex-row">
-                  <div className="flex-1 p-6">
-                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                <div key={draft.id} className="bg-pure-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-surface-variant overflow-hidden flex flex-col lg:flex-row">
+                  <div className="flex-1 p-6 lg:p-8 flex flex-col gap-5">
+                    <div className="flex flex-wrap items-center gap-2.5">
                       {draft.status === 'DRAFT' ? (
-                        <span className="flex items-center gap-1 px-2.5 py-1 rounded bg-draft-amber-bg text-draft-amber-text font-label-sm text-label-sm font-bold uppercase tracking-wider">
+                        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-draft-amber-bg/40 text-draft-amber-text border border-draft-amber-border/40 font-label-sm text-[11px] font-bold uppercase tracking-widest">
                           <Clock className="w-3.5 h-3.5" /> Pending Review
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1 px-2.5 py-1 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold uppercase tracking-wider">
+                        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-aurora-emerald/10 text-aurora-emerald border border-aurora-emerald/20 font-label-sm text-[11px] font-bold uppercase tracking-widest">
                           <CheckCircle2 className="w-3.5 h-3.5" /> Approved
                         </span>
                       )}
-                      <span className="px-2 py-0.5 rounded bg-surface-container-high text-secondary font-code-sm text-code-sm font-semibold">{draft.audience}</span>
-                      <span className="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-code-sm text-code-sm">{draft.outputType}</span>
-                      <span className="font-code-sm text-code-sm text-outline ml-auto">{new Date(draft.createdAt).toLocaleString()}</span>
+                      <span className="px-2.5 py-1 rounded bg-secondary/10 text-secondary font-code-sm text-[11px] font-bold tracking-widest uppercase border border-secondary/15">{draft.audience}</span>
+                      <span className="px-2.5 py-1 rounded bg-surface-container text-on-surface-variant font-code-sm text-[11px] font-bold tracking-widest uppercase border border-surface-variant">{draft.outputType}</span>
+                      <span className="font-code-sm text-[11px] text-outline ml-auto font-bold tracking-wider uppercase hidden sm:inline">{new Date(draft.createdAt).toLocaleString()}</span>
                     </div>
                     
-                    <div className="bg-surface-container-low p-4 rounded-xl font-body-sm text-body-sm text-on-surface whitespace-pre-wrap mb-4 leading-relaxed">
-                      {draft.content}
+                    <div className="bg-surface-container-low p-5 rounded-xl font-body-md text-base text-on-surface whitespace-pre-wrap leading-relaxed border border-surface-variant/50 relative overflow-hidden">
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-secondary to-glacial-sky rounded-full"></div>
+                      <div className="pl-3">{draft.content}</div>
                     </div>
                     
-                    <div className="flex items-center gap-2 font-code-sm text-code-sm text-on-surface-variant">
-                      <FileText className="w-3.5 h-3.5 text-secondary" />
-                      <span className="uppercase tracking-wider font-semibold">Source Evidence:</span>
-                      <span className="bg-pure-white border border-slate-border px-1.5 py-0.5 rounded font-semibold text-secondary">{draft.sourceIds.join(', ')}</span>
+                    <div className="flex items-center gap-2 font-code-sm text-xs text-on-surface-variant">
+                      <FileText className="w-4 h-4 text-secondary" />
+                      <span className="uppercase tracking-widest font-bold">Source Evidence:</span>
+                      <span className="bg-surface-container-low border border-surface-variant px-2 py-0.5 rounded font-bold text-secondary">{draft.sourceIds.join(', ')}</span>
                     </div>
                   </div>
                   
-                  <div className="bg-surface-container-low border-t lg:border-t-0 lg:border-l border-slate-border p-6 flex flex-row lg:flex-col items-center justify-center gap-3 w-full lg:w-48 shrink-0">
+                  <div className="bg-surface-container-low border-t lg:border-t-0 lg:border-l border-surface-variant p-6 lg:p-8 flex flex-row lg:flex-col items-center justify-center gap-3 w-full lg:w-56 shrink-0">
                     {draft.status === 'DRAFT' && (
                       <>
                         <button
                           onClick={() => handleApprove(draft.id)}
-                          className="w-full bg-aurora-emerald hover:bg-aurora-emerald/90 text-on-secondary py-2.5 rounded-lg font-label-md text-label-md font-medium transition-colors flex items-center justify-center gap-1.5"
+                          className="w-full bg-aurora-emerald hover:bg-aurora-emerald/90 text-pure-white py-3 rounded-xl font-label-md text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                         >
                           <CheckCircle2 className="w-4 h-4" /> Approve
                         </button>
                         <button 
                           onClick={() => alert('Reject draft action not available in demo mode.')}
-                          className="w-full bg-pure-white hover:bg-surface-container text-error border border-slate-border-strong py-2.5 rounded-lg font-label-md text-label-md font-medium transition-colors flex items-center justify-center gap-1.5"
+                          className="w-full bg-pure-white hover:bg-error/5 text-error border border-error/20 hover:border-error/50 py-3 rounded-xl font-label-md text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
                         >
-                          <XCircle className="w-4 h-4" /> Reject (Demo)
+                          <XCircle className="w-4 h-4" /> Reject <span className="opacity-50 text-xs">(Demo)</span>
                         </button>
                         <button 
                           onClick={() => alert('Edit draft action not available in demo mode.')}
-                          className="w-full text-on-surface-variant hover:text-on-surface font-label-md text-label-md font-medium py-2 transition-colors flex items-center justify-center gap-1.5"
+                          className="w-full text-on-surface-variant hover:text-polar-midnight-deep hover:bg-surface-container font-label-md text-sm py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
                         >
-                          <Edit3 className="w-4 h-4" /> Edit Draft (Demo)
+                          <Edit3 className="w-4 h-4" /> Edit <span className="opacity-50 text-xs">(Demo)</span>
                         </button>
                       </>
                     )}
                     {draft.status === 'APPROVED' && (
-                      <div className="text-center font-body-sm text-body-sm text-on-surface-variant">Reviewer action recorded.</div>
+                      <div className="flex flex-col items-center gap-2 text-center">
+                        <CheckCircle2 className="w-6 h-6 text-aurora-emerald" />
+                        <span className="font-body-sm text-sm text-on-surface-variant">Reviewer action recorded.</span>
+                      </div>
                     )}
                   </div>
                 </div>

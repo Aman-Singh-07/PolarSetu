@@ -136,7 +136,7 @@ export default function ExpeditionDetail() {
               <Sparkles className="w-5 h-5 text-glacial-sky" />
               <div className="flex flex-col">
                 <span className="font-title-md text-title-md font-semibold">Ask Polar AI</span>
-                <span className="font-body-sm text-body-sm text-inverse-primary">Query this expedition's data</span>
+                <span className="font-body-sm text-body-sm text-pure-white/80">Query this expedition's data</span>
               </div>
             </Link>
           </div>

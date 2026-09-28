@@ -16,11 +16,16 @@ export default function Footer() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-2 flex flex-col gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <img
+                alt="POLARSETU Emblem"
+                className="h-8 w-auto object-contain brightness-0 invert"
+                src="https://lh3.googleusercontent.com/aida/AEtjO1VXEr7AYLMmREImv4E52a7As9vSLcuPX2Tah0iKkNYpSXL-ZTRjw1tNmKkosj2FukeZj9LfB1KWGXuN-m1-MGKfRV6CkwD91Ufankky5MozJscRQ_7jMgBamSM7flV83WTRa8EwqmSG-PTLCeYe_96jRnhjagkkbl8PRO2Z8XF5RJlPUJrS0QAu0qZqx6bhG3wpA05rHjshP9RxV9o8N1MlnxYOPHjQnZ_hHTLWztoyBvyZuOTRw1g29_Gu"
+              />
               <span className="font-headline-sm text-headline-sm font-bold text-pure-white">POLARSETU</span>
               <span className="px-1.5 py-0.5 rounded bg-polar-navy-surface text-glacial-sky font-code-sm text-code-sm uppercase">MoES / NCPOR</span>
             </div>
-            <p className="font-body-sm text-body-sm text-inverse-primary max-w-md">
+            <p className="font-body-sm text-body-sm text-pure-white/80 max-w-md">
               Official digital outreach and polar cryospheric knowledge infrastructure under the Ministry of Earth Sciences (MoES), Government of India, and the National Centre for Polar and Ocean Research (NCPOR), Vasco da Gama, Goa.
             </p>
             <p className="font-label-sm text-label-sm text-outline-variant mt-2">

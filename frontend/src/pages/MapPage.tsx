@@ -41,8 +41,8 @@ export default function MapPage() {
   const [showExpeditions, setShowExpeditions] = useState(true);
   
   const [selectedMarker, setSelectedMarker] = useState<SelectedMarker>(null);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([10, 50]);
-  const [mapZoom, setMapZoom] = useState(2);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([20, 78]);
+  const [mapZoom, setMapZoom] = useState(3);
   
   const navigate = useNavigate();
 
@@ -71,13 +71,13 @@ export default function MapPage() {
   };
 
   const handleResetMap = () => {
-    setMapCenter([10, 50]);
-    setMapZoom(2);
+    setMapCenter([20, 78]);
+    setMapZoom(3);
     setSelectedMarker(null);
   };
 
   return (
-    <div className="flex flex-col w-full bg-surface min-h-screen pt-20">
+    <div className="flex flex-col w-full bg-surface min-h-screen">
       {/* Top Geospatial Command Bar */}
       <div className="w-full px-4 lg:px-8 py-4 bg-polar-navy-surface text-ice-white shadow-md z-10 flex flex-col gap-4 border-b border-slate-border/20">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 max-w-[1440px] mx-auto w-full">
@@ -125,14 +125,14 @@ export default function MapPage() {
               <span className="font-label-sm text-[10px] text-outline-variant uppercase tracking-wider font-bold">Layers:</span>
               <button 
                 onClick={() => setShowStations(!showStations)}
-                className={`px-3 py-1.5 rounded-full font-label-sm text-label-sm flex items-center gap-1.5 transition-all shadow-sm ${showStations ? 'bg-secondary text-pure-white' : 'bg-polar-midnight-deep text-inverse-primary border border-slate-border/20'}`}
+                className={`px-3 py-1.5 rounded-full font-label-sm text-label-sm flex items-center gap-1.5 transition-all shadow-sm ${showStations ? 'bg-secondary text-pure-white' : 'bg-polar-midnight-deep text-pure-white/80 border border-slate-border/20'}`}
               >
                 <span className={`w-2 h-2 rounded-full ${showStations ? 'bg-pure-white' : 'bg-outline-variant'}`}></span>
                 Research Stations
               </button>
               <button 
                 onClick={() => setShowExpeditions(!showExpeditions)}
-                className={`px-3 py-1.5 rounded-full font-label-sm text-label-sm flex items-center gap-1.5 transition-all shadow-sm ${showExpeditions ? 'bg-secondary text-pure-white' : 'bg-polar-midnight-deep text-inverse-primary border border-slate-border/20'}`}
+                className={`px-3 py-1.5 rounded-full font-label-sm text-label-sm flex items-center gap-1.5 transition-all shadow-sm ${showExpeditions ? 'bg-secondary text-pure-white' : 'bg-polar-midnight-deep text-pure-white/80 border border-slate-border/20'}`}
               >
                 <span className={`w-2 h-2 rounded-full ${showExpeditions ? 'bg-pure-white' : 'bg-outline-variant'}`}></span>
                 Expeditions
@@ -149,9 +149,12 @@ export default function MapPage() {
       {/* Main Map Experience */}
       <div className="relative w-full h-[600px] lg:h-[75vh] bg-polar-midnight-deep z-0">
         <MapContainer
-          center={[10, 50]}
-          zoom={2}
-          zoomControl={false}
+          center={[20, 78]}
+          zoom={3}
+          minZoom={2.5}
+          maxBounds={[[-90, -180], [90, 180]]}
+          maxBoundsViscosity={1.0}
+          zoomControl={true}
           scrollWheelZoom={true}
           className="w-full h-full"
           style={{ background: '#0B132B' }}
@@ -161,7 +164,8 @@ export default function MapPage() {
           {/* Base Map Dark Theme */}
           <TileLayer
             attribution='&copy; OpenStreetMap CartoDB'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            url={`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${import.meta.env.VITE_CARTO_API_KEY || ''}`}
+            noWrap={true}
           />
 
           {showStations && filteredStations.map(station => (

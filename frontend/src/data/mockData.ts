@@ -266,7 +266,7 @@ export const mockDrafts: OutreachDraft[] = [
     id: 'DRF-001',
     audience: 'General Public',
     outputType: 'Social Media Post',
-    content: 'Did you know? 🧊 Indian scientists at Bharati station measured Antarctic sea ice thinning at 2.3cm/year — the fastest rate since records began in 1981. This matters because polar ice reflects sunlight that keeps our planet cool.\n\nNew data from the 43rd Indian Scientific Expedition to Antarctica reveals how fast our frozen frontiers are changing.\n\n#PolarScience #NCPOR #ClimateAction #MoES #IndianAntarcticExpedition',
+    content: 'Did you know? Indian scientists at Bharati station measured Antarctic sea ice thinning at 2.3cm/year — the fastest rate since records began in 1981. This matters because polar ice reflects sunlight that keeps our planet cool.\n\nNew data from the 43rd Indian Scientific Expedition to Antarctica reveals how fast our frozen frontiers are changing.\n\n#PolarScience #NCPOR #ClimateAction #MoES #IndianAntarcticExpedition',
     sourceIds: ['RES-001'],
     status: 'DRAFT',
     createdAt: '2026-09-27T10:00:00Z'

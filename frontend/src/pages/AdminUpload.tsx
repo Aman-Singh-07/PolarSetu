@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   UploadCloud, CheckCircle2, ArrowLeft, Shield, FileText, Database, 
@@ -7,6 +7,7 @@ import {
 
 export default function AdminUpload() {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
@@ -16,6 +17,7 @@ export default function AdminUpload() {
   }, [navigate]);
 
   const [file, setFile] = useState<{name: string, size: string, type: string} | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   
   const [metadata, setMetadata] = useState({
     title: '',
@@ -32,18 +34,55 @@ export default function AdminUpload() {
 
   const isValid = file && metadata.title && metadata.resourceType && metadata.domain && metadata.description;
 
-  const handleSimulateFileDrop = () => {
-    if (!file) {
-      setFile({
-        name: 'atmospheric_data_q3.csv',
-        size: '14.2 MB',
-        type: 'CSV Dataset'
-      });
-    }
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const getFileTypeLabel = (name: string): string => {
+    const ext = name.split('.').pop()?.toLowerCase() || '';
+    const map: Record<string, string> = {
+      pdf: 'PDF Document', csv: 'CSV Dataset', json: 'JSON Data', 
+      parquet: 'Parquet Dataset', png: 'Image (PNG)', jpg: 'Image (JPEG)', 
+      jpeg: 'Image (JPEG)', tiff: 'Image (TIFF)', xlsx: 'Excel Spreadsheet',
+      docx: 'Word Document', zip: 'Archive (ZIP)'
+    };
+    return map[ext] || ext.toUpperCase() + ' File';
+  };
+
+  const handleFileSelect = (selectedFile: File) => {
+    setFile({
+      name: selectedFile.name,
+      size: formatFileSize(selectedFile.size),
+      type: getFileTypeLabel(selectedFile.name)
+    });
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) handleFileSelect(selectedFile);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) handleFileSelect(droppedFile);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
   };
 
   const handleClearFile = () => {
     setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -69,51 +108,59 @@ export default function AdminUpload() {
       expedition: ''
     });
     setStatus('idle');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   if (status === 'success') {
     return (
-      <div className="flex flex-col w-full min-h-[calc(100vh-80px)] pt-20 bg-surface">
-        <section className="w-full bg-surface-container-low py-6 px-4 lg:px-8 border-b border-slate-border/50">
-           <div className="max-w-7xl mx-auto">
-              <div className="flex items-center gap-2 text-secondary mb-2">
-                 <Shield className="w-4 h-4" />
-                 <span className="font-label-sm text-[10px] font-bold uppercase tracking-wider">Administration Workspace</span>
-              </div>
-              <h1 className="font-headline-lg text-headline-lg font-bold text-polar-midnight-deep uppercase tracking-tight">Content Management</h1>
-           </div>
+      <div className="flex flex-col w-full bg-surface">
+        <section className="relative w-full overflow-hidden bg-polar-midnight-deep text-pure-white py-10 lg:py-12 px-4 lg:px-8">
+          <div className="absolute inset-0 bg-[radial-gradient(#38BDF8_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.07] pointer-events-none"></div>
+          <div className="max-w-7xl mx-auto relative z-10 flex flex-col gap-3">
+             <Link to="/admin" className="inline-flex items-center gap-1.5 text-glacial-sky font-label-sm text-sm font-bold tracking-wider hover:text-white transition-colors self-start mb-1 uppercase">
+               <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+             </Link>
+             <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center shrink-0 shadow-md">
+                  <FileUp className="w-5 h-5 text-pure-white" />
+                </div>
+                <h1 className="font-headline-lg text-3xl lg:text-4xl font-bold tracking-tight uppercase">Content Management</h1>
+             </div>
+          </div>
         </section>
         <section className="w-full px-4 lg:px-8 py-12">
-          <div className="max-w-3xl mx-auto bg-pure-white rounded-xl p-8 border border-slate-border/50 shadow-sm text-center animate-in fade-in duration-500">
-            <CheckCircle2 className="w-16 h-16 text-aurora-emerald mx-auto mb-6" />
-            <h2 className="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep mb-2 uppercase tracking-wide">Resource Prepared</h2>
-            <p className="font-body-md text-body-md text-on-surface-variant mb-8 max-w-md mx-auto">
+          <div className="max-w-3xl mx-auto bg-pure-white rounded-2xl p-8 lg:p-10 border border-surface-variant shadow-sm text-center animate-in fade-in duration-500">
+            <div className="w-16 h-16 rounded-full bg-aurora-emerald/10 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="w-8 h-8 text-aurora-emerald" />
+            </div>
+            <h2 className="text-2xl font-bold text-polar-midnight-deep mb-2 uppercase tracking-wide font-display">Resource Prepared</h2>
+            <p className="font-body-md text-base text-on-surface-variant mb-8 max-w-md mx-auto leading-relaxed">
               The resource package is ready for backend ingestion. Storage, checksum calculation, and indexing will occur in the backend pipeline.
             </p>
             
-            <div className="bg-surface-container-low rounded-lg p-5 flex flex-col gap-3 text-left mb-8 border border-slate-border/50 mx-auto max-w-lg">
-               <div className="flex items-start justify-between border-b border-slate-border/50 pb-3">
+            <div className="bg-surface-container-low rounded-xl p-5 flex flex-col gap-3 text-left mb-8 border border-surface-variant mx-auto max-w-lg">
+               <div className="flex items-start justify-between border-b border-surface-variant pb-3">
                  <div className="flex flex-col gap-1">
                     <span className="font-label-sm text-[10px] text-outline uppercase font-bold tracking-wider">Resource Title</span>
-                    <span className="font-title-md font-semibold text-polar-midnight-deep">{metadata.title}</span>
+                    <span className="font-title-md font-bold text-polar-midnight-deep">{metadata.title}</span>
                  </div>
                </div>
                <div className="grid grid-cols-2 gap-4 pt-1">
                   <div className="flex flex-col gap-1">
                     <span className="font-label-sm text-[10px] text-outline uppercase font-bold tracking-wider">Type</span>
-                    <span className="font-body-sm font-medium text-on-surface">{metadata.resourceType}</span>
+                    <span className="font-body-sm text-sm font-medium text-on-surface">{metadata.resourceType}</span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="font-label-sm text-[10px] text-outline uppercase font-bold tracking-wider">Domain</span>
-                    <span className="font-body-sm font-medium text-on-surface">{metadata.domain}</span>
+                    <span className="font-body-sm text-sm font-medium text-on-surface">{metadata.domain}</span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="font-label-sm text-[10px] text-outline uppercase font-bold tracking-wider">File</span>
-                    <span className="font-body-sm font-medium text-on-surface truncate">{file?.name}</span>
+                    <span className="font-body-sm text-sm font-medium text-on-surface truncate">{file?.name}</span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="font-label-sm text-[10px] text-outline uppercase font-bold tracking-wider">Status</span>
-                    <span className="font-body-sm font-bold text-aurora-emerald">Ready for Backend</span>
+                    <span className="font-body-sm text-sm font-bold text-aurora-emerald">Ready for Backend</span>
                   </div>
                </div>
             </div>
@@ -121,13 +168,13 @@ export default function AdminUpload() {
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <button
                 onClick={handleReset}
-                className="px-6 py-3 rounded-lg border border-slate-border bg-pure-white text-polar-midnight-deep font-label-md text-label-md hover:bg-surface-container-low transition-colors"
+                className="px-6 py-3 rounded-lg border border-surface-variant bg-pure-white text-polar-midnight-deep font-label-md font-bold uppercase tracking-wider hover:bg-surface-container-low transition-colors"
               >
                 Upload Another
               </button>
               <Link
                 to="/explore"
-                className="px-6 py-3 rounded-lg bg-polar-midnight-deep text-pure-white font-label-md text-label-md hover:bg-polar-navy-surface transition-colors"
+                className="px-6 py-3 rounded-lg bg-polar-midnight-deep text-pure-white font-label-md font-bold uppercase tracking-wider hover:bg-polar-navy-surface transition-colors"
               >
                 View Repository
               </Link>
@@ -139,37 +186,38 @@ export default function AdminUpload() {
   }
 
   return (
-    <div className="flex flex-col w-full min-h-[calc(100vh-80px)] pt-20 bg-surface">
+    <div className="flex flex-col w-full bg-surface">
       {/* Header */}
-      <section className="w-full bg-surface-container-low py-6 px-4 lg:px-8 border-b border-slate-border/50">
-        <div className="max-w-7xl mx-auto flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-             <Link to="/admin" className="inline-flex items-center gap-1.5 text-secondary font-label-sm text-label-sm hover:underline mb-2 self-start">
-               <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard
+      <section className="relative w-full overflow-hidden bg-polar-midnight-deep text-pure-white py-10 lg:py-12 px-4 lg:px-8">
+        <div className="absolute inset-0 bg-[radial-gradient(#38BDF8_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.07] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-polar-midnight-deep via-polar-midnight-deep/95 to-polar-navy-surface z-0"></div>
+        <div className="max-w-7xl mx-auto relative z-10 flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
+             <Link to="/admin" className="inline-flex items-center gap-1.5 text-glacial-sky font-label-sm text-sm font-bold tracking-wider hover:text-white transition-colors self-start mb-1 uppercase">
+               <ArrowLeft className="w-4 h-4" /> Back to Dashboard
              </Link>
-             <div className="flex items-center gap-2 text-secondary mb-1">
-                <Shield className="w-4 h-4" />
-                <span className="font-label-sm text-[10px] font-bold uppercase tracking-wider">Administration Workspace</span>
+             <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center shrink-0 shadow-md">
+                  <FileUp className="w-5 h-5 text-pure-white" />
+                </div>
+                <h1 className="font-headline-lg text-3xl lg:text-4xl font-bold tracking-tight uppercase">Content Management</h1>
              </div>
-             <h1 className="font-headline-lg text-headline-lg font-bold text-polar-midnight-deep uppercase tracking-tight">Content Management</h1>
-             <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl">
-               Add, validate, and prepare research resources for the POLARSETU repository.
+             <p className="font-body-md text-base lg:text-lg text-pure-white/80 max-w-2xl mt-1 leading-relaxed">
+               Ingest, classify, and validate scientific data and media for the central POLARSETU repository.
              </p>
           </div>
 
           {/* Workflow Indicator */}
-          <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-2 font-label-sm text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-outline">
-            <span className="text-polar-midnight-deep">Upload</span>
+          <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-2 font-label-sm text-xs font-bold uppercase tracking-widest text-pure-white/40 bg-pure-white/5 w-fit px-4 py-2.5 rounded-lg border border-pure-white/10 backdrop-blur-sm">
+            <span className="text-pure-white flex items-center gap-1.5"><FileUp className="w-3.5 h-3.5" /> Upload</span>
             <ArrowRight className="w-3 h-3" />
-            <span className={file ? "text-polar-midnight-deep" : ""}>Metadata</span>
+            <span className={`flex items-center gap-1.5 ${file ? 'text-pure-white' : ''}`}><Database className="w-3.5 h-3.5" /> Metadata</span>
             <ArrowRight className="w-3 h-3" />
-            <span className={isValid ? "text-polar-midnight-deep" : ""}>Validate</span>
+            <span className={`flex items-center gap-1.5 ${isValid ? 'text-pure-white' : ''}`}><CheckCircle2 className="w-3.5 h-3.5" /> Validate</span>
             <ArrowRight className="w-3 h-3" />
             <span>Checksum</span>
             <ArrowRight className="w-3 h-3" />
             <span>Store</span>
-            <ArrowRight className="w-3 h-3" />
-            <span>Index</span>
           </div>
         </div>
       </section>
@@ -182,31 +230,51 @@ export default function AdminUpload() {
           <div className="lg:col-span-8 flex flex-col gap-6">
             
             {/* Upload Zone */}
-            <div className="bg-pure-white rounded-xl shadow-sm border border-slate-border/50 overflow-hidden flex flex-col">
-               <div className="bg-surface-container-low px-5 py-4 border-b border-slate-border/50 flex items-center justify-between">
-                 <h2 className="font-label-md text-label-md font-bold text-polar-midnight-deep uppercase tracking-wider flex items-center gap-2">
+            <div className="bg-pure-white rounded-2xl shadow-sm border border-surface-variant overflow-hidden flex flex-col">
+               <div className="bg-surface-container-low px-5 py-4 border-b border-surface-variant flex items-center justify-between">
+                 <h2 className="font-label-md text-sm font-bold text-polar-midnight-deep uppercase tracking-widest flex items-center gap-2">
                    <FileUp className="w-5 h-5 text-secondary" /> Resource File
                  </h2>
-                 {!file && <span className="font-code-sm text-[10px] uppercase tracking-wider text-draft-amber-text bg-draft-amber-bg border border-draft-amber-border/50 px-2 py-0.5 rounded">Required</span>}
+                 {!file && <span className="font-code-sm text-[10px] uppercase tracking-wider text-draft-amber-text bg-draft-amber-bg/50 border border-draft-amber-border/40 px-2 py-0.5 rounded">Required</span>}
                </div>
                
+               {/* Hidden file input */}
+               <input 
+                 ref={fileInputRef}
+                 type="file" 
+                 className="hidden" 
+                 onChange={handleFileInputChange}
+                 accept=".pdf,.csv,.json,.parquet,.png,.jpg,.jpeg,.tiff,.xlsx,.docx,.zip"
+               />
+
                <div className="p-6">
                  {!file ? (
                    <button 
                      type="button"
-                     onClick={handleSimulateFileDrop}
-                     className="w-full border-2 border-dashed border-slate-border rounded-xl p-10 flex flex-col items-center justify-center text-center bg-surface-container-low hover:bg-surface-container hover:border-secondary/50 transition-colors group"
+                     onClick={() => fileInputRef.current?.click()}
+                     onDrop={handleDrop}
+                     onDragOver={handleDragOver}
+                     onDragLeave={handleDragLeave}
+                     className={`w-full border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center transition-all group ${
+                       isDragOver 
+                         ? 'border-secondary bg-secondary/5 scale-[1.01]' 
+                         : 'border-surface-variant bg-surface-container-low hover:bg-surface-container hover:border-secondary/50'
+                     }`}
                    >
-                     <div className="w-12 h-12 bg-pure-white rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-sm">
-                        <UploadCloud className="w-6 h-6 text-secondary" />
+                     <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-transform shadow-sm ${
+                       isDragOver ? 'bg-secondary/10 scale-110' : 'bg-pure-white group-hover:scale-110'
+                     }`}>
+                        <UploadCloud className={`w-7 h-7 ${isDragOver ? 'text-secondary' : 'text-secondary'}`} />
                      </div>
-                     <span className="font-title-md font-semibold text-polar-midnight-deep mb-1">Click or drag file to upload</span>
-                     <span className="font-body-sm text-on-surface-variant">Supported prototype formats: PDF, CSV, JSON, Parquet, Images</span>
+                     <span className="font-title-md font-bold text-polar-midnight-deep mb-1">
+                       {isDragOver ? 'Drop file here' : 'Click to browse or drag & drop'}
+                     </span>
+                     <span className="font-body-sm text-sm text-on-surface-variant">PDF, CSV, JSON, Parquet, Images, Excel, Archives</span>
                    </button>
                  ) : (
-                   <div className="flex items-center justify-between p-4 bg-surface-container-low border border-slate-border/50 rounded-xl">
+                   <div className="flex items-center justify-between p-4 bg-surface-container-low border border-surface-variant rounded-xl">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-pure-white rounded-lg flex items-center justify-center shadow-sm border border-slate-border/50">
+                        <div className="w-12 h-12 bg-pure-white rounded-lg flex items-center justify-center shadow-sm border border-surface-variant">
                            <FileText className="w-6 h-6 text-secondary" />
                         </div>
                         <div className="flex flex-col gap-0.5">
@@ -218,7 +286,7 @@ export default function AdminUpload() {
                       </div>
                       <button 
                         onClick={handleClearFile} 
-                        className="p-2 hover:bg-surface-container rounded-lg text-outline hover:text-draft-amber-text transition-colors"
+                        className="p-2 hover:bg-surface-container rounded-lg text-outline hover:text-error transition-colors"
                         aria-label="Remove file"
                       >
                         <X className="w-5 h-5" />
@@ -229,13 +297,13 @@ export default function AdminUpload() {
             </div>
 
             {/* Metadata Form */}
-            <div className={`bg-pure-white rounded-xl shadow-sm border border-slate-border/50 overflow-hidden flex flex-col transition-opacity duration-300 ${!file ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-               <div className="bg-surface-container-low px-5 py-4 border-b border-slate-border/50 flex items-center justify-between">
-                 <h2 className="font-label-md text-label-md font-bold text-polar-midnight-deep uppercase tracking-wider flex items-center gap-2">
+            <div className={`bg-pure-white rounded-2xl shadow-sm border border-surface-variant overflow-hidden flex flex-col transition-opacity duration-300 ${!file ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
+               <div className="bg-surface-container-low px-5 py-4 border-b border-surface-variant flex items-center justify-between">
+                 <h2 className="font-label-md text-sm font-bold text-polar-midnight-deep uppercase tracking-widest flex items-center gap-2">
                    <Database className="w-5 h-5 text-secondary" /> Resource Metadata
                  </h2>
                  {file && !isValid && (
-                   <div className="flex items-center gap-1.5 text-draft-amber-text bg-draft-amber-bg border border-draft-amber-border/50 px-2 py-0.5 rounded">
+                   <div className="flex items-center gap-1.5 text-draft-amber-text bg-draft-amber-bg/50 border border-draft-amber-border/40 px-2 py-0.5 rounded">
                      <AlertCircle className="w-3.5 h-3.5" />
                      <span className="font-code-sm text-[10px] uppercase tracking-wider font-bold">Incomplete</span>
                    </div>
@@ -257,7 +325,7 @@ export default function AdminUpload() {
                             value={metadata.title}
                             onChange={(e) => setMetadata({...metadata, title: e.target.value})}
                             placeholder="Descriptive title..."
-                            className="w-full bg-surface-container-low border border-slate-border rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-shadow"
+                            className="w-full bg-surface-container-low border border-surface-variant rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary transition-all"
                           />
                        </div>
 
@@ -269,7 +337,7 @@ export default function AdminUpload() {
                             required
                             value={metadata.resourceType}
                             onChange={(e) => setMetadata({...metadata, resourceType: e.target.value})}
-                            className="w-full bg-surface-container-low border border-slate-border rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-shadow"
+                            className="w-full bg-surface-container-low border border-surface-variant rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary transition-all"
                           >
                              <option value="" disabled>Select primary type...</option>
                              <option value="Research Paper">Research Paper</option>
@@ -288,7 +356,7 @@ export default function AdminUpload() {
                             required
                             value={metadata.domain}
                             onChange={(e) => setMetadata({...metadata, domain: e.target.value})}
-                            className="w-full bg-surface-container-low border border-slate-border rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-shadow"
+                            className="w-full bg-surface-container-low border border-surface-variant rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary transition-all"
                           >
                              <option value="" disabled>Select regional domain...</option>
                              <option value="Antarctica">Antarctica</option>
@@ -310,7 +378,7 @@ export default function AdminUpload() {
                             value={metadata.authors}
                             onChange={(e) => setMetadata({...metadata, authors: e.target.value})}
                             placeholder="e.g. Dr. A. Sharma, NCPOR"
-                            className="w-full bg-surface-container-low border border-slate-border rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-shadow"
+                            className="w-full bg-surface-container-low border border-surface-variant rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary transition-all"
                           />
                        </div>
 
@@ -321,7 +389,7 @@ export default function AdminUpload() {
                           <select 
                             value={metadata.expedition}
                             onChange={(e) => setMetadata({...metadata, expedition: e.target.value})}
-                            className="w-full bg-surface-container-low border border-slate-border rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-shadow"
+                            className="w-full bg-surface-container-low border border-surface-variant rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary transition-all"
                           >
                              <option value="">Unassociated</option>
                              <option value="EXP-43">43rd Indian Antarctic Expedition</option>
@@ -339,7 +407,7 @@ export default function AdminUpload() {
                             value={metadata.keywords}
                             onChange={(e) => setMetadata({...metadata, keywords: e.target.value})}
                             placeholder="climate, sea ice, ozone..."
-                            className="w-full bg-surface-container-low border border-slate-border rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-shadow"
+                            className="w-full bg-surface-container-low border border-surface-variant rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary transition-all"
                           />
                        </div>
                     </div>
@@ -355,7 +423,7 @@ export default function AdminUpload() {
                       value={metadata.description}
                       onChange={(e) => setMetadata({...metadata, description: e.target.value})}
                       placeholder="Scientific abstract or general description..."
-                      className="w-full min-h-[100px] resize-none bg-surface-container-low border border-slate-border rounded-lg p-3 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-shadow"
+                      className="w-full min-h-[100px] resize-none bg-surface-container-low border border-surface-variant rounded-lg p-3 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary transition-all"
                     />
                  </div>
                </div>
@@ -366,51 +434,51 @@ export default function AdminUpload() {
           <div className="lg:col-span-4 flex flex-col gap-6">
              
              {/* Validation Summary */}
-             <div className="bg-pure-white rounded-xl shadow-sm border border-slate-border/50 overflow-hidden flex flex-col sticky top-28">
-               <div className="bg-surface-container-low px-5 py-4 border-b border-slate-border/50 flex items-center justify-between">
-                 <h3 className="font-label-md text-label-md font-bold text-polar-midnight-deep uppercase tracking-wider">Ingestion Pipeline</h3>
-                 <span className="font-code-sm text-[10px] uppercase tracking-wider text-outline">Pre-Flight</span>
+             <div className="bg-pure-white rounded-2xl shadow-sm border border-surface-variant overflow-hidden flex flex-col sticky top-28">
+               <div className="bg-surface-container-low px-5 py-4 border-b border-surface-variant flex items-center justify-between">
+                 <h3 className="font-label-md text-sm font-bold text-polar-midnight-deep uppercase tracking-widest">Ingestion Pipeline</h3>
+                 <span className="font-code-sm text-[10px] uppercase tracking-wider text-outline font-bold">Pre-Flight</span>
                </div>
                
                <div className="p-5 flex flex-col gap-4">
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-3">
                      <div className="flex items-center gap-3">
-                        {file ? <CheckCircle2 className="w-4 h-4 text-aurora-emerald" /> : <div className="w-4 h-4 rounded-full border-2 border-slate-border" />}
+                        {file ? <CheckCircle2 className="w-5 h-5 text-aurora-emerald shrink-0" /> : <div className="w-5 h-5 rounded-full border-2 border-surface-variant shrink-0" />}
                         <span className={`font-body-sm text-sm ${file ? 'text-polar-midnight-deep font-semibold' : 'text-on-surface-variant'}`}>File selected</span>
                      </div>
                      <div className="flex items-center gap-3">
-                        {metadata.title ? <CheckCircle2 className="w-4 h-4 text-aurora-emerald" /> : <div className="w-4 h-4 rounded-full border-2 border-slate-border" />}
+                        {metadata.title ? <CheckCircle2 className="w-5 h-5 text-aurora-emerald shrink-0" /> : <div className="w-5 h-5 rounded-full border-2 border-surface-variant shrink-0" />}
                         <span className={`font-body-sm text-sm ${metadata.title ? 'text-polar-midnight-deep font-semibold' : 'text-on-surface-variant'}`}>Title provided</span>
                      </div>
                      <div className="flex items-center gap-3">
-                        {metadata.resourceType && metadata.domain ? <CheckCircle2 className="w-4 h-4 text-aurora-emerald" /> : <div className="w-4 h-4 rounded-full border-2 border-slate-border" />}
+                        {metadata.resourceType && metadata.domain ? <CheckCircle2 className="w-5 h-5 text-aurora-emerald shrink-0" /> : <div className="w-5 h-5 rounded-full border-2 border-surface-variant shrink-0" />}
                         <span className={`font-body-sm text-sm ${metadata.resourceType && metadata.domain ? 'text-polar-midnight-deep font-semibold' : 'text-on-surface-variant'}`}>Categorization complete</span>
                      </div>
                      <div className="flex items-center gap-3">
-                        {metadata.description ? <CheckCircle2 className="w-4 h-4 text-aurora-emerald" /> : <div className="w-4 h-4 rounded-full border-2 border-slate-border" />}
+                        {metadata.description ? <CheckCircle2 className="w-5 h-5 text-aurora-emerald shrink-0" /> : <div className="w-5 h-5 rounded-full border-2 border-surface-variant shrink-0" />}
                         <span className={`font-body-sm text-sm ${metadata.description ? 'text-polar-midnight-deep font-semibold' : 'text-on-surface-variant'}`}>Description provided</span>
                      </div>
                   </div>
                   
-                  <div className="h-px bg-slate-border/50 my-1 w-full" />
+                  <div className="h-px bg-surface-variant my-1 w-full" />
                   
                   <div className="flex flex-col gap-3">
                      <div className="flex items-start gap-3">
-                        <div className="w-4 h-4 rounded-full border-2 border-slate-border/50 shrink-0 mt-0.5" />
+                        <div className="w-5 h-5 rounded-full border-2 border-surface-variant shrink-0 mt-0.5" />
                         <div className="flex flex-col">
                            <span className="font-label-sm text-[11px] font-bold uppercase tracking-wider text-outline">SHA-256 Integrity</span>
                            <span className="font-body-sm text-xs text-on-surface-variant">Pending backend processing</span>
                         </div>
                      </div>
                      <div className="flex items-start gap-3">
-                        <div className="w-4 h-4 rounded-full border-2 border-slate-border/50 shrink-0 mt-0.5" />
+                        <div className="w-5 h-5 rounded-full border-2 border-surface-variant shrink-0 mt-0.5" />
                         <div className="flex flex-col">
                            <span className="font-label-sm text-[11px] font-bold uppercase tracking-wider text-outline">Supabase Storage</span>
                            <span className="font-body-sm text-xs text-on-surface-variant">Pending backend integration</span>
                         </div>
                      </div>
                      <div className="flex items-start gap-3">
-                        <div className="w-4 h-4 rounded-full border-2 border-slate-border/50 shrink-0 mt-0.5" />
+                        <div className="w-5 h-5 rounded-full border-2 border-surface-variant shrink-0 mt-0.5" />
                         <div className="flex flex-col">
                            <span className="font-label-sm text-[11px] font-bold uppercase tracking-wider text-outline">Repository Indexing</span>
                            <span className="font-body-sm text-xs text-on-surface-variant">Pending backend integration</span>
@@ -419,7 +487,7 @@ export default function AdminUpload() {
                   </div>
 
                   {!isValid && file && (
-                    <div className="mt-2 p-3 bg-draft-amber-bg/50 border border-draft-amber-border/50 rounded-lg flex gap-2">
+                    <div className="mt-2 p-3 bg-draft-amber-bg/30 border border-draft-amber-border/40 rounded-lg flex gap-2">
                        <AlertTriangle className="w-4 h-4 text-draft-amber-text shrink-0 mt-0.5" />
                        <div className="flex flex-col">
                           <span className="font-label-sm text-[11px] font-bold text-draft-amber-text uppercase tracking-wider">Metadata Incomplete</span>
@@ -431,7 +499,7 @@ export default function AdminUpload() {
                   <button
                     onClick={handleSubmit}
                     disabled={!isValid || status === 'preparing'}
-                    className="w-full py-3.5 mt-2 rounded-xl font-label-md text-label-md font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all bg-secondary text-on-secondary hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                    className="w-full py-3.5 mt-2 rounded-xl font-label-md font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all bg-polar-midnight-deep text-pure-white hover:bg-polar-navy-surface disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                   >
                     {status === 'preparing' ? (
                       <>

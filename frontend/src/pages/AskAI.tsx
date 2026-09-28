@@ -112,7 +112,7 @@ export default function AskAI() {
   };
 
   return (
-    <div className="flex flex-col w-full min-h-[calc(100vh-80px)] pt-20 bg-surface">
+    <div className="flex flex-col w-full min-h-[calc(100vh-80px)] bg-surface">
       
       {/* Top Command & Provenance Bar */}
       <section className="w-full bg-surface-container-low py-6 px-4 lg:px-8">

@@ -94,7 +94,7 @@ export default function Explore() {
   };
 
   return (
-    <div className="flex flex-col w-full bg-surface min-h-[calc(100vh-80px)] pt-20">
+    <div className="flex flex-col w-full bg-surface min-h-[calc(100vh-80px)]">
       {/* Top Repository Banner */}
       <section className="w-full bg-ice-white py-12 px-4 lg:px-8 border-b border-slate-border">
         <div className="max-w-[1360px] mx-auto flex flex-col gap-6">

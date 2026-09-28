@@ -136,7 +136,7 @@ export default function Expeditions() {
   };
 
   return (
-    <div className="flex flex-col w-full bg-surface min-h-screen pt-20">
+    <div className="flex flex-col w-full bg-surface min-h-screen">
       {/* Header */}
       <section className="w-full bg-polar-midnight-deep text-ice-white py-12 px-4 lg:px-8 relative overflow-hidden">
         {/* Subtle background glow */}

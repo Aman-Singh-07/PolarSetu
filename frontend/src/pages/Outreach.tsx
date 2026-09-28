@@ -65,7 +65,7 @@ export default function Outreach() {
   const isReadyToGenerate = !!sourceId && !!audience && !!format;
 
   return (
-    <div className="flex flex-col w-full min-h-[calc(100vh-80px)] pt-20 bg-surface">
+    <div className="flex flex-col w-full min-h-[calc(100vh-80px)] bg-surface">
       {/* Header */}
       <section className="w-full bg-surface-container-low py-6 px-4 lg:px-8 border-b border-slate-border/50">
         <div className="max-w-7xl mx-auto flex flex-col gap-4">

@@ -103,7 +103,7 @@ export default function Media() {
   const himalayaCount = mediaItems.filter(m => m.region === 'Himalayas').length;
 
   return (
-    <div className="flex flex-col w-full bg-surface min-h-screen pt-20">
+    <div className="flex flex-col w-full bg-surface min-h-screen">
       {/* Top Command & Provenance Bar */}
       <div className="w-full bg-polar-midnight-deep text-pure-white px-4 lg:px-8 py-2.5 border-b border-white/10">
         <div className="max-w-[1360px] mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -115,7 +115,7 @@ export default function Media() {
           <div className="flex items-center gap-3 font-code-sm text-code-sm text-glacial-sky">
             <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-aurora-emerald animate-pulse"></span>Feed Synchronized</span>
             <span className="text-white/30 hidden sm:inline">|</span>
-            <span className="text-inverse-primary hidden sm:inline">FAIR Open-Access</span>
+            <span className="text-pure-white/80 hidden sm:inline">FAIR Open-Access</span>
           </div>
         </div>
       </div>
