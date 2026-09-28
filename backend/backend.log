@@ -1,0 +1,27 @@
+2026/09/28 22:04:42 Successfully connected to the PostgreSQL database
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /api/health               --> PolarSetu/internal/handlers.HealthCheck (4 handlers)
+[GIN-debug] POST   /api/auth/login           --> PolarSetu/internal/handlers.(*AuthHandler).Login-fm (4 handlers)
+[GIN-debug] GET    /api/expeditions          --> PolarSetu/internal/handlers.(*ExpeditionHandler).List-fm (4 handlers)
+[GIN-debug] GET    /api/expeditions/:id      --> PolarSetu/internal/handlers.(*ExpeditionHandler).GetByID-fm (4 handlers)
+[GIN-debug] GET    /api/resources            --> PolarSetu/internal/handlers.(*ResourceHandler).List-fm (4 handlers)
+[GIN-debug] GET    /api/resources/:id        --> PolarSetu/internal/handlers.(*ResourceHandler).GetByID-fm (4 handlers)
+[GIN-debug] GET    /api/resources/:id/relations --> PolarSetu/internal/handlers.(*ProvenanceHandler).GetRelations-fm (4 handlers)
+[GIN-debug] GET    /api/media                --> PolarSetu/internal/handlers.(*MediaHandler).List-fm (4 handlers)
+[GIN-debug] GET    /api/activities           --> PolarSetu/internal/handlers.(*ActivityHandler).List-fm (4 handlers)
+[GIN-debug] GET    /api/search               --> PolarSetu/internal/handlers.(*SearchHandler).Search-fm (4 handlers)
+[GIN-debug] POST   /api/ai/ask               --> PolarSetu/internal/handlers.(*AIHandler).Ask-fm (4 handlers)
+[GIN-debug] GET    /api/review/queue         --> PolarSetu/internal/handlers.(*ReviewHandler).GetQueue-fm (5 handlers)
+[GIN-debug] POST   /api/review/:id/approve   --> PolarSetu/internal/handlers.(*ReviewHandler).ApproveDraft-fm (5 handlers)
+[GIN-debug] POST   /api/review/:id/reject    --> PolarSetu/internal/handlers.(*ReviewHandler).RejectDraft-fm (5 handlers)
+[GIN-debug] POST   /api/ai/outreach          --> PolarSetu/internal/handlers.(*AIHandler).GenerateOutreach-fm (5 handlers)
+[GIN-debug] POST   /api/expeditions          --> PolarSetu/internal/handlers.(*ExpeditionHandler).Create-fm (5 handlers)
+[GIN-debug] POST   /api/resources            --> PolarSetu/internal/handlers.(*ResourceHandler).Create-fm (5 handlers)
+[GIN-debug] POST   /api/resources/:id/upload --> PolarSetu/internal/handlers.(*ResourceHandler).UploadFile-fm (5 handlers)
+[GIN-debug] POST   /api/resources/:id/relations --> PolarSetu/internal/handlers.(*ProvenanceHandler).CreateRelation-fm (5 handlers)
+2026/09/28 22:04:42 Server starting on port 8080
