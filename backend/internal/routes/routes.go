@@ -6,12 +6,22 @@ import (
 	"PolarSetu/internal/middleware"
 	"PolarSetu/internal/repository"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func Setup(pool *pgxpool.Pool, cfg *config.Config) *gin.Engine {
 	r := gin.Default()
+
+	// Implement strict CORS for frontend-backend handshake
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"}, // Vite/React defaults
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 
 	// Repos
 	userRepo := repository.NewUserRepo(pool)
@@ -21,7 +31,7 @@ func Setup(pool *pgxpool.Pool, cfg *config.Config) *gin.Engine {
 	activityRepo := repository.NewActivityRepo(pool)
 	searchRepo := repository.NewSearchRepo(pool)
 	reviewRepo := repository.NewReviewRepo(pool)
-	provenanceRepo := repository.NewProvenanceRepo(pool) // New Repository Instance
+	provenanceRepo := repository.NewProvenanceRepo(pool)
 
 	// Handlers
 	authHandler := handlers.NewAuthHandler(userRepo, cfg.JWTSecret)
@@ -32,9 +42,7 @@ func Setup(pool *pgxpool.Pool, cfg *config.Config) *gin.Engine {
 	searchHandler := handlers.NewSearchHandler(searchRepo, resourceRepo)
 	reviewHandler := handlers.NewReviewHandler(reviewRepo)
 	aiHandler := handlers.NewAIHandler(resourceRepo, reviewRepo)
-	provenanceHandler := handlers.NewProvenanceHandler(provenanceRepo) // New Handler Instance
-
-	// CORS config could be mapped here for Step 1 of phase 6
+	provenanceHandler := handlers.NewProvenanceHandler(provenanceRepo)
 
 	api := r.Group("/api")
 	{
