@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Expedition, Resource } from '../types';
-import { Calendar, MapPin, ArrowLeft, Sparkles, ArrowRight, Database, FileText, BookOpen } from 'lucide-react';
+import { Calendar, MapPin, ArrowLeft, Sparkles, ArrowRight, Database, FileText, BookOpen, AlertCircle } from 'lucide-react';
 
 const EXPEDITION_IMAGES = [
   'https://lh3.googleusercontent.com/aida-public/AB6AXuDZlU0zKQ2fFmf3pyyxCzDmnJXg5L2Xj5SFAtHGSFS24kA0Gy58tAoWbTbUXqoGsekW5ZGVs6dqXXl-slkh9BnQJrowMjTnI9nnGQRWqDnG5dNYMPMEn_sLqSiNuzu-5lmTWUBYAQp6sygCs2C6UWIy4P03eL-w0hWfXwd3WJQ8kwAFp1kB-SnFBBPtQBDHatOHRxJKYaehqvpc6OmwpbpKPRQdMGzgI3cP85LtHag7OJP7QoCs2NerDA',
@@ -16,14 +16,28 @@ export default function ExpeditionDetail() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [error, setError] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+
   const fetchDetails = async (expId: string) => {
     setLoading(true);
-    const exp = await api.getExpedition(expId);
-    const res = await api.getResources();
-    const expRes = res.filter(r => r.expeditionId === expId);
-    if (exp) setExpedition(exp);
-    setResources(expRes);
-    setLoading(false);
+    setError(false);
+    setNotFound(false);
+    try {
+      const exp = await api.getExpedition(expId);
+      if (exp) {
+        setExpedition(exp);
+        setResources(exp.resources || []);
+      }
+    } catch (err: any) {
+      if (err.status === 404) {
+        setNotFound(true);
+      } else {
+        setError(true);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -38,8 +52,42 @@ export default function ExpeditionDetail() {
     }
   };
 
-  if (loading) return <div className="py-12 text-center text-on-surface-variant font-body-md">Loading expedition details...</div>;
-  if (!expedition) return <div className="py-12 text-center text-on-surface-variant font-body-md">Expedition not found.</div>;
+  if (loading) return (
+    <div className="py-20 flex justify-center w-full">
+      <div className="w-10 h-10 border-4 border-surface-container-high border-t-secondary rounded-full animate-spin"></div>
+    </div>
+  );
+
+  if (notFound || !expedition) return (
+    <div className="w-full flex flex-col items-center justify-center py-20 bg-surface">
+      <div className="w-16 h-16 rounded-full bg-surface-variant flex items-center justify-center mb-4">
+        <MapPin className="w-8 h-8 text-on-surface-variant" />
+      </div>
+      <h2 className="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep mb-2">Expedition Not Found</h2>
+      <p className="font-body-md text-body-md text-on-surface-variant mb-6 text-center">We couldn't find the expedition you were looking for.</p>
+      <Link to="/expeditions" className="px-6 py-3 rounded-lg bg-polar-midnight-deep text-pure-white font-label-md font-bold uppercase tracking-wider hover:bg-polar-navy-surface transition-colors">
+        Back to Expeditions
+      </Link>
+    </div>
+  );
+
+  if (error) return (
+    <div className="w-full flex flex-col items-center justify-center py-20 bg-surface">
+      <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center mb-4">
+        <AlertCircle className="w-8 h-8 text-error" />
+      </div>
+      <h2 className="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep mb-2">Unable to load this expedition.</h2>
+      <p className="font-body-md text-body-md text-on-surface-variant mb-6 text-center">There was a problem connecting to the server.</p>
+      <div className="flex gap-4">
+        <button onClick={() => id && fetchDetails(id)} className="px-6 py-3 rounded-lg bg-polar-midnight-deep text-pure-white font-label-md font-bold uppercase tracking-wider hover:bg-polar-navy-surface transition-colors">
+          Retry
+        </button>
+        <Link to="/expeditions" className="px-6 py-3 rounded-lg border border-surface-variant bg-pure-white text-polar-midnight-deep font-label-md font-bold uppercase tracking-wider hover:bg-surface-container-low transition-colors">
+          Back to Expeditions
+        </Link>
+      </div>
+    </div>
+  );
 
   const imgIndex = parseInt(expedition.id.replace(/\D/g, '')) % EXPEDITION_IMAGES.length;
 

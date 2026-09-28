@@ -24,21 +24,30 @@ export default function Expeditions() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
+  const loadData = async () => {
+    setLoading(true);
+    setError(false);
+    try {
       const [expData, resData, mediaData] = await Promise.all([
         api.getExpeditions(),
         api.getResources(),
         api.getMedia()
       ]);
-      setExpeditions(expData);
-      setResources(resData);
-      setMedia(mediaData);
+      setExpeditions(expData || []);
+      setResources(resData || []);
+      setMedia(mediaData || []);
+    } catch (err) {
+      console.error('Failed to load expeditions:', err);
+      setError(true);
+    } finally {
       setLoading(false);
-    };
+    }
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
 
@@ -311,12 +320,21 @@ export default function Expeditions() {
               <div className="py-20 flex justify-center">
                 <div className="w-10 h-10 border-4 border-surface-container-high border-t-secondary rounded-full animate-spin"></div>
               </div>
+            ) : error ? (
+               <div className="bg-pure-white rounded-xl p-16 flex flex-col items-center justify-center text-center border border-slate-border shadow-sm">
+                  <X className="w-16 h-16 text-error mb-4" />
+                  <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">Unable to load expeditions.</h3>
+                  <p className="font-body-md text-body-md text-on-surface-variant max-w-md mb-6">There was a problem connecting to the server. Please try again later.</p>
+                  <button onClick={() => loadData()} className="px-6 py-2.5 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface transition-colors">
+                    Retry
+                  </button>
+               </div>
             ) : filteredExpeditions.length === 0 ? (
               <div className="bg-pure-white rounded-xl p-16 flex flex-col items-center justify-center text-center border border-slate-border shadow-sm">
                 <MapPin className="w-16 h-16 text-slate-border-strong mb-4" />
-                <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">No expeditions found.</h3>
+                <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">No expeditions match the selected filters.</h3>
                 <p className="font-body-md text-body-md text-on-surface-variant max-w-md mb-6">
-                  Try another search term or clear your current filters to see more results.
+                  Try adjusting your search terms or clearing the selected filters to view all expeditions.
                 </p>
                 <button onClick={clearAllFilters} className="px-6 py-2.5 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface transition-colors">
                   Clear Filters

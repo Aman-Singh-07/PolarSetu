@@ -7,17 +7,39 @@ import { ArrowLeft, Sparkles, Edit3, Calendar, MapPin, CheckCircle2, Tag } from 
 export default function ResourceDetail() {
   const { id } = useParams();
   const [resource, setResource] = useState<Resource | null>(null);
+  const [relations, setRelations] = useState<{ fromResourceId: string; toResourceId: string; relationType: string }[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const fetchResource = async (resId: string) => {
-    setLoading(true);
-    const data = await api.getResource(resId);
-    if (data) setResource(data);
-    setLoading(false);
-  };
+  const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    if (id) fetchResource(id);
+    const fetchResource = async (resId: string) => {
+      setLoading(true);
+      setError(null);
+      setNotFound(false);
+      try {
+        const data = await api.getResource(resId);
+        if (!data) {
+          setNotFound(true);
+        } else {
+          setResource(data);
+          try {
+            const relData = await api.getResourceRelations(resId);
+            setRelations(relData || []);
+          } catch (e) {
+            console.error('Failed to load relations', e);
+          }
+        }
+      } catch (err) {
+        setError('Unable to load this resource.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchResource(id);
+    }
   }, [id]);
 
   const getTypeColor = (type: string) => {
@@ -28,8 +50,36 @@ export default function ResourceDetail() {
     }
   };
 
-  if (loading) return <div className="py-12 text-center text-on-surface-variant font-body-md">Loading resource details...</div>;
-  if (!resource) return <div className="py-12 text-center text-on-surface-variant font-body-md">Resource not found.</div>;
+  if (loading) return (
+    <div className="py-24 flex flex-col items-center justify-center text-on-surface-variant font-body-md">
+      <div className="w-8 h-8 rounded-full border-2 border-secondary border-t-transparent animate-spin mb-4"></div>
+      Loading resource details...
+    </div>
+  );
+
+  if (notFound || !resource) return (
+    <div className="py-24 flex flex-col items-center justify-center text-center">
+      <h2 className="font-headline-md text-headline-md font-bold text-polar-midnight-deep mb-2">Resource not found</h2>
+      <p className="font-body-md text-body-md text-on-surface-variant mb-6">The requested resource does not exist or has been removed.</p>
+      <Link to="/explore" className="px-6 py-2.5 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface transition-colors">
+        Back to Repository
+      </Link>
+    </div>
+  );
+
+  if (error) return (
+    <div className="py-24 flex flex-col items-center justify-center text-center">
+      <h2 className="font-headline-md text-headline-md font-bold text-error mb-2">{error}</h2>
+      <div className="flex gap-4 mt-4">
+        <button onClick={() => window.location.reload()} className="px-6 py-2.5 bg-surface-container-low text-secondary font-label-md font-semibold rounded-lg hover:bg-surface-container transition-colors">
+          Retry
+        </button>
+        <Link to="/explore" className="px-6 py-2.5 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface transition-colors">
+          Back to Repository
+        </Link>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col w-full">
@@ -127,6 +177,25 @@ export default function ResourceDetail() {
                 </div>
               </div>
             )}
+
+            {/* Relations */}
+            <div className="bg-pure-white rounded-xl p-6 shadow-sm flex flex-col gap-4">
+              <h3 className="font-title-md text-title-md font-semibold text-polar-midnight-deep border-b border-slate-border pb-2">Related Resources</h3>
+              {relations.length > 0 ? (
+                <ul className="flex flex-col gap-3">
+                  {relations.map((rel, idx) => (
+                    <li key={idx} className="flex flex-col gap-1">
+                      <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">{rel.relationType}</span>
+                      <Link to={`/research/${rel.fromResourceId === resource.id ? rel.toResourceId : rel.fromResourceId}`} className="font-body-md text-body-md text-secondary hover:underline">
+                        {rel.fromResourceId === resource.id ? rel.toResourceId : rel.fromResourceId}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="font-body-sm text-body-sm text-on-surface-variant italic">No related resources found.</p>
+              )}
+            </div>
           </div>
         </div>
       </section>

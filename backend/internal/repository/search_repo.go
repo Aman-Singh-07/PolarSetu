@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -27,7 +28,7 @@ func (r *SearchRepo) Search(ctx context.Context, searchQuery string, resourceTyp
 		FROM resources
 		WHERE search_vector @@ to_tsquery('english', $1)
 	`
-	
+
 	// Format the search string so Postgres parses it as a boolean query (e.g., 'sea & ice')
 	formattedQuery := strings.ReplaceAll(strings.TrimSpace(searchQuery), " ", " & ")
 
@@ -59,11 +60,15 @@ func (r *SearchRepo) Search(ctx context.Context, searchQuery string, resourceTyp
 	for rows.Next() {
 		var res models.Resource
 		var relevance float64 // Toss the rank integer safely, we only needed it for sorting
-		
+		var storagePathNull sql.NullString
+
 		if err := rows.Scan(&res.ID, &res.Type, &res.Title, &res.Description,
-			&res.Year, &res.Region, &res.SourceURL, &res.StoragePath,
+			&res.Year, &res.Region, &res.SourceURL, &storagePathNull,
 			&res.License, &res.Status, &res.CreatedAt, &relevance); err != nil {
 			return nil, err
+		}
+		if storagePathNull.Valid {
+			res.StoragePath = storagePathNull.String
 		}
 		results = append(results, res)
 	}

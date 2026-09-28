@@ -3,14 +3,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import type { OutreachDraft } from '../types';
 import { CheckCircle2, XCircle, Clock, FileText, Edit3, ArrowLeft, Shield, Loader2 } from 'lucide-react';
+import { auth } from '../services/auth';
 
 export default function AdminReview() {
   const navigate = useNavigate();
   const [queue, setQueue] = useState<OutreachDraft[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    const isAuthenticated = auth.isAuthenticated();
     if (!isAuthenticated) {
       navigate('/login');
       return;
@@ -26,8 +29,33 @@ export default function AdminReview() {
   };
 
   const handleApprove = async (id: string) => {
-    await api.approveDraft(id);
-    fetchQueue();
+    if (processingId) return;
+    setProcessingId(id);
+    setError(null);
+    try {
+      await api.approveDraft(id);
+      await fetchQueue();
+    } catch (err) {
+      console.error(err);
+      setError('Failed to approve draft. Please try again.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    if (processingId) return;
+    setProcessingId(id);
+    setError(null);
+    try {
+      await api.rejectDraft(id, "Rejected by admin");
+      await fetchQueue();
+    } catch (err) {
+      console.error(err);
+      setError('Failed to reject draft. Please try again.');
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   return (
@@ -79,6 +107,12 @@ export default function AdminReview() {
                 </span>
               </div>
 
+              {error && (
+                <div className="bg-error/10 text-error px-4 py-3 rounded-lg flex items-center gap-2 mb-4">
+                  <XCircle className="w-5 h-5" />
+                  <span className="font-label-md text-sm">{error}</span>
+                </div>
+              )}
               {queue.map(draft => (
                 <div key={draft.id} className="bg-pure-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-surface-variant overflow-hidden flex flex-col lg:flex-row">
                   <div className="flex-1 p-6 lg:p-8 flex flex-col gap-5">
@@ -114,15 +148,19 @@ export default function AdminReview() {
                       <>
                         <button
                           onClick={() => handleApprove(draft.id)}
-                          className="w-full bg-aurora-emerald hover:bg-aurora-emerald/90 text-pure-white py-3 rounded-xl font-label-md text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                          disabled={processingId === draft.id}
+                          className="w-full bg-aurora-emerald hover:bg-aurora-emerald/90 text-pure-white py-3 rounded-xl font-label-md text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md disabled:opacity-50"
                         >
-                          <CheckCircle2 className="w-4 h-4" /> Approve
+                          {processingId === draft.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                          {processingId === draft.id ? 'Approving...' : 'Approve'}
                         </button>
                         <button 
-                          onClick={() => alert('Reject draft action not available in demo mode.')}
-                          className="w-full bg-pure-white hover:bg-error/5 text-error border border-error/20 hover:border-error/50 py-3 rounded-xl font-label-md text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                          onClick={() => handleReject(draft.id)}
+                          disabled={processingId === draft.id}
+                          className="w-full bg-pure-white hover:bg-error/5 text-error border border-error/20 hover:border-error/50 py-3 rounded-xl font-label-md text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                          <XCircle className="w-4 h-4" /> Reject <span className="opacity-50 text-xs">(Demo)</span>
+                          {processingId === draft.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                          {processingId === draft.id ? 'Rejecting...' : 'Reject'}
                         </button>
                         <button 
                           onClick={() => alert('Edit draft action not available in demo mode.')}

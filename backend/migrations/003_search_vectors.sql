@@ -2,6 +2,7 @@
 
 -- 1. Create the specialized GIN Index on the search_vector column. 
 -- This allows PostgreSQL to perform incredibly fast weighted lexeme lookups without scanning every row.
+ALTER TABLE resources ADD COLUMN IF NOT EXISTS search_vector TSVECTOR;
 CREATE INDEX IF NOT EXISTS resources_search_idx ON resources USING GIN (search_vector);
 
 -- 2. Backfill existing seeded resources.

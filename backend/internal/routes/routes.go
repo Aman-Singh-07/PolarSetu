@@ -41,7 +41,7 @@ func Setup(pool *pgxpool.Pool, cfg *config.Config) *gin.Engine {
 	activityHandler := handlers.NewActivityHandler(activityRepo)
 	searchHandler := handlers.NewSearchHandler(searchRepo, resourceRepo)
 	reviewHandler := handlers.NewReviewHandler(reviewRepo)
-	aiHandler := handlers.NewAIHandler(resourceRepo, reviewRepo)
+	aiHandler := handlers.NewAIHandler(resourceRepo, reviewRepo, searchRepo)
 	provenanceHandler := handlers.NewProvenanceHandler(provenanceRepo)
 
 	api := r.Group("/api")

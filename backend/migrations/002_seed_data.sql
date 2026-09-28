@@ -3,7 +3,7 @@
 
 -- 1. Seed Admin User
 INSERT INTO users (email, password_hash, role) 
-VALUES ('admin@polarsetu.in', '$2a$14$wE8wI3r4.Z8A8T9G5N1I5.2wUu3.Zt.aH4q8L0P5/3q.v8o/0zRti', 'admin'); 
+VALUES ('admin@polarsetu.in', '$2a$10$0tPrQCnDWpSCgnfaUzgGT.p2gea2l.QD2lJwTjhKn4puujPlgguWW', 'admin');
 -- Note: 'password_hash' is a bcrypt hash for 'password123'
 
 -- 2. Seed Expeditions

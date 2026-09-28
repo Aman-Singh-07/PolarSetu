@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ps
       POSTGRES_DB: PolarSetu
     ports:
-      - "5432:5432"
+      - "5444:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       # Mount migrations so they run automatically when the DB initializes

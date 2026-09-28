@@ -1,108 +1,237 @@
-import type { Expedition, Resource, MediaItem, Station, AIResponse, OutreachDraft } from '../types';
-import { mockStations, mockDrafts } from '../data/mockData';
+import type { Expedition, Resource, MediaItem, Station, AIResponse, OutreachDraft, Activity } from '../types';
+import { mockStations } from '../data/mockData';
+
+export class ApiError extends Error {
+  status: number;
+  code: string;
+
+  constructor(status: number, message: string, code: string = 'UNKNOWN_ERROR') {
+    super(message);
+    this.status = status;
+    this.code = code;
+    this.name = 'ApiError';
+  }
+}
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+import { auth } from './auth';
+
+async function fetchClient<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+
+  const token = auth.getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    let message = 'An unexpected error occurred';
+    let code = 'UNKNOWN_ERROR';
+    try {
+      const errData = await response.json();
+      if (errData?.error) {
+        message = errData.error.message || message;
+        code = errData.error.code || code;
+      }
+    } catch {
+      // If parsing fails, fall back to default error text
+      message = response.statusText || message;
+    }
+    if (response.status === 401) {
+      // Clear token and redirect to login if unauthorized
+      auth.clearToken();
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+    
+    throw new ApiError(response.status, message, code);
+  }
+
+  // Handle 204 No Content
+  if (response.status === 204) {
+    return {} as T;
+  }
+
+  return response.json();
+}
 
 export const api = {
+  // --- AUTH ---
+  login: async (email: string, password: string): Promise<{ token: string; user: any }> => {
+    return fetchClient('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  },
+
+  // --- EXPEDITIONS (Integrated with backend) ---
   getExpeditions: async (): Promise<Expedition[]> => {
-    const res = await fetch('/api/expeditions');
-    if (!res.ok) throw new Error('Failed to fetch expeditions');
-    return res.json();
+    return fetchClient<Expedition[]>('/api/expeditions');
   },
-  getExpedition: async (id: string): Promise<Expedition | undefined> => {
-    const res = await fetch(`/api/expeditions/${id}`);
-    if (!res.ok) {
-      if (res.status === 404) return undefined;
-      throw new Error(`Failed to fetch expedition ${id}`);
-    }
-    // Backend wraps this in { expedition, resources }
-    const data = await res.json();
-    return data.Expedition; // assuming frontend expects pure Expedition or does it expect resources array mapped into it? Let's assume frontend takes returned structure. Wait, our Go backend returns models.ExpeditionDetail which embeds Expedition + Resources. Actually, JS receives { id, name, ... resources: [...] }.
+
+  getExpedition: async (id: string): Promise<Expedition & { resources?: Resource[] }> => {
+    return fetchClient<Expedition & { resources?: Resource[] }>(`/api/expeditions/${id}`);
   },
-  getResources: async (filters?: { type?: string, region?: string }): Promise<Resource[]> => {
+
+  // --- RESOURCES (Integrated with backend) ---
+  getResources: async (filters?: { type?: string; region?: string }): Promise<Resource[]> => {
     const params = new URLSearchParams();
     if (filters?.type) params.append('type', filters.type);
     if (filters?.region) params.append('region', filters.region);
+
+    return fetchClient<Resource[]>(`/api/resources?${params.toString()}`);
+  },
+
+  createResource: async (data: {
+    title: string;
+    type: string;
+    description?: string;
+    year?: number;
+    region?: string;
+    sourceUrl?: string;
+    license?: string;
+  }): Promise<Resource> => {
+    // Generate an ID if the backend expects the frontend to provide it
+    const id = crypto.randomUUID ? crypto.randomUUID() : `res-${Date.now()}`;
     
-    const res = await fetch(`/api/resources?${params.toString()}`);
-    if (!res.ok) throw new Error('Failed to fetch resources');
-    return res.json();
+    return fetchClient<Resource>('/api/resources', {
+      method: 'POST',
+      body: JSON.stringify({
+        id,
+        ...data,
+      }),
+    });
   },
-  getResource: async (id: string): Promise<Resource | undefined> => {
-    const res = await fetch(`/api/resources/${id}`);
-    if (!res.ok) {
-      if (res.status === 404) return undefined;
-      throw new Error(`Failed to fetch resource ${id}`);
+
+  uploadResourceFile: async (id: string, file: File): Promise<{ status: string; message: string; url: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // We intentionally don't set Content-Type here; fetch will automatically 
+    // set it to multipart/form-data with the correct boundary when passing FormData.
+    const token = auth.getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
-    const data = await res.json();
-    return data; // Usually frontend uses the aggregated response 
+
+    const response = await fetch(`${BASE_URL}/api/resources/${id}/upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (response.status === 401) {
+      auth.clearToken();
+      window.location.href = '/login';
+      throw { status: 401, message: 'Unauthorized' };
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw {
+        status: response.status,
+        message: errorData.error?.message || errorData.message || 'API request failed',
+        code: errorData.error?.code,
+      };
+    }
+
+    return response.json();
   },
-  searchResources: async (query: string): Promise<Resource[]> => {
-    // Falls back to basic DB query until Phase 4 search is fully established
+
+  getResource: async (id: string): Promise<Resource | undefined> => {
+    try {
+      const detail = await fetchClient<{ resource: Resource; expeditions: Expedition[] }>(`/api/resources/${id}`);
+      // Based on models.ResourceDetail which embeds Resource and has Expeditions
+      // The Go backend struct embeds Resource directly, so fields are flattened.
+      // E.g., { id, title, expeditions: [...] }
+      return detail as unknown as Resource;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        return undefined;
+      }
+      throw error;
+    }
+  },
+
+  searchResources: async (query: string, signal?: AbortSignal): Promise<Resource[]> => {
     const params = new URLSearchParams();
     if (query) params.append('q', query);
-    const res = await fetch(`/api/search?${params.toString()}`);
-    // if search isn't ready, let's gracefully fail over for now
-    if (!res.ok) {
-      if (res.status === 404) {
-         // fallback to normal resource fetch if search endpoint not mounted yet
-         return api.getResources();
-      }
-      return [];
-    }
-    const data = await res.json();
-    return data.results || data;
+
+    // search returns { query: string, results: Resource[] }
+    const res = await fetchClient<{ query: string; results: Resource[] }>(`/api/search?${params.toString()}`, { signal });
+    return res.results || [];
   },
+
+  getResourceRelations: async (id: string): Promise<{ fromResourceId: string; toResourceId: string; relationType: string }[]> => {
+    return fetchClient(`/api/resources/${id}/relations`);
+  },
+
+  // --- OTHERS (Prototype / To Be Integrated) ---
+
+
   getMedia: async (): Promise<MediaItem[]> => {
-    const res = await fetch('/api/media');
-    if (!res.ok) {
-      // Return empty gracefully if API isn't built yet
-      if (res.status === 404) return []; 
-      throw new Error('Failed to fetch media');
+    try {
+      return await fetchClient<MediaItem[]>('/api/media');
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) return [];
+      throw error;
     }
-    return res.json();
   },
+
+  getActivities: async (): Promise<Activity[]> => {
+    try {
+      return await fetchClient<Activity[]>('/api/activities');
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) return [];
+      throw error;
+    }
+  },
+
   getStations: async (): Promise<Station[]> => {
-    return mockStations; // Hardcoded stations
+    return mockStations; // Hardcoded prototype stations
   },
-  askPolarAI: async (request: { question: string, resourceId?: string }): Promise<AIResponse> => {
-    const res = await fetch('/api/ai/ask', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: request.question, resource_ids: request.resourceId ? [request.resourceId] : undefined })
-    });
-    if (!res.ok) {
+
+  askPolarAI: async (request: { question: string; resourceId?: string }): Promise<AIResponse> => {
+    try {
+      return fetchClient<AIResponse>('/api/ai/ask', {
+        method: 'POST',
+        body: JSON.stringify({ question: request.question, resource_ids: request.resourceId ? [request.resourceId] : undefined })
+      });
+    } catch {
       return { answer: "AI service currently unreachable.", sources: [], evidenceStatus: "Error" };
     }
-<<<<<<< HEAD
-    return {
-      answer: "Average fast-ice thickness in Prydz Bay exhibited a 14.2% seasonal thinning between November 2023 and February 2024. This change is strongly attributed to intensified oceanic heat flux from modified Circumpolar Deep Water.\n\nSimultaneously, subglacial hydrological networks and permafrost depths near Schirmacher Oasis have shown correlated instability metrics.",
-      sources: [
-        { id: "RES-001", title: "Antarctic Sea Ice Thickness & Albedo Dynamics in Prydz Bay (2024)", type: "DATASET" },
-        { id: "RES-003", title: "Glacial Bed Topography and Sub-ice Topography near Schirmacher Oasis", type: "REPORT", pageOrSection: "Section 4.2" }
-      ],
-      evidenceStatus: "SUPPORTED BY REPOSITORY SOURCES"
-    };
-=======
-    return res.json();
->>>>>>> db2613f (Fixed API structure)
   },
-  generateOutreach: async (request: { sourceId: string, audience: string, format: string }): Promise<OutreachDraft> => {
-    const res = await fetch('/api/ai/outreach', {
+
+  generateOutreach: async (request: { sourceId: string; audience: string; format: string }): Promise<OutreachDraft> => {
+    return fetchClient<OutreachDraft>('/api/ai/outreach', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request)
     });
-    if (!res.ok) { throw new Error('AI generation failed'); }
-    return res.json();
   },
+
   getReviewQueue: async (): Promise<OutreachDraft[]> => {
-    const res = await fetch('/api/review/queue');
-    if (!res.ok) {
-      if (res.status === 404) return mockDrafts; // fallback if not done
-      throw new Error("Failed to fetch queue");
-    }
-    return res.json();
+    return fetchClient<OutreachDraft[]>('/api/review/queue');
   },
+
   approveDraft: async (id: string): Promise<void> => {
-    await fetch(`/api/review/${id}/approve`, { method: 'POST' });
+    await fetchClient(`/api/review/${id}/approve`, { method: 'POST' });
+  },
+
+  rejectDraft: async (id: string, reason?: string): Promise<void> => {
+    await fetchClient(`/api/review/${id}/reject`, { 
+      method: 'POST',
+      body: reason ? JSON.stringify({ reason }) : undefined 
+    });
   }
 };

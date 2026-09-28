@@ -27,12 +27,14 @@ type OutreachRequest struct {
 type AIHandler struct {
 	resourceRepo *repository.ResourceRepo
 	reviewRepo   *repository.ReviewRepo
+	searchRepo   *repository.SearchRepo
 }
 
-func NewAIHandler(resourceRepo *repository.ResourceRepo, reviewRepo *repository.ReviewRepo) *AIHandler {
+func NewAIHandler(resourceRepo *repository.ResourceRepo, reviewRepo *repository.ReviewRepo, searchRepo *repository.SearchRepo) *AIHandler {
 	return &AIHandler{
 		resourceRepo: resourceRepo,
 		reviewRepo:   reviewRepo,
+		searchRepo:   searchRepo,
 	}
 }
 
@@ -47,6 +49,7 @@ func (h *AIHandler) Ask(c *gin.Context) {
 
 	var contextBuilder strings.Builder
 	var validSourceIDs []string
+	var fullSources []map[string]string
 
 	if len(req.ResourceIDs) > 0 {
 		for _, id := range req.ResourceIDs {
@@ -54,14 +57,41 @@ func (h *AIHandler) Ask(c *gin.Context) {
 			if err == nil && res != nil {
 				contextBuilder.WriteString(fmt.Sprintf("[Source ID: %s, Title: %s] %s\n", res.ID, res.Title, res.Description))
 				validSourceIDs = append(validSourceIDs, res.ID)
+				fullSources = append(fullSources, map[string]string{
+					"id": id,
+					"title": res.Title,
+					"type": res.Type,
+				})
 			}
 		}
 	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"answer":  "The available sources do not provide enough evidence.",
-			"sources": []interface{}{},
-		})
-		return
+		// If no specific resource IDs are provided, do a keyword search
+		results, err := h.searchRepo.Search(c.Request.Context(), req.Question, "", 0)
+		if err == nil && len(results) > 0 {
+			// take top 3
+			limit := 3
+			if len(results) < 3 {
+				limit = len(results)
+			}
+			for i := 0; i < limit; i++ {
+				res := results[i]
+				contextBuilder.WriteString(fmt.Sprintf("[Source ID: %s, Title: %s] %s\n", res.ID, res.Title, res.Description))
+				validSourceIDs = append(validSourceIDs, res.ID)
+				fullSources = append(fullSources, map[string]string{
+					"id": res.ID,
+					"title": res.Title,
+					"type": res.Type,
+				})
+			}
+		}
+		
+		if len(validSourceIDs) == 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"answer":  "I couldn't find sufficient evidence in the POLARSETU repository to answer this reliably.",
+				"sources": []interface{}{},
+			})
+			return
+		}
 	}
 
 	answer, err := services.AskPolarSetu(req.Question, contextBuilder.String(), validSourceIDs)
@@ -70,14 +100,9 @@ func (h *AIHandler) Ask(c *gin.Context) {
 		return
 	}
 
-	sourcesResponse := []map[string]string{}
-	for _, id := range validSourceIDs {
-		sourcesResponse = append(sourcesResponse, map[string]string{"id": id})
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"answer":  answer,
-		"sources": sourcesResponse,
+		"sources": fullSources,
 	})
 }
 

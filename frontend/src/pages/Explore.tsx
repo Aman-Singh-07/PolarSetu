@@ -18,40 +18,57 @@ export default function Explore() {
   const typeFilter = searchParams.get('type') || '';
   const regionFilter = searchParams.get('region') || '';
   const themeFilter = searchParams.get('theme') || '';
-  
+
   const [searchQuery, setSearchQuery] = useState(q);
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  
+
   useEffect(() => {
+    const abortController = new AbortController();
+
     const fetchResources = async () => {
       setLoading(true);
-      let data = [];
-      if (q) {
-        data = await api.searchResources(q);
-      } else {
-        data = await api.getResources();
+      setError(null);
+      try {
+        let data = [];
+        if (q) {
+          data = await api.searchResources(q, abortController.signal);
+        } else {
+          data = await api.getResources();
+        }
+
+        if (typeFilter) {
+          data = data.filter(r => r.type.toLowerCase() === typeFilter.toLowerCase());
+        }
+        if (regionFilter) {
+          data = data.filter(r => r.region.toLowerCase() === regionFilter.toLowerCase());
+        }
+        if (themeFilter) {
+          // Theme isn't supported directly by backend yet, filter safely
+          data = data.filter(r => r.researchArea && r.researchArea.toLowerCase() === themeFilter.toLowerCase());
+        }
+
+        if (!abortController.signal.aborted) {
+          setResources(data);
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        setError('Unable to load repository resources.');
+      } finally {
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
       }
-      
-      if (typeFilter) {
-        data = data.filter(r => r.type.toLowerCase() === typeFilter.toLowerCase());
-      }
-      if (regionFilter) {
-        data = data.filter(r => r.region.toLowerCase() === regionFilter.toLowerCase());
-      }
-      if (themeFilter) {
-        data = data.filter(r => r.researchArea && r.researchArea.toLowerCase() === themeFilter.toLowerCase());
-      }
-      
-      setResources(data);
-      setLoading(false);
     };
 
     fetchResources();
     setSearchQuery(q); // Sync input if URL changes
+
+    return () => abortController.abort();
   }, [q, typeFilter, regionFilter, themeFilter]);
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery) {
@@ -61,7 +78,7 @@ export default function Explore() {
     }
     setSearchParams(searchParams);
   };
-  
+
   const handleClearFilter = (key: string) => {
     searchParams.delete(key);
     if (key === 'q') setSearchQuery('');
@@ -72,7 +89,7 @@ export default function Explore() {
     setSearchParams({});
     setSearchQuery('');
   };
-  
+
   const updateFilter = (key: string, value: string) => {
     if (value) {
       searchParams.set(key, value);
@@ -145,8 +162,8 @@ export default function Explore() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 aria-label="Search Repository"
               />
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm rounded hover:bg-polar-navy-surface transition-colors flex items-center gap-1 font-bold"
               >
                 Search
@@ -156,32 +173,32 @@ export default function Explore() {
 
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-2">
-              <button 
-                onClick={() => updateFilter('type', '')} 
+              <button
+                onClick={() => updateFilter('type', '')}
                 className={`px-4 py-2 rounded-lg font-label-sm text-label-sm transition-all ${
                   !typeFilter ? 'bg-polar-midnight-deep text-pure-white shadow-sm' : 'bg-surface-container-low text-secondary hover:bg-surface-container'
                 }`}
               >
                 All Resources
               </button>
-              <button 
-                onClick={() => updateFilter('type', 'report')} 
+              <button
+                onClick={() => updateFilter('type', 'report')}
                 className={`px-4 py-2 rounded-lg font-label-sm text-label-sm transition-all ${
                   typeFilter === 'report' ? 'bg-polar-midnight-deep text-pure-white shadow-sm' : 'bg-surface-container-low text-secondary hover:bg-surface-container'
                 }`}
               >
                 Reports
               </button>
-              <button 
-                onClick={() => updateFilter('type', 'publication')} 
+              <button
+                onClick={() => updateFilter('type', 'publication')}
                 className={`px-4 py-2 rounded-lg font-label-sm text-label-sm transition-all ${
                   typeFilter === 'publication' ? 'bg-polar-midnight-deep text-pure-white shadow-sm' : 'bg-surface-container-low text-secondary hover:bg-surface-container'
                 }`}
               >
                 Publications
               </button>
-              <button 
-                onClick={() => updateFilter('type', 'dataset')} 
+              <button
+                onClick={() => updateFilter('type', 'dataset')}
                 className={`px-4 py-2 rounded-lg font-label-sm text-label-sm transition-all ${
                   typeFilter === 'dataset' ? 'bg-polar-midnight-deep text-pure-white shadow-sm' : 'bg-surface-container-low text-secondary hover:bg-surface-container'
                 }`}
@@ -189,7 +206,7 @@ export default function Explore() {
                 Datasets
               </button>
             </div>
-            <button 
+            <button
               className="lg:hidden flex items-center gap-2 px-4 py-2 bg-surface text-secondary font-label-sm text-label-sm rounded-lg"
               onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
             >
@@ -202,7 +219,7 @@ export default function Explore() {
       {/* Main Exploration Workspace */}
       <section className="w-full px-4 lg:px-8 py-8 lg:py-12">
         <div className="max-w-[1360px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* Left Sidebar Filters */}
           <aside className={`lg:col-span-3 flex flex-col gap-6 ${isMobileFilterOpen ? 'block' : 'hidden lg:flex'}`}>
             <div className="bg-pure-white rounded-xl shadow-sm p-6 flex flex-col gap-6">
@@ -224,8 +241,8 @@ export default function Explore() {
                 <div className="flex flex-col gap-2">
                   {['Antarctica', 'Arctic', 'Himalayas', 'Southern Ocean'].map(region => (
                     <label key={region} className="flex items-center gap-3 cursor-pointer group">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         checked={regionFilter === region}
                         onChange={() => updateFilter('region', regionFilter === region ? '' : region)}
                         className="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer"
@@ -242,8 +259,8 @@ export default function Explore() {
                 <div className="flex flex-col gap-2">
                   {['Glaciology', 'Oceanography', 'Atmospheric Chemistry', 'Polar Biology', 'Geophysics', 'Cryosphere'].map(theme => (
                     <label key={theme} className="flex items-center gap-3 cursor-pointer group">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         checked={themeFilter === theme}
                         onChange={() => updateFilter('theme', themeFilter === theme ? '' : theme)}
                         className="w-4 h-4 rounded text-secondary focus:ring-secondary cursor-pointer"
@@ -267,7 +284,7 @@ export default function Explore() {
 
           {/* Right Main Dossier Grid */}
           <main className="lg:col-span-9 flex flex-col gap-6">
-            
+
             {/* Active Tags Bar */}
             <div className="flex flex-wrap items-center justify-between gap-4 bg-pure-white p-4 rounded-xl shadow-sm">
               <div className="flex items-center gap-3">
@@ -276,7 +293,7 @@ export default function Explore() {
                   {q && ` for "${q}"`}
                 </span>
               </div>
-              
+
               {hasFilters && (
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-label-sm text-label-sm text-on-surface-variant mr-1">Active:</span>
@@ -314,6 +331,14 @@ export default function Explore() {
                 <div className="col-span-full py-12 flex items-center justify-center">
                   <div className="w-8 h-8 rounded-full border-2 border-secondary border-t-transparent animate-spin"></div>
                 </div>
+              ) : error ? (
+                <div className="col-span-full bg-pure-white rounded-xl p-16 flex flex-col items-center justify-center text-center shadow-sm border border-error/20">
+                  <X className="w-16 h-16 text-error mb-4" />
+                  <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">{error}</h3>
+                  <button onClick={() => window.location.reload()} className="mt-4 px-6 py-2.5 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface transition-colors">
+                    Retry
+                  </button>
+                </div>
               ) : resources.length > 0 ? (
                 resources.map(resource => {
                   const config = RESOURCE_TYPE_CONFIG[resource.type] || { label: resource.type, color: 'text-secondary', bg: 'bg-surface-container', icon: FileText };
@@ -330,12 +355,12 @@ export default function Explore() {
                             {resource.year}
                           </span>
                         </div>
-                        
+
                         {/* Title */}
                         <Link to={`/research/${resource.id}`} className="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep group-hover:text-secondary transition-colors line-clamp-2">
                           {resource.title}
                         </Link>
-                        
+
                         {/* Region & Expedition */}
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface font-label-sm text-label-sm text-polar-midnight-deep">
@@ -347,12 +372,12 @@ export default function Explore() {
                             </span>
                           )}
                         </div>
-                        
+
                         {/* Abstract */}
                         <p className="font-body-sm text-body-sm text-on-surface-variant line-clamp-3">
                           {resource.description}
                         </p>
-                        
+
                         {/* Author */}
                         <div className="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm mt-1">
                           {resource.author && <span className="font-semibold text-polar-midnight-deep">{resource.author}</span>}
@@ -360,7 +385,7 @@ export default function Explore() {
                           {resource.institution && <span>{resource.institution}</span>}
                         </div>
                       </div>
-                      
+
                       {/* Action Footer */}
                       <div className="flex items-center justify-between pt-4 mt-4 border-t border-surface-variant">
                         <Link to={`/research/${resource.id}`} className="px-4 py-2 rounded-lg bg-polar-midnight-deep text-on-primary font-label-sm text-label-sm hover:bg-polar-navy-surface transition-colors flex items-center gap-2">
@@ -376,7 +401,7 @@ export default function Explore() {
               ) : (
                 <div className="col-span-full bg-pure-white rounded-xl p-16 flex flex-col items-center justify-center text-center shadow-sm border border-surface-variant">
                   <Database className="w-16 h-16 text-slate-border-strong mb-4" />
-                  <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">No resources found.</h3>
+                  <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">No matching resources found.</h3>
                   <p className="font-body-md text-body-md text-on-surface-variant max-w-md mb-6">
                     Try a different keyword or clear one of the active filters to expand your search.
                   </p>

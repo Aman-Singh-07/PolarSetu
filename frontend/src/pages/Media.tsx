@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Search as SearchIcon, Camera, Video, Image as ImageIcon, Crosshair, Share2, Info, X } from 'lucide-react';
+import { MapPin, Search as SearchIcon, Camera, Video, Image as ImageIcon, Crosshair, Share2, Info, X, AlertCircle } from 'lucide-react';
 import { api } from '../services/api';
 import type { MediaItem, Expedition } from '../types';
 
@@ -25,23 +25,33 @@ export default function Media() {
   
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
+  const [error, setError] = useState(false);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(false);
+    try {
       const [mediaData, expData] = await Promise.all([
         api.getMedia(),
         api.getExpeditions()
       ]);
-      setMediaItems(mediaData);
-      setExpeditions(expData);
+      setMediaItems(mediaData || []);
+      setExpeditions(expData || []);
       
-      if (mediaData.length > 0 && !selectedMediaId) {
+      if (mediaData && mediaData.length > 0 && !selectedMediaId) {
         setSelectedMediaId(mediaData[0].id);
       }
+    } catch (err) {
+      console.error('Failed to load media:', err);
+      setError(true);
+    } finally {
       setLoading(false);
-    };
+    }
+  };
+
+  useEffect(() => {
     loadData();
-  }, []);
+  }, [selectedMediaId]);
 
   useEffect(() => {
     setSearchQuery(q);
@@ -217,6 +227,23 @@ export default function Media() {
             {loading ? (
               <div className="py-20 flex justify-center">
                 <div className="w-10 h-10 border-4 border-surface-container-high border-t-secondary rounded-full animate-spin"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-surface rounded-xl p-16 text-center border border-slate-border shadow-sm flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center mb-4">
+                  <AlertCircle className="w-8 h-8 text-error" />
+                </div>
+                <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">Unable to load media resources.</h3>
+                <p className="font-body-md text-body-md text-on-surface-variant mb-6">There was a problem connecting to the server.</p>
+                <button onClick={loadData} className="px-6 py-2 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface">
+                  Retry
+                </button>
+              </div>
+            ) : mediaItems.length === 0 ? (
+              <div className="bg-pure-white rounded-xl p-16 text-center border border-slate-border shadow-sm flex flex-col items-center">
+                <ImageIcon className="w-12 h-12 text-outline-variant mx-auto mb-4" />
+                <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">No media resources are currently available.</h3>
+                <p className="font-body-md text-body-md text-on-surface-variant mb-6">The backend repository is currently empty.</p>
               </div>
             ) : filteredMedia.length === 0 ? (
               <div className="bg-pure-white rounded-xl p-16 text-center border border-slate-border shadow-sm">

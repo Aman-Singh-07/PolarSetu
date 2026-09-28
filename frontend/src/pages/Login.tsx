@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff, Loader2, ArrowLeft, Shield } from 'lucide-react';
+import { api } from '../services/api';
+import { auth } from '../services/auth';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,7 +12,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
@@ -21,24 +23,25 @@ export default function Login() {
 
     setLoading(true);
     
-    // Mock authentication flow
-    setTimeout(() => {
-      // For demo purposes, we will accept any email/password 
-      // but let's make it fail if password is too short just to show validation
-      if (password === 'wrong') {
+    try {
+      const response = await api.login(email, password);
+      auth.setToken(response.token);
+      navigate('/admin');
+      window.location.reload(); // Refresh to update Navbar state
+    } catch (err: any) {
+      if (err.status === 401) {
         setError('Invalid email or password.');
-        setLoading(false);
       } else {
-        localStorage.setItem('isAuthenticated', 'true');
-        navigate('/admin');
-        window.location.reload(); // Refresh to update Navbar state
+        setError('Unable to connect to the POLARSETU API. Try Again.');
       }
-    }, 1000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDemoLogin = () => {
     setEmail('admin@polarsetu.in');
-    setPassword('demo-access-2026');
+    setPassword('password123');
   };
 
   return (

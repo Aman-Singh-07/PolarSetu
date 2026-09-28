@@ -58,7 +58,7 @@ func (r *ReviewRepo) SaveDraft(ctx context.Context, draft models.AIGeneration) (
 	`
 	err := r.pool.QueryRow(ctx, query, draft.UserID, draft.SourceIDs, draft.Audience, draft.OutputType, draft.Content).
 		Scan(&g.ID, &g.UserID, &g.SourceIDs, &g.Audience, &g.OutputType, &g.Content, &g.Status, &g.CreatedAt)
-	
+
 	if err != nil {
 		return nil, err
 	}

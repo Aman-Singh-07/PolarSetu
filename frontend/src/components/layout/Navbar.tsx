@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { Sparkles, Beaker, Menu, X } from 'lucide-react';
+import { auth } from '../../services/auth';
 
 export default function Navbar() {
   const location = useLocation();
@@ -11,13 +12,13 @@ export default function Navbar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    setIsAuthenticated(localStorage.getItem('isAuthenticated') === 'true');
+    setIsAuthenticated(auth.isAuthenticated());
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
+    auth.clearToken();
     setIsAuthenticated(false);
-    window.location.href = '/';
+    window.location.href = '/login';
   };
 
   // Close mobile menu on route change

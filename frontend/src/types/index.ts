@@ -84,3 +84,13 @@ export interface OutreachDraft {
   status: ResourceStatus;
   createdAt: string;
 }
+
+export interface Activity {
+  id: string;
+  title: string;
+  date: string;
+  description: string;
+  sourceUrl?: string;
+  mediaUrl?: string;
+  createdAt?: string;
+}

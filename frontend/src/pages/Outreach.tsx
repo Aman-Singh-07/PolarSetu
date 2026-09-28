@@ -30,6 +30,7 @@ export default function Outreach() {
   const [format, setFormat] = useState('');
   
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<OutreachDraft | null>(null);
   
   const [reviewNotes, setReviewNotes] = useState('');
@@ -49,6 +50,7 @@ export default function Outreach() {
     if (!sourceId || !audience || !format) return;
     setLoading(true);
     setDraft(null);
+    setError(null);
     setApprovalState('PENDING');
     setReviewNotes('');
     
@@ -57,6 +59,7 @@ export default function Outreach() {
       setDraft(newDraft);
     } catch (err) {
       console.error(err);
+      setError('Failed to generate outreach draft. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -195,9 +198,16 @@ export default function Outreach() {
               </div>
             </div>
 
-            <button
-              onClick={handleGenerate}
-              disabled={!isReadyToGenerate || loading}
+            <div className="flex flex-col gap-2">
+              {error && (
+                <div className="bg-error/10 text-error px-4 py-3 rounded-lg flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 shrink-0" />
+                  <span className="font-label-md text-sm">{error}</span>
+                </div>
+              )}
+              <button
+                onClick={handleGenerate}
+                disabled={!isReadyToGenerate || loading}
               className="w-full py-4 rounded-xl font-label-md text-label-md font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all bg-secondary text-on-secondary hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             >
               {loading ? (
@@ -212,6 +222,7 @@ export default function Outreach() {
                 </>
               )}
             </button>
+            </div>
 
           </div>
 

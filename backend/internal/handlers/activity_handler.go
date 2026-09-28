@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"net/http"
 	"PolarSetu/internal/models"
 	"PolarSetu/internal/repository"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type ActivityHandler struct {

@@ -1,24 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  UploadCloud, CheckCircle2, ArrowLeft, Shield, FileText, Database, 
+import {
+  UploadCloud, CheckCircle2, ArrowLeft, FileText, Database,
   FileUp, AlertCircle, Loader2, X, AlertTriangle, ArrowRight
 } from 'lucide-react';
+import { auth } from '../services/auth';
+import { api } from '../services/api';
 
 export default function AdminUpload() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    const isAuthenticated = auth.isAuthenticated();
     if (!isAuthenticated) {
       navigate('/login');
     }
   }, [navigate]);
 
-  const [file, setFile] = useState<{name: string, size: string, type: string} | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  
+
   const [metadata, setMetadata] = useState({
     title: '',
     resourceType: '',
@@ -30,7 +32,9 @@ export default function AdminUpload() {
     expedition: ''
   });
 
-  const [status, setStatus] = useState<'idle' | 'preparing' | 'success'>('idle');
+  const [status, setStatus] = useState<'idle' | 'preparing' | 'uploading' | 'success' | 'error' | 'upload_error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [createdResourceId, setCreatedResourceId] = useState('');
 
   const isValid = file && metadata.title && metadata.resourceType && metadata.domain && metadata.description;
 
@@ -43,8 +47,8 @@ export default function AdminUpload() {
   const getFileTypeLabel = (name: string): string => {
     const ext = name.split('.').pop()?.toLowerCase() || '';
     const map: Record<string, string> = {
-      pdf: 'PDF Document', csv: 'CSV Dataset', json: 'JSON Data', 
-      parquet: 'Parquet Dataset', png: 'Image (PNG)', jpg: 'Image (JPEG)', 
+      pdf: 'PDF Document', csv: 'CSV Dataset', json: 'JSON Data',
+      parquet: 'Parquet Dataset', png: 'Image (PNG)', jpg: 'Image (JPEG)',
       jpeg: 'Image (JPEG)', tiff: 'Image (TIFF)', xlsx: 'Excel Spreadsheet',
       docx: 'Word Document', zip: 'Archive (ZIP)'
     };
@@ -52,11 +56,7 @@ export default function AdminUpload() {
   };
 
   const handleFileSelect = (selectedFile: File) => {
-    setFile({
-      name: selectedFile.name,
-      size: formatFileSize(selectedFile.size),
-      type: getFileTypeLabel(selectedFile.name)
-    });
+    setFile(selectedFile);
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,14 +85,69 @@ export default function AdminUpload() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValid) return;
-    
+
     setStatus('preparing');
-    setTimeout(() => {
+    setErrorMessage('');
+    
+    const typeMap: Record<string, string> = {
+      'Research Paper': 'PUBLICATION',
+      'Dataset': 'DATASET',
+      'Technical Report': 'REPORT',
+      'Expedition Resource': 'EXPEDITION',
+      'Media': 'OTHER'
+    };
+    
+    const backendType = typeMap[metadata.resourceType] || 'OTHER';
+
+    let newResourceId = createdResourceId;
+
+    if (!newResourceId) {
+      try {
+        const res = await api.createResource({
+          title: metadata.title,
+          type: backendType,
+          description: metadata.description,
+          region: metadata.domain,
+          year: parseInt(metadata.year, 10) || new Date().getFullYear(),
+        });
+        newResourceId = res.id;
+        setCreatedResourceId(res.id);
+      } catch (err: any) {
+        setStatus('error');
+        if (err.status === 400) {
+          setErrorMessage('Please correct the required fields.');
+        } else if (err.status === 401) {
+          setErrorMessage('Your session has expired. Please sign in again.');
+        } else {
+          setErrorMessage('Unable to connect to the POLARSETU API.');
+        }
+        return;
+      }
+    }
+
+    // Step 2: Upload File
+    if (file && newResourceId) {
+      setStatus('uploading');
+      try {
+        await api.uploadResourceFile(newResourceId, file);
+        setStatus('success');
+      } catch (err: any) {
+        setStatus('upload_error');
+        if (err.status === 401) {
+          setErrorMessage('Session expired during upload. Please sign in again.');
+        } else if (err.status === 413) {
+          setErrorMessage('File is too large.');
+        } else {
+          setErrorMessage(err.message || 'Unable to upload the resource file.');
+        }
+      }
+    } else {
+      // If no file was selected (though frontend validation requires it), just succeed
       setStatus('success');
-    }, 1500);
+    }
   };
 
   const handleReset = () => {
@@ -108,10 +163,12 @@ export default function AdminUpload() {
       expedition: ''
     });
     setStatus('idle');
+    setErrorMessage('');
+    setCreatedResourceId('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  if (status === 'success') {
+  if (status === 'success' || status === 'upload_error') {
     return (
       <div className="flex flex-col w-full bg-surface">
         <section className="relative w-full overflow-hidden bg-polar-midnight-deep text-pure-white py-10 lg:py-12 px-4 lg:px-8">
@@ -130,14 +187,22 @@ export default function AdminUpload() {
         </section>
         <section className="w-full px-4 lg:px-8 py-12">
           <div className="max-w-3xl mx-auto bg-pure-white rounded-2xl p-8 lg:p-10 border border-surface-variant shadow-sm text-center animate-in fade-in duration-500">
-            <div className="w-16 h-16 rounded-full bg-aurora-emerald/10 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-8 h-8 text-aurora-emerald" />
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${status === 'success' ? 'bg-aurora-emerald/10' : 'bg-draft-amber-bg/40'}`}>
+              {status === 'success' ? (
+                <CheckCircle2 className="w-8 h-8 text-aurora-emerald" />
+              ) : (
+                <AlertTriangle className="w-8 h-8 text-draft-amber-text" />
+              )}
             </div>
-            <h2 className="text-2xl font-bold text-polar-midnight-deep mb-2 uppercase tracking-wide font-display">Resource Prepared</h2>
+            <h2 className="text-2xl font-bold text-polar-midnight-deep mb-2 uppercase tracking-wide font-display">
+              {status === 'success' ? 'Resource Prepared' : 'Upload Incomplete'}
+            </h2>
             <p className="font-body-md text-base text-on-surface-variant mb-8 max-w-md mx-auto leading-relaxed">
-              The resource package is ready for backend ingestion. Storage, checksum calculation, and indexing will occur in the backend pipeline.
+              {status === 'success' 
+                ? 'The resource package and file have been successfully ingested into the POLARSETU repository.' 
+                : 'The resource metadata was created, but the file upload failed. You can retry the upload.'}
             </p>
-            
+
             <div className="bg-surface-container-low rounded-xl p-5 flex flex-col gap-3 text-left mb-8 border border-surface-variant mx-auto max-w-lg">
                <div className="flex items-start justify-between border-b border-surface-variant pb-3">
                  <div className="flex flex-col gap-1">
@@ -160,23 +225,46 @@ export default function AdminUpload() {
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="font-label-sm text-[10px] text-outline uppercase font-bold tracking-wider">Status</span>
-                    <span className="font-body-sm text-sm font-bold text-aurora-emerald">Ready for Backend</span>
+                    <span className={`font-body-sm text-sm font-bold ${status === 'success' ? 'text-aurora-emerald' : 'text-draft-amber-text'}`}>
+                      {status === 'success' ? 'File Uploaded' : 'Upload Failed'}
+                    </span>
                   </div>
                </div>
             </div>
 
+            {status === 'upload_error' && errorMessage && (
+              <div className="bg-error/10 border border-error/30 text-error p-4 rounded-xl text-sm mb-8 mx-auto max-w-lg text-left">
+                {errorMessage}
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <button
-                onClick={handleReset}
-                className="px-6 py-3 rounded-lg border border-surface-variant bg-pure-white text-polar-midnight-deep font-label-md font-bold uppercase tracking-wider hover:bg-surface-container-low transition-colors"
-              >
-                Upload Another
-              </button>
+              {status === 'upload_error' ? (
+                <button
+                  onClick={handleSubmit}
+                  className="px-6 py-3 rounded-lg bg-secondary text-pure-white font-label-md font-bold uppercase tracking-wider hover:bg-secondary-dark transition-colors"
+                >
+                  Retry Upload
+                </button>
+              ) : (
+                <button
+                  onClick={handleReset}
+                  className="px-6 py-3 rounded-lg border border-surface-variant bg-pure-white text-polar-midnight-deep font-label-md font-bold uppercase tracking-wider hover:bg-surface-container-low transition-colors"
+                >
+                  Upload Another
+                </button>
+              )}
               <Link
-                to="/explore"
+                to={`/research/${createdResourceId}`}
                 className="px-6 py-3 rounded-lg bg-polar-midnight-deep text-pure-white font-label-md font-bold uppercase tracking-wider hover:bg-polar-navy-surface transition-colors"
               >
-                View Repository
+                View Resource
+              </Link>
+              <Link
+                to="/admin"
+                className="px-6 py-3 rounded-lg bg-surface-container-low border border-surface-variant text-polar-midnight-deep font-label-md font-bold uppercase tracking-wider hover:bg-surface-container transition-colors"
+              >
+                Back to Dashboard
               </Link>
             </div>
           </div>
@@ -225,10 +313,10 @@ export default function AdminUpload() {
       {/* Main Workspace */}
       <section className="w-full px-4 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* Left Column (Upload & Metadata) */}
           <div className="lg:col-span-8 flex flex-col gap-6">
-            
+
             {/* Upload Zone */}
             <div className="bg-pure-white rounded-2xl shadow-sm border border-surface-variant overflow-hidden flex flex-col">
                <div className="bg-surface-container-low px-5 py-4 border-b border-surface-variant flex items-center justify-between">
@@ -237,27 +325,27 @@ export default function AdminUpload() {
                  </h2>
                  {!file && <span className="font-code-sm text-[10px] uppercase tracking-wider text-draft-amber-text bg-draft-amber-bg/50 border border-draft-amber-border/40 px-2 py-0.5 rounded">Required</span>}
                </div>
-               
+
                {/* Hidden file input */}
-               <input 
+               <input
                  ref={fileInputRef}
-                 type="file" 
-                 className="hidden" 
+                 type="file"
+                 className="hidden"
                  onChange={handleFileInputChange}
                  accept=".pdf,.csv,.json,.parquet,.png,.jpg,.jpeg,.tiff,.xlsx,.docx,.zip"
                />
 
                <div className="p-6">
                  {!file ? (
-                   <button 
+                   <button
                      type="button"
                      onClick={() => fileInputRef.current?.click()}
                      onDrop={handleDrop}
                      onDragOver={handleDragOver}
                      onDragLeave={handleDragLeave}
                      className={`w-full border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center transition-all group ${
-                       isDragOver 
-                         ? 'border-secondary bg-secondary/5 scale-[1.01]' 
+                       isDragOver
+                         ? 'border-secondary bg-secondary/5 scale-[1.01]'
                          : 'border-surface-variant bg-surface-container-low hover:bg-surface-container hover:border-secondary/50'
                      }`}
                    >
@@ -280,12 +368,12 @@ export default function AdminUpload() {
                         <div className="flex flex-col gap-0.5">
                            <span className="font-label-md font-bold text-polar-midnight-deep truncate max-w-[200px] sm:max-w-md">{file.name}</span>
                            <div className="flex items-center gap-2 font-code-sm text-[11px] text-on-surface-variant uppercase tracking-wider">
-                              <span>{file.type}</span> • <span>{file.size}</span>
+                              <span>{getFileTypeLabel(file.name)}</span> • <span>{formatFileSize(file.size)}</span>
                            </div>
                         </div>
                       </div>
-                      <button 
-                        onClick={handleClearFile} 
+                      <button
+                        onClick={handleClearFile}
                         className="p-2 hover:bg-surface-container rounded-lg text-outline hover:text-error transition-colors"
                         aria-label="Remove file"
                       >
@@ -311,7 +399,7 @@ export default function AdminUpload() {
                </div>
 
                <div className="p-6 flex flex-col gap-6">
-                 
+
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Required Column */}
                     <div className="flex flex-col gap-5">
@@ -319,7 +407,7 @@ export default function AdminUpload() {
                           <label className="font-label-sm text-[11px] font-bold text-polar-midnight-deep uppercase tracking-wider flex items-center gap-1">
                             Title <span className="text-draft-amber-text">*</span>
                           </label>
-                          <input 
+                          <input
                             type="text"
                             required
                             value={metadata.title}
@@ -333,7 +421,7 @@ export default function AdminUpload() {
                           <label className="font-label-sm text-[11px] font-bold text-polar-midnight-deep uppercase tracking-wider flex items-center gap-1">
                             Resource Type <span className="text-draft-amber-text">*</span>
                           </label>
-                          <select 
+                          <select
                             required
                             value={metadata.resourceType}
                             onChange={(e) => setMetadata({...metadata, resourceType: e.target.value})}
@@ -352,7 +440,7 @@ export default function AdminUpload() {
                           <label className="font-label-sm text-[11px] font-bold text-polar-midnight-deep uppercase tracking-wider flex items-center gap-1">
                             Domain <span className="text-draft-amber-text">*</span>
                           </label>
-                          <select 
+                          <select
                             required
                             value={metadata.domain}
                             onChange={(e) => setMetadata({...metadata, domain: e.target.value})}
@@ -373,7 +461,7 @@ export default function AdminUpload() {
                           <label className="font-label-sm text-[11px] font-bold text-polar-midnight-deep uppercase tracking-wider">
                             Authors / Contributors
                           </label>
-                          <input 
+                          <input
                             type="text"
                             value={metadata.authors}
                             onChange={(e) => setMetadata({...metadata, authors: e.target.value})}
@@ -386,7 +474,7 @@ export default function AdminUpload() {
                           <label className="font-label-sm text-[11px] font-bold text-polar-midnight-deep uppercase tracking-wider">
                             Associated Expedition
                           </label>
-                          <select 
+                          <select
                             value={metadata.expedition}
                             onChange={(e) => setMetadata({...metadata, expedition: e.target.value})}
                             className="w-full bg-surface-container-low border border-surface-variant rounded-lg p-2.5 font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary transition-all"
@@ -402,7 +490,7 @@ export default function AdminUpload() {
                           <label className="font-label-sm text-[11px] font-bold text-polar-midnight-deep uppercase tracking-wider">
                             Keywords (Comma separated)
                           </label>
-                          <input 
+                          <input
                             type="text"
                             value={metadata.keywords}
                             onChange={(e) => setMetadata({...metadata, keywords: e.target.value})}
@@ -418,7 +506,7 @@ export default function AdminUpload() {
                     <label className="font-label-sm text-[11px] font-bold text-polar-midnight-deep uppercase tracking-wider flex items-center gap-1">
                       Description <span className="text-draft-amber-text">*</span>
                     </label>
-                    <textarea 
+                    <textarea
                       required
                       value={metadata.description}
                       onChange={(e) => setMetadata({...metadata, description: e.target.value})}
@@ -432,14 +520,14 @@ export default function AdminUpload() {
 
           {/* Right Column (Validation & Submit) */}
           <div className="lg:col-span-4 flex flex-col gap-6">
-             
+
              {/* Validation Summary */}
              <div className="bg-pure-white rounded-2xl shadow-sm border border-surface-variant overflow-hidden flex flex-col sticky top-28">
                <div className="bg-surface-container-low px-5 py-4 border-b border-surface-variant flex items-center justify-between">
                  <h3 className="font-label-md text-sm font-bold text-polar-midnight-deep uppercase tracking-widest">Ingestion Pipeline</h3>
                  <span className="font-code-sm text-[10px] uppercase tracking-wider text-outline font-bold">Pre-Flight</span>
                </div>
-               
+
                <div className="p-5 flex flex-col gap-4">
                   <div className="flex flex-col gap-3">
                      <div className="flex items-center gap-3">
@@ -459,9 +547,9 @@ export default function AdminUpload() {
                         <span className={`font-body-sm text-sm ${metadata.description ? 'text-polar-midnight-deep font-semibold' : 'text-on-surface-variant'}`}>Description provided</span>
                      </div>
                   </div>
-                  
+
                   <div className="h-px bg-surface-variant my-1 w-full" />
-                  
+
                   <div className="flex flex-col gap-3">
                      <div className="flex items-start gap-3">
                         <div className="w-5 h-5 rounded-full border-2 border-surface-variant shrink-0 mt-0.5" />
@@ -471,10 +559,12 @@ export default function AdminUpload() {
                         </div>
                      </div>
                      <div className="flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full border-2 border-surface-variant shrink-0 mt-0.5" />
+                        <div className="w-5 h-5 rounded-full border-2 border-surface-variant shrink-0 mt-0.5 flex items-center justify-center">
+                          {(status === 'preparing' || status === 'uploading') && <Loader2 className="w-3 h-3 text-secondary animate-spin" />}
+                        </div>
                         <div className="flex flex-col">
                            <span className="font-label-sm text-[11px] font-bold uppercase tracking-wider text-outline">Supabase Storage</span>
-                           <span className="font-body-sm text-xs text-on-surface-variant">Pending backend integration</span>
+                           <span className="font-body-sm text-xs text-on-surface-variant">Uploading to object storage</span>
                         </div>
                      </div>
                      <div className="flex items-start gap-3">
@@ -496,18 +586,25 @@ export default function AdminUpload() {
                     </div>
                   )}
 
+                  {status === 'error' && errorMessage && (
+                    <div className="mt-2 p-3 bg-error/10 border border-error/30 rounded-lg flex gap-2">
+                       <AlertCircle className="w-4 h-4 text-error shrink-0 mt-0.5" />
+                       <span className="font-body-sm text-[13px] text-error">{errorMessage}</span>
+                    </div>
+                  )}
+
                   <button
                     onClick={handleSubmit}
-                    disabled={!isValid || status === 'preparing'}
+                    disabled={!isValid || status === 'preparing' || status === 'uploading'}
                     className="w-full py-3.5 mt-2 rounded-xl font-label-md font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all bg-polar-midnight-deep text-pure-white hover:bg-polar-navy-surface disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                   >
-                    {status === 'preparing' ? (
+                    {(status === 'preparing' || status === 'uploading') ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Preparing...
+                        {status === 'uploading' ? 'Uploading File...' : 'Creating Resource...'}
                       </>
                     ) : (
-                      'Prepare Resource'
+                      'Submit Resource'
                     )}
                   </button>
                </div>

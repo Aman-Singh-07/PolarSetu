@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Database, FileUp, CheckCircle2, Search, ArrowRight, Shield, Globe2, 
-  Activity, Clock, FileText, LayoutDashboard, LogOut, Loader2
+  Activity, Clock, FileText, LayoutDashboard, LogOut
 } from 'lucide-react';
 import { api } from '../services/api';
-import type { Resource, Expedition, OutreachDraft } from '../types';
+import { auth } from '../services/auth';
+import type { Resource, Expedition, OutreachDraft, Activity as ActivityType } from '../types';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -13,10 +14,11 @@ export default function Admin() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [expeditions, setExpeditions] = useState<Expedition[]>([]);
   const [drafts, setDrafts] = useState<OutreachDraft[]>([]);
+  const [activities, setActivities] = useState<ActivityType[]>([]);
   
   useEffect(() => {
     // Auth check
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    const isAuthenticated = auth.isAuthenticated();
     if (!isAuthenticated) {
       navigate('/login');
       return;
@@ -25,14 +27,16 @@ export default function Admin() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const [resData, expData, draftData] = await Promise.all([
+        const [resData, expData, draftData, actData] = await Promise.all([
           api.getResources(),
           api.getExpeditions(),
-          api.getReviewQueue()
+          api.getReviewQueue(),
+          api.getActivities()
         ]);
         setResources(resData);
         setExpeditions(expData);
         setDrafts(draftData);
+        setActivities(actData || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -44,7 +48,7 @@ export default function Admin() {
   }, [navigate]);
 
   const handleSignOut = () => {
-    localStorage.removeItem('isAuthenticated');
+    auth.clearToken();
     navigate('/login');
     window.location.reload();
   };
@@ -52,25 +56,7 @@ export default function Admin() {
   const pendingReviews = drafts.filter(d => d.status !== 'APPROVED' && d.status !== 'PUBLISHED');
   const approvedDrafts = drafts.filter(d => d.status === 'APPROVED');
 
-  // Create a derived activity list from resources and drafts
-  const activities = [
-    ...drafts.map(d => ({
-      id: d.id,
-      type: 'review',
-      title: 'Outreach draft submitted for review',
-      subtitle: `${d.audience} • ${d.outputType}`,
-      time: d.createdAt,
-      status: d.status
-    })),
-    ...resources.map(r => ({
-      id: r.id,
-      type: 'resource',
-      title: 'Resource indexed',
-      subtitle: r.title,
-      time: r.createdAt,
-      status: r.status
-    }))
-  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+
 
   if (loading) {
     return (
@@ -295,13 +281,11 @@ export default function Admin() {
                               <div className="absolute left-[9px] top-6 bottom-0 w-px bg-surface-variant"></div>
                             )}
                             {/* Timeline dot */}
-                            <div className={`w-[18px] h-[18px] rounded-full shrink-0 mt-0.5 border-2 relative z-10 ${
-                              act.type === 'review' ? 'border-draft-amber-border bg-draft-amber-bg' : 'border-secondary bg-surface-container'
-                            }`}></div>
+                            <div className="w-[18px] h-[18px] rounded-full shrink-0 mt-0.5 border-2 relative z-10 border-secondary bg-surface-container"></div>
                             <div className="flex flex-col gap-0.5 min-w-0 pb-5">
                                <span className="font-label-sm text-sm font-bold text-polar-midnight-deep leading-tight">{act.title}</span>
-                               <span className="font-body-sm text-sm text-on-surface-variant truncate leading-tight">{act.subtitle}</span>
-                               <span className="font-code-sm text-[10px] text-outline uppercase tracking-wider mt-1">Prototype Activity</span>
+                               <span className="font-body-sm text-sm text-on-surface-variant truncate leading-tight">{act.description}</span>
+                               <span className="font-code-sm text-[10px] text-outline uppercase tracking-wider mt-1">{new Date(act.date).toLocaleDateString()}</span>
                             </div>
                           </div>
                         ))}
