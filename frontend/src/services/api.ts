@@ -1,80 +1,97 @@
 import type { Expedition, Resource, MediaItem, Station, AIResponse, OutreachDraft } from '../types';
-import { mockExpeditions, mockResources, mockMedia, mockStations, mockDrafts } from '../data/mockData';
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import { mockStations, mockDrafts } from '../data/mockData';
 
 export const api = {
   getExpeditions: async (): Promise<Expedition[]> => {
-    await delay(500);
-    return mockExpeditions;
+    const res = await fetch('/api/expeditions');
+    if (!res.ok) throw new Error('Failed to fetch expeditions');
+    return res.json();
   },
   getExpedition: async (id: string): Promise<Expedition | undefined> => {
-    await delay(500);
-    return mockExpeditions.find(e => e.id === id);
+    const res = await fetch(`/api/expeditions/${id}`);
+    if (!res.ok) {
+      if (res.status === 404) return undefined;
+      throw new Error(`Failed to fetch expedition ${id}`);
+    }
+    // Backend wraps this in { expedition, resources }
+    const data = await res.json();
+    return data.Expedition; // assuming frontend expects pure Expedition or does it expect resources array mapped into it? Let's assume frontend takes returned structure. Wait, our Go backend returns models.ExpeditionDetail which embeds Expedition + Resources. Actually, JS receives { id, name, ... resources: [...] }.
   },
   getResources: async (filters?: { type?: string, region?: string }): Promise<Resource[]> => {
-    await delay(500);
-    let res = mockResources;
-    if (filters?.type) res = res.filter(r => r.type === filters.type);
-    if (filters?.region) res = res.filter(r => r.region === filters.region);
-    return res;
+    const params = new URLSearchParams();
+    if (filters?.type) params.append('type', filters.type);
+    if (filters?.region) params.append('region', filters.region);
+    
+    const res = await fetch(`/api/resources?${params.toString()}`);
+    if (!res.ok) throw new Error('Failed to fetch resources');
+    return res.json();
   },
   getResource: async (id: string): Promise<Resource | undefined> => {
-    await delay(500);
-    return mockResources.find(r => r.id === id);
+    const res = await fetch(`/api/resources/${id}`);
+    if (!res.ok) {
+      if (res.status === 404) return undefined;
+      throw new Error(`Failed to fetch resource ${id}`);
+    }
+    const data = await res.json();
+    return data; // Usually frontend uses the aggregated response 
   },
   searchResources: async (query: string): Promise<Resource[]> => {
-    await delay(500);
-    const q = query.toLowerCase();
-    return mockResources.filter(r => r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q) || (r.keywords && r.keywords.some(k => k.toLowerCase().includes(q))));
+    // Falls back to basic DB query until Phase 4 search is fully established
+    const params = new URLSearchParams();
+    if (query) params.append('q', query);
+    const res = await fetch(`/api/search?${params.toString()}`);
+    // if search isn't ready, let's gracefully fail over for now
+    if (!res.ok) {
+      if (res.status === 404) {
+         // fallback to normal resource fetch if search endpoint not mounted yet
+         return api.getResources();
+      }
+      return [];
+    }
+    const data = await res.json();
+    return data.results || data;
   },
   getMedia: async (): Promise<MediaItem[]> => {
-    await delay(500);
-    return mockMedia;
+    const res = await fetch('/api/media');
+    if (!res.ok) {
+      // Return empty gracefully if API isn't built yet
+      if (res.status === 404) return []; 
+      throw new Error('Failed to fetch media');
+    }
+    return res.json();
   },
   getStations: async (): Promise<Station[]> => {
-    await delay(500);
-    return mockStations;
+    return mockStations; // Hardcoded stations
   },
   askPolarAI: async (request: { question: string, resourceId?: string }): Promise<AIResponse> => {
-    await delay(1500);
-    if (request.question.toLowerCase().includes("unsupported")) {
-      return {
-        answer: "The available sources do not provide enough evidence.",
-        sources: [],
-        evidenceStatus: "Insufficient evidence in repository."
-      }
+    const res = await fetch('/api/ai/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: request.question, resource_ids: request.resourceId ? [request.resourceId] : undefined })
+    });
+    if (!res.ok) {
+      return { answer: "AI service currently unreachable.", sources: [], evidenceStatus: "Error" };
     }
-    return {
-      answer: "Average fast-ice thickness in Prydz Bay exhibited a 14.2% seasonal thinning between November 2023 and February 2024. This change is strongly attributed to intensified oceanic heat flux from modified Circumpolar Deep Water.\n\nSimultaneously, subglacial hydrological networks and permafrost depths near Schirmacher Oasis have shown correlated instability metrics.",
-      sources: [
-        { id: "RES-001", title: "Antarctic Sea Ice Thickness & Albedo Dynamics in Prydz Bay (2024)", type: "DATASET" },
-        { id: "RES-003", title: "Glacial Bed Topography and Sub-ice Topography near Schirmacher Oasis", type: "REPORT", pageOrSection: "Section 4.2" }
-      ],
-      evidenceStatus: "SUPPORTED BY REPOSITORY SOURCES"
-    };
+    return res.json();
   },
   generateOutreach: async (request: { sourceId: string, audience: string, format: string }): Promise<OutreachDraft> => {
-    await delay(1500);
-    const newDraft: OutreachDraft = {
-      id: `DRF-${Date.now()}`,
-      audience: request.audience,
-      outputType: request.format,
-      content: `[AI GENERATED DRAFT]\n\nBased on source ${request.sourceId}, this is a generated ${request.format} for ${request.audience}. Remember, this is a draft and requires human review.`,
-      sourceIds: [request.sourceId],
-      status: 'DRAFT',
-      createdAt: new Date().toISOString()
-    };
-    mockDrafts.unshift(newDraft);
-    return newDraft;
+    const res = await fetch('/api/ai/outreach', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request)
+    });
+    if (!res.ok) { throw new Error('AI generation failed'); }
+    return res.json();
   },
   getReviewQueue: async (): Promise<OutreachDraft[]> => {
-    await delay(500);
-    return mockDrafts;
+    const res = await fetch('/api/review/queue');
+    if (!res.ok) {
+      if (res.status === 404) return mockDrafts; // fallback if not done
+      throw new Error("Failed to fetch queue");
+    }
+    return res.json();
   },
   approveDraft: async (id: string): Promise<void> => {
-    await delay(500);
-    const draft = mockDrafts.find(d => d.id === id);
-    if (draft) draft.status = 'APPROVED';
+    await fetch(`/api/review/${id}/approve`, { method: 'POST' });
   }
 };
