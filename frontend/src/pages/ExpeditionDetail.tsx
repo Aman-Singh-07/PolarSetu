@@ -132,7 +132,7 @@ export default function ExpeditionDetail() {
               </dl>
             </div>
 
-            <Link to={`/ai?expeditionId=${expedition.id}`} className="p-4 rounded-xl bg-polar-midnight-deep text-pure-white flex items-center gap-3 hover:bg-polar-navy-surface transition-colors shadow-sm">
+            <Link to={`/ai?q=Tell me about expedition ${expedition.id}`} className="p-4 rounded-xl bg-polar-midnight-deep text-pure-white flex items-center gap-3 hover:bg-polar-navy-surface transition-colors shadow-sm">
               <Sparkles className="w-5 h-5 text-glacial-sky" />
               <div className="flex flex-col">
                 <span className="font-title-md text-title-md font-semibold">Ask Polar AI</span>

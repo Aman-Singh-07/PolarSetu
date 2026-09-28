@@ -203,7 +203,7 @@ export default function Home() {
               <Link to="/expeditions/EXP-43" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-polar-midnight-deep text-pure-white font-title-md font-bold hover:bg-polar-navy-surface transition-colors shadow-md">
                 Explore Expedition <ArrowRightIcon className="w-5 h-5" />
               </Link>
-              <Link to="/explore?query=43rd+ISEA" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-pure-white border-2 border-surface-container text-secondary font-title-md font-bold hover:bg-surface-container-low transition-colors">
+              <Link to="/explore?q=43rd+ISEA" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-pure-white border-2 border-surface-container text-secondary font-title-md font-bold hover:bg-surface-container-low transition-colors">
                 View Research
               </Link>
             </div>

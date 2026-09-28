@@ -86,11 +86,17 @@ export default function AdminReview() {
                         >
                           <CheckCircle2 className="w-4 h-4" /> Approve
                         </button>
-                        <button className="w-full bg-pure-white hover:bg-surface-container text-error border border-slate-border-strong py-2.5 rounded-lg font-label-md text-label-md font-medium transition-colors flex items-center justify-center gap-1.5">
-                          <XCircle className="w-4 h-4" /> Reject
+                        <button 
+                          onClick={() => alert('Reject draft action not available in demo mode.')}
+                          className="w-full bg-pure-white hover:bg-surface-container text-error border border-slate-border-strong py-2.5 rounded-lg font-label-md text-label-md font-medium transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <XCircle className="w-4 h-4" /> Reject (Demo)
                         </button>
-                        <button className="w-full text-on-surface-variant hover:text-on-surface font-label-md text-label-md font-medium py-2 transition-colors flex items-center justify-center gap-1.5">
-                          <Edit3 className="w-4 h-4" /> Edit Draft
+                        <button 
+                          onClick={() => alert('Edit draft action not available in demo mode.')}
+                          className="w-full text-on-surface-variant hover:text-on-surface font-label-md text-label-md font-medium py-2 transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <Edit3 className="w-4 h-4" /> Edit Draft (Demo)
                         </button>
                       </>
                     )}
