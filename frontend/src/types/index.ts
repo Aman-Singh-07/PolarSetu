@@ -43,12 +43,13 @@ export interface MediaItem extends Resource {
   type: 'PHOTO' | 'VIDEO';
   caption?: string;
   location?: string;
+  thumbnailUrl?: string;
 }
 
 export interface Station {
   id: string;
   name: string;
-  region: 'ANTARCTICA' | 'ARCTIC' | 'HIMALAYA';
+  region: string;
   latitude: number;
   longitude: number;
   type: string;
