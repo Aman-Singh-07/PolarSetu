@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import './App.css';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import Explore from './pages/Explore';
@@ -12,6 +13,7 @@ import Outreach from './pages/Outreach';
 import Admin from './pages/Admin';
 import AdminUpload from './pages/AdminUpload';
 import AdminReview from './pages/AdminReview';
+import Login from './pages/Login';
 
 export default function App() {
   return (
@@ -19,6 +21,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
+          <Route path="login" element={<Login />} />
           <Route path="explore" element={<Explore />} />
           <Route path="expeditions" element={<Expeditions />} />
           <Route path="expeditions/:id" element={<ExpeditionDetail />} />

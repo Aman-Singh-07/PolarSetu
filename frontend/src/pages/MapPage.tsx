@@ -30,8 +30,9 @@ export default function MapPage() {
               <span className="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Geographic Telemetry & Field Stations</span>
               <h1 className="font-headline-lg text-headline-lg font-bold text-polar-midnight-deep">Interactive Polar Expedition Map</h1>
               <p className="font-body-md text-body-md text-on-surface-variant">
-                Live geodetic positioning of India's year-round research stations and field moorings across the planet's extreme latitudes.
+                Geodetic positioning of India's year-round research stations and field moorings across the planet's extreme latitudes.
               </p>
+              <span className="font-label-sm text-label-sm text-draft-amber-text bg-draft-amber-bg px-2 py-0.5 rounded mt-1 self-start">Latest Telemetry</span>
             </div>
           </div>
         </div>
@@ -72,7 +73,7 @@ export default function MapPage() {
                           <div className="flex justify-between"><span>Humidity:</span> <span className="font-semibold">{station.observations.humidity}</span></div>
                         </div>
                       )}
-                      <div className="text-[10px] text-gray-400 text-right italic mt-2">Prototype Demo Data</div>
+                      <div className="text-[10px] text-gray-400 text-right italic mt-2">Source: MoES Feeds</div>
                     </div>
                   </Popup>
                 </Marker>

@@ -8,15 +8,15 @@ export default function AdminReview() {
   const [queue, setQueue] = useState<OutreachDraft[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchQueue();
-  }, []);
-
   const fetchQueue = async () => {
     const data = await api.getReviewQueue();
     setQueue(data);
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchQueue();
+  }, []);
 
   const handleApprove = async (id: string) => {
     await api.approveDraft(id);

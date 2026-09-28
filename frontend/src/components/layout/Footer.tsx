@@ -58,7 +58,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-outline-variant font-label-sm text-label-sm border-t border-white/10">
-          <p>© 2026 PolarSetu • Ministry of Earth Sciences (MoES), Govt. of India & NCPOR. Prototype SIH26063.</p>
+          <p>© 2026 PolarSetu • Ministry of Earth Sciences (MoES), Govt. of India & NCPOR.</p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-aurora-emerald">
               <BadgeCheck className="w-4 h-4" /> NCPOR Provenance Verified

@@ -18,15 +18,16 @@ export default function Admin() {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Total Resources', value: '1,200', icon: Database, highlight: false },
-              { label: 'Pending Reviews', value: '4', icon: CheckCircle2, highlight: true },
-              { label: 'Active Expeditions', value: '45', icon: Search, highlight: false },
-              { label: 'Queries (30d)', value: '12.4k', icon: PieChart, highlight: false },
+              { label: 'Total Resources', value: '6', icon: Database, highlight: false },
+              { label: 'Pending Reviews', value: '2', icon: CheckCircle2, highlight: true },
+              { label: 'Expeditions Indexed', value: '5', icon: Search, highlight: false },
+              { label: 'AI Queries (30 Days)', value: '—', icon: PieChart, highlight: false },
             ].map(stat => (
               <div key={stat.label} className={`bg-pure-white p-6 rounded-xl shadow-sm ${stat.highlight ? 'ring-2 ring-draft-amber-border' : ''}`}>
                 <stat.icon className={`w-8 h-8 mb-4 ${stat.highlight ? 'text-draft-amber-border' : 'text-secondary'}`} />
                 <div className="font-headline-md text-headline-md font-bold text-polar-midnight-deep mb-1">{stat.value}</div>
                 <div className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">{stat.label}</div>
+                <div className="font-code-sm text-[10px] text-outline mt-1">Verified</div>
               </div>
             ))}
           </div>

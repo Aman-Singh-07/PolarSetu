@@ -16,10 +16,6 @@ export default function ExpeditionDetail() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (id) fetchDetails(id);
-  }, [id]);
-
   const fetchDetails = async (expId: string) => {
     setLoading(true);
     const exp = await api.getExpedition(expId);
@@ -29,6 +25,10 @@ export default function ExpeditionDetail() {
     setResources(expRes);
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (id) fetchDetails(id);
+  }, [id]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {

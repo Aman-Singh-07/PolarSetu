@@ -1,5 +1,4 @@
-import { type Config } from "tailwindcss";
-
+/** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
@@ -29,7 +28,7 @@ export default {
         "on-secondary-container": "#00476e",
         "ice-white": "#F8FAFC",
         "slate-border-strong": "#CBD5E1",
-        "primary": "#000000",
+        "primary": "#0B132B",
         "on-background": "#0b1c30",
         "surface-container-low": "#eff4ff",
         "on-secondary": "#ffffff",
@@ -89,4 +88,4 @@ export default {
     }
   },
   plugins: [],
-} satisfies Config;
+};

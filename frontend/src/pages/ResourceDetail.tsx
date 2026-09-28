@@ -9,16 +9,16 @@ export default function ResourceDetail() {
   const [resource, setResource] = useState<Resource | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (id) fetchResource(id);
-  }, [id]);
-
   const fetchResource = async (resId: string) => {
     setLoading(true);
     const data = await api.getResource(resId);
     if (data) setResource(data);
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (id) fetchResource(id);
+  }, [id]);
 
   const getTypeColor = (type: string) => {
     switch (type) {

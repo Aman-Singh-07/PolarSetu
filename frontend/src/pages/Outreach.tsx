@@ -53,7 +53,7 @@ export default function Outreach() {
               <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-surface-container-high text-secondary">
                 <Edit3 className="w-4 h-4" />
               </span>
-              <span className="font-code-sm text-code-sm text-secondary tracking-widest uppercase">SIH26063 Engine • Outreach Studio</span>
+              <span className="font-code-sm text-code-sm text-secondary tracking-widest uppercase">Outreach Studio</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-aurora-emerald animate-ping"></span>
