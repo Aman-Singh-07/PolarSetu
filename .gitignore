@@ -20,3 +20,4 @@ backend/testserver.exe
 
 # Project docs (ONLY ignoring random scratchpads, keeping real documentation)
 scratchpads/
+*.pdf
