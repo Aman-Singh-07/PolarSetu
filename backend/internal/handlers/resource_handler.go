@@ -94,7 +94,7 @@ func (h *ResourceHandler) Create(c *gin.Context) {
 
 	resource, err := h.repo.Create(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"code": "DB_ERROR", "message": "Failed to create resource"}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"code": "DB_ERROR", "message": err.Error()}})
 		return
 	}
 

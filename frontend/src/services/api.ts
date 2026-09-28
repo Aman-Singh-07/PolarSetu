@@ -72,7 +72,18 @@ export const api = {
     if (!res.ok) {
       return { answer: "AI service currently unreachable.", sources: [], evidenceStatus: "Error" };
     }
+<<<<<<< HEAD
+    return {
+      answer: "Average fast-ice thickness in Prydz Bay exhibited a 14.2% seasonal thinning between November 2023 and February 2024. This change is strongly attributed to intensified oceanic heat flux from modified Circumpolar Deep Water.\n\nSimultaneously, subglacial hydrological networks and permafrost depths near Schirmacher Oasis have shown correlated instability metrics.",
+      sources: [
+        { id: "RES-001", title: "Antarctic Sea Ice Thickness & Albedo Dynamics in Prydz Bay (2024)", type: "DATASET" },
+        { id: "RES-003", title: "Glacial Bed Topography and Sub-ice Topography near Schirmacher Oasis", type: "REPORT", pageOrSection: "Section 4.2" }
+      ],
+      evidenceStatus: "SUPPORTED BY REPOSITORY SOURCES"
+    };
+=======
     return res.json();
+>>>>>>> db2613f (Fixed API structure)
   },
   generateOutreach: async (request: { sourceId: string, audience: string, format: string }): Promise<OutreachDraft> => {
     const res = await fetch('/api/ai/outreach', {

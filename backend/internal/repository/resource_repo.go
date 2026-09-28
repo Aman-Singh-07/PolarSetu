@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"PolarSetu/internal/models"
@@ -55,10 +56,14 @@ func (r *ResourceRepo) ListAll(ctx context.Context, resType, region string, year
 	var resources []models.Resource
 	for rows.Next() {
 		var res models.Resource
+		var storagePathNull sql.NullString
 		if err := rows.Scan(&res.ID, &res.Type, &res.Title, &res.Description,
-			&res.Year, &res.Region, &res.SourceURL, &res.StoragePath,
+			&res.Year, &res.Region, &res.SourceURL, &storagePathNull,
 			&res.License, &res.Status, &res.CreatedAt); err != nil {
 			return nil, err
+		}
+		if storagePathNull.Valid {
+			res.StoragePath = storagePathNull.String
 		}
 		resources = append(resources, res)
 	}
@@ -68,12 +73,16 @@ func (r *ResourceRepo) ListAll(ctx context.Context, resType, region string, year
 // GetByID returns a single resource by ID.
 func (r *ResourceRepo) GetByID(ctx context.Context, id string) (*models.Resource, error) {
 	var res models.Resource
+	var storagePathNull sql.NullString
 	query := `SELECT id, type, title, description, year, region, source_url, storage_path, license, status, created_at FROM resources WHERE id = $1`
 	err := r.pool.QueryRow(ctx, query, id).Scan(&res.ID, &res.Type, &res.Title, &res.Description,
-		&res.Year, &res.Region, &res.SourceURL, &res.StoragePath,
+		&res.Year, &res.Region, &res.SourceURL, &storagePathNull,
 		&res.License, &res.Status, &res.CreatedAt)
 	if err != nil {
 		return nil, err
+	}
+	if storagePathNull.Valid {
+		res.StoragePath = storagePathNull.String
 	}
 	return &res, nil
 }
@@ -107,6 +116,7 @@ func (r *ResourceRepo) GetExpeditionsByResourceID(ctx context.Context, resourceI
 // Create inserts a new resource.
 func (r *ResourceRepo) Create(ctx context.Context, req models.CreateResourceRequest) (*models.Resource, error) {
 	var res models.Resource
+	var storagePathNull sql.NullString
 	query := `
 		INSERT INTO resources (id, type, title, description, year, region, source_url, license, status)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'DRAFT')
@@ -115,10 +125,13 @@ func (r *ResourceRepo) Create(ctx context.Context, req models.CreateResourceRequ
 	err := r.pool.QueryRow(ctx, query, req.ID, req.Type, req.Title, req.Description,
 		req.Year, req.Region, req.SourceURL, req.License).
 		Scan(&res.ID, &res.Type, &res.Title, &res.Description,
-			&res.Year, &res.Region, &res.SourceURL, &res.StoragePath,
+			&res.Year, &res.Region, &res.SourceURL, &storagePathNull,
 			&res.License, &res.Status, &res.CreatedAt)
 	if err != nil {
 		return nil, err
+	}
+	if storagePathNull.Valid {
+		res.StoragePath = storagePathNull.String
 	}
 	return &res, nil
 }

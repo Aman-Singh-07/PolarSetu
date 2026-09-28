@@ -49,37 +49,43 @@ func Setup(pool *pgxpool.Pool, cfg *config.Config) *gin.Engine {
 		api.GET("/health", handlers.HealthCheck)
 		api.POST("/auth/login", authHandler.Login)
 
-		// Expedition Routes
+		// Public Expedition Routes
 		api.GET("/expeditions", expeditionHandler.List)
 		api.GET("/expeditions/:id", expeditionHandler.GetByID)
 
-		// Resource Routes
+		// Public Resource Routes
 		api.GET("/resources", resourceHandler.List)
 		api.GET("/resources/:id", resourceHandler.GetByID)
 		api.GET("/resources/:id/relations", provenanceHandler.GetRelations)
 
-		// Media & Activity Routes
+		// Public Media & Activity Routes
 		api.GET("/media", mediaHandler.List)
 		api.GET("/activities", activityHandler.List)
 
 		// Search Route
 		api.GET("/search", searchHandler.Search)
 
-		// Unprotected Review Routes
-		api.GET("/review/queue", reviewHandler.GetQueue)
-		api.POST("/review/:id/approve", reviewHandler.ApproveDraft)
-		api.POST("/review/:id/reject", reviewHandler.RejectDraft)
-
-		// AI Generation Routes
+		// AI Q&A (Read-only generation is usually open)
 		api.POST("/ai/ask", aiHandler.Ask)
-		api.POST("/ai/outreach", aiHandler.GenerateOutreach)
 
+		// Protected Routes
+		// (Requires a valid JWT Bearer Token generated from /api/auth/login)
 		protected := api.Group("")
 		protected.Use(middleware.AuthRequired(cfg.JWTSecret))
 		{
-			protected.POST("/expeditions", expeditionHandler.Create)
+			// Admin Governance & Review Queue (Mutations must be secured)
+			protected.GET("/review/queue", reviewHandler.GetQueue)
+			protected.POST("/review/:id/approve", reviewHandler.ApproveDraft)
+			protected.POST("/review/:id/reject", reviewHandler.RejectDraft)
 
+			// AI Generation Write Routes
+			protected.POST("/ai/outreach", aiHandler.GenerateOutreach)
+
+			// General Create Actions
+			protected.POST("/expeditions", expeditionHandler.Create)
 			protected.POST("/resources", resourceHandler.Create)
+
+			// Storage & Data Flow Mutations
 			protected.POST("/resources/:id/upload", resourceHandler.UploadFile)
 			protected.POST("/resources/:id/relations", provenanceHandler.CreateRelation)
 		}
