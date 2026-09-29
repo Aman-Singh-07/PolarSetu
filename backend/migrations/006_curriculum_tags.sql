@@ -1,5 +1,6 @@
 -- Curriculum concepts lookup table
-CREATE TABLE IF NOT EXISTS curriculum_concepts (\n    id SERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS curriculum_concepts (
+    id SERIAL PRIMARY KEY,
     class INT NOT NULL CHECK (class BETWEEN 8 AND 12),
     subject VARCHAR(100) NOT NULL,
     concept VARCHAR(255) NOT NULL,
