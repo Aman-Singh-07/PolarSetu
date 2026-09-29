@@ -1,202 +1,182 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
-import { Sparkles, Beaker, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { auth } from '../../services/auth';
+
+const PUBLIC_LINKS = [
+  { path: '/',             label: 'Discover' },
+  { path: '/explore',      label: 'Research' },
+  { path: '/expeditions',  label: 'Expeditions' },
+  { path: '/media',        label: 'Media' },
+  { path: '/map',          label: 'Map' },
+  { path: '/ai',           label: 'Ask AI' },
+];
 
 export default function Navbar() {
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [isAuth, setIsAuth] = useState(false);
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  useEffect(() => { setIsAuth(auth.isAuthenticated()); }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); setAdminOpen(false); }, [location.pathname]);
 
   useEffect(() => {
-    setIsAuthenticated(auth.isAuthenticated());
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
+
+  // Close mobile on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setMobileOpen(false); setAdminOpen(false); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   const handleLogout = () => {
     auth.clearToken();
-    setIsAuthenticated(false);
+    setIsAuth(false);
     window.location.href = '/login';
   };
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-    setAdminMenuOpen(false);
-  }, [location.pathname]);
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [mobileMenuOpen]);
-
-  const navLinks = [
-    { path: '/', label: 'Home' },
-    { path: '/explore', label: 'Explore' },
-    { path: '/expeditions', label: 'Expeditions' },
-    { path: '/media', label: 'Media' },
-    { path: '/map', label: 'Polar Map' },
-  ];
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 w-full z-50 bg-pure-white/95 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-        <div className="h-20 w-full px-4 lg:px-8 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 min-w-max">
-            <Link to="/" className="flex items-center gap-2">
-              <img
-                alt="POLARSETU Emblem"
-                className="h-8 w-auto object-contain"
-                src="https://lh3.googleusercontent.com/aida/AEtjO1VXEr7AYLMmREImv4E52a7As9vSLcuPX2Tah0iKkNYpSXL-ZTRjw1tNmKkosj2FukeZj9LfB1KWGXuN-m1-MGKfRV6CkwD91Ufankky5MozJscRQ_7jMgBamSM7flV83WTRa8EwqmSG-PTLCeYe_96jRnhjagkkbl8PRO2Z8XF5RJlPUJrS0QAu0qZqx6bhG3wpA05rHjshP9RxV9o8N1MlnxYOPHjQnZ_hHTLWztoyBvyZuOTRw1g29_Gu"
-              />
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1">
-                  <span className="font-headline-sm text-headline-sm font-bold tracking-tight text-polar-midnight-deep">POLARSETU</span>
-                </div>
-                <span className="font-label-sm text-label-sm text-on-surface-variant hidden sm:inline">India's Polar Science Knowledge & Outreach Platform</span>
-              </div>
-            </Link>
-          </div>
+      <header className="fixed top-0 left-0 right-0 w-full z-50 bg-[#F8FBFD]/90 backdrop-blur-[12px] border-b border-border-ice/80 transition-all">
+        <div className="h-[72px] w-full max-w-[1400px] mx-auto px-4 lg:px-8 flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 group" aria-label="POLARSETU Home">
+            <img
+              alt="POLARSETU"
+              className="h-7 w-auto object-contain group-hover:opacity-90 transition-opacity"
+              src="https://lh3.googleusercontent.com/aida/AEtjO1VXEr7AYLMmREImv4E52a7As9vSLcuPX2Tah0iKkNYpSXL-ZTRjw1tNmKkosj2FukeZj9LfB1KWGXuN-m1-MGKfRV6CkwD91Ufankky5MozJscRQ_7jMgBamSM7flV83WTRa8EwqmSG-PTLCeYe_96jRnhjagkkbl8PRO2Z8XF5RJlPUJrS0QAu0qZqx6bhG3wpA05rHjshP9RxV9o8N1MlnxYOPHjQnZ_hHTLWztoyBvyZuOTRw1g29_Gu"
+            />
+            <span className="font-display text-lg font-bold tracking-tight text-deep-ocean group-hover:text-cyan-accent transition-colors">POLARSETU</span>
+          </Link>
 
-          <nav className="hidden xl:flex items-center gap-4">
-            {navLinks.map(link => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={clsx(
-                  'transition-colors font-body-sm text-body-sm px-2 py-1 rounded-lg',
-                  location.pathname === link.path
-                    ? 'text-secondary font-semibold bg-surface-container-low'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+          {/* Desktop nav */}
+          <nav className="hidden lg:flex items-center gap-1.5" aria-label="Main navigation">
+            {PUBLIC_LINKS.map(link => {
+              const isAi = link.path === '/ai';
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={clsx(
+                    'relative px-1 py-2 mx-3 font-sans text-[14px] transition-all duration-300',
+                    isActive(link.path)
+                      ? 'text-deep-ocean font-bold'
+                      : isAi ? 'text-glacial-blue font-semibold hover:text-cyan-accent' : 'text-muted font-medium hover:text-deep-ocean'
+                  )}
+                >
+                  {isActive(link.path) && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-deep-ocean rounded-full" />}
+                  {isAi && <span className="inline-block mr-1.5 opacity-80 text-cyan-accent">✧</span>}
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
 
-          <div className="flex items-center gap-2 min-w-max">
-            <Link to="/ai" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-polar-midnight-deep text-on-primary font-label-md text-label-md hover:bg-polar-navy-surface transition-all">
-              <Sparkles className="w-4 h-4 text-glacial-sky" />
-              <span className="hidden sm:inline">Ask Polar AI</span>
-            </Link>
-            <Link to="/outreach" className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-surface-container-low text-secondary font-label-md text-label-md hover:bg-surface-container hover:text-on-secondary-container transition-all">
-              <Beaker className="w-4 h-4" />
-              <span>Outreach Studio</span>
-            </Link>
-            
-            {isAuthenticated ? (
+          {/* Right side */}
+          <div className="flex items-center gap-3">
+            {isAuth ? (
               <div className="relative hidden lg:block">
-                <button 
-                  onClick={() => setAdminMenuOpen(prev => !prev)}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surface-container transition-colors focus:outline-none"
+                <button
+                  onClick={() => setAdminOpen(prev => !prev)}
+                  className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-frost transition-colors"
+                  aria-expanded={adminOpen}
+                  aria-haspopup="true"
                 >
-                  <div className="flex flex-col items-end">
-                    <span className="font-label-sm text-label-sm font-bold text-polar-midnight-deep">Admin.Dr.Rao</span>
-                    <span className="font-code-sm text-[10px] text-on-surface-variant uppercase tracking-wider">MoES Director</span>
-                  </div>
-                  <div className="w-9 h-9 rounded-full bg-polar-midnight-deep text-pure-white flex items-center justify-center font-title-md font-bold shadow-sm">
-                    DR
-                  </div>
+                  <div className="w-7 h-7 rounded-full bg-deep-ocean text-white flex items-center justify-center text-xs font-bold">A</div>
+                  <span className="text-sm font-medium text-deep-ocean">Admin</span>
                 </button>
-                {adminMenuOpen && (
+                {adminOpen && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setAdminMenuOpen(false)} />
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-pure-white rounded-xl shadow-xl border border-surface-variant flex flex-col p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                       <Link to="/admin" onClick={() => setAdminMenuOpen(false)} className="px-3 py-2.5 text-sm font-label-md font-bold hover:bg-surface-container-low rounded-lg text-on-surface transition-colors">Dashboard</Link>
-                       <Link to="/admin/upload" onClick={() => setAdminMenuOpen(false)} className="px-3 py-2.5 text-sm font-label-md hover:bg-surface-container-low rounded-lg text-on-surface transition-colors">Ingest Resource</Link>
-                       <Link to="/admin/review" onClick={() => setAdminMenuOpen(false)} className="px-3 py-2.5 text-sm font-label-md hover:bg-surface-container-low rounded-lg text-on-surface transition-colors">Review Queue</Link>
-                       <div className="h-px bg-surface-variant mx-2 my-1"></div>
-                       <button onClick={() => { setAdminMenuOpen(false); handleLogout(); }} className="px-3 py-2.5 text-sm font-label-md text-left text-error hover:bg-error/5 rounded-lg transition-colors font-bold">Sign Out</button>
+                    <div className="fixed inset-0 z-40" onClick={() => setAdminOpen(false)} />
+                    <div className="absolute right-0 top-full mt-3 w-48 bg-white/95 backdrop-blur-xl rounded-[16px] shadow-[0_16px_40px_rgba(7,20,38,0.12)] border border-border-ice flex flex-col p-2 z-50 animate-fade-up">
+                      <Link to="/admin" onClick={() => setAdminOpen(false)} className="px-3 py-2 text-[13px] font-bold rounded-lg hover:bg-frost text-deep-ocean transition-colors">Dashboard</Link>
+                      <Link to="/admin/upload" onClick={() => setAdminOpen(false)} className="px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-frost text-ink transition-colors">Upload</Link>
+                      <Link to="/admin/review" onClick={() => setAdminOpen(false)} className="px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-frost text-ink transition-colors">Review</Link>
+                      <div className="h-px bg-border-ice/60 mx-2 my-1.5" />
+                      <button onClick={() => { setAdminOpen(false); handleLogout(); }} className="px-3 py-2 text-[13px] font-bold text-left text-error hover:text-white rounded-lg hover:bg-error transition-colors">Sign Out</button>
                     </div>
                   </>
                 )}
               </div>
             ) : (
-              <Link to="/login" className="hidden lg:inline-flex items-center px-4 py-2 rounded-lg bg-surface-container text-on-surface-variant font-label-md text-label-md hover:text-on-surface hover:bg-surface-container-high transition-all">
+              <Link to="/login" className="hidden lg:inline-flex px-4 py-1.5 rounded-md text-sm font-medium text-muted hover:text-deep-ocean hover:bg-frost transition-colors">
                 Sign In
               </Link>
             )}
 
-            {/* Mobile hamburger button */}
             <button
-              className="xl:hidden p-2 rounded-lg hover:bg-surface-container-low transition-colors"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              className="lg:hidden p-2 rounded-md hover:bg-frost transition-colors"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileOpen}
             >
-              {mobileMenuOpen ? <X className="w-5 h-5 text-on-surface" /> : <Menu className="w-5 h-5 text-on-surface" />}
+              {mobileOpen ? <X className="w-5 h-5 text-ink" /> : <Menu className="w-5 h-5 text-ink" />}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile menu overlay */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)}>
-          <div className="absolute inset-0 bg-polar-midnight-deep/30 backdrop-blur-sm" />
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)}>
+          <div className="absolute inset-0 bg-deep-ocean/20 backdrop-blur-sm" />
         </div>
       )}
 
-      {/* Mobile menu panel */}
+      {/* Mobile drawer */}
       <div
         className={clsx(
-          'fixed top-20 right-0 bottom-0 w-72 z-50 bg-pure-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out xl:hidden',
-          mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+          'fixed top-16 right-0 bottom-0 w-72 z-50 bg-white shadow-elevated flex flex-col transform transition-transform duration-300 ease-out lg:hidden',
+          mobileOpen ? 'translate-x-0' : 'translate-x-full'
         )}
+        role="dialog"
+        aria-modal="true"
       >
-        <nav className="flex flex-col p-4 gap-1 flex-1 overflow-y-auto">
-          <span className="font-label-sm text-label-sm text-outline uppercase tracking-widest mb-2 px-3">Navigation</span>
-          {navLinks.map(link => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={clsx(
-                'px-3 py-2.5 rounded-lg font-label-md text-label-md transition-colors',
-                location.pathname === link.path
-                  ? 'text-secondary font-semibold bg-surface-container-low'
-                  : 'text-on-surface hover:bg-surface-container-low hover:text-secondary'
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
+        <nav className="flex flex-col p-4 gap-0.5 flex-1 overflow-y-auto" aria-label="Mobile navigation">
+          {PUBLIC_LINKS.map(link => {
+            const isAi = link.path === '/ai';
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={clsx(
+                  'px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
+                  isActive(link.path)
+                    ? 'text-deep-ocean bg-ice-blue/50 font-semibold'
+                    : isAi ? 'text-glacial-blue hover:bg-frost hover:text-deep-ocean' : 'text-muted hover:bg-frost hover:text-deep-ocean'
+                )}
+              >
+                {isAi && <span className="inline-block mr-1.5 opacity-70">✧</span>}
+                {link.label}
+              </Link>
+            );
+          })}
 
-          <div className="h-px bg-slate-border my-3" />
-          <span className="font-label-sm text-label-sm text-outline uppercase tracking-widest mb-2 px-3">Tools</span>
+          <div className="h-px bg-border-ice my-3" />
 
-          <Link to="/ai" className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-polar-midnight-deep text-on-primary font-label-md text-label-md hover:bg-polar-navy-surface transition-colors">
-            <Sparkles className="w-4 h-4 text-glacial-sky" />
-            Ask Polar AI
-          </Link>
-          <Link to="/outreach" className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-surface-container-low text-secondary font-label-md text-label-md hover:bg-surface-container transition-colors">
-            <Beaker className="w-4 h-4" />
-            Outreach Studio
-          </Link>
-
-          <div className="h-px bg-slate-border my-3" />
-          <span className="font-label-sm text-label-sm text-outline uppercase tracking-widest mb-2 px-3">Admin</span>
-
-          <Link to="/admin" className="px-3 py-2.5 rounded-lg text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low hover:text-on-surface transition-colors">
-            Dashboard
-          </Link>
-          <Link to="/admin/upload" className="px-3 py-2.5 rounded-lg text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low hover:text-on-surface transition-colors">
-            Ingest Resource
-          </Link>
-          <Link to="/admin/review" className="px-3 py-2.5 rounded-lg text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low hover:text-on-surface transition-colors">
-            Review Queue
-          </Link>
+          {isAuth ? (
+            <>
+              <Link to="/admin" className="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-frost hover:text-deep-ocean transition-colors">Dashboard</Link>
+              <Link to="/admin/upload" className="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-frost hover:text-deep-ocean transition-colors">Upload</Link>
+              <Link to="/admin/review" className="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-frost hover:text-deep-ocean transition-colors">Review</Link>
+              <button onClick={handleLogout} className="px-3 py-2.5 rounded-md text-sm text-left text-error hover:bg-red-50 transition-colors mt-1">Sign Out</button>
+            </>
+          ) : (
+            <Link to="/login" className="px-3 py-2.5 rounded-md text-sm font-medium text-muted hover:bg-frost hover:text-deep-ocean transition-colors">Sign In</Link>
+          )}
         </nav>
-
-        <div className="p-4 border-t border-slate-border">
-          <span className="font-code-sm text-code-sm text-outline">MoES / NCPOR</span>
-        </div>
       </div>
     </>
   );

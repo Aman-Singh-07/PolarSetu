@@ -1,147 +1,171 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 @theme {
-  /* === COLORS === */
-  --color-tertiary-fixed-dim: #8bd6b6;
-  --color-on-surface-variant: #45464d;
-  --color-on-primary-container: #7b83a0;
-  --color-outline: #76767e;
-  --color-background: #f8f9ff;
-  --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #002116;
-  --color-secondary-container: #5bb8fe;
-  --color-slate-border: #E2E8F0;
-  --color-inverse-primary: #bec5e5;
-  --color-polar-midnight-deep: #0B132B;
-  --color-on-surface: #0b1c30;
-  --color-on-error: #ffffff;
-  --color-on-secondary-fixed-variant: #004b73;
-  --color-inverse-on-surface: #eaf1ff;
-  --color-surface: #f8f9ff;
-  --color-aurora-emerald: #10B981;
-  --color-on-tertiary-fixed-variant: #00513b;
-  --color-surface-dim: #cbdbf5;
+  --color-deep-ocean: #071426;
+  --color-ocean-navy: #0B1F3A;
+  --color-deep-blue: #12304D;
+  --color-glacial-blue: #1D6FA5;
+  --color-ice-blue: #DCEFFC;
+  --color-frost: #EFF7FB;
+  --color-snow: #F8FBFD;
+  --color-ink: #172033;
+  --color-muted: #667085;
+  --color-subtle: #94A3B8;
+  --color-border-ice: #D6E3EC;
+  
+  --color-cyan-accent: #38BDF8;
+  --color-teal-accent: #0EA5E9;
+  --color-emerald: #10B981;
+  --color-amber-warn: #F59E0B;
+  --color-amber-bg: #FEF3C7;
+  --color-amber-text: #92400E;
+  --color-error: #DC2626;
+
+  /* Legacy aliases */
+  --color-polar-midnight-deep: #071426;
+  --color-polar-navy-surface: #0B1F3A;
   --color-glacial-sky: #38BDF8;
-  --color-on-tertiary-fixed: #002116;
-  --color-on-secondary-container: #00476e;
-  --color-ice-white: #F8FAFC;
-  --color-slate-border-strong: #CBD5E1;
-  --color-primary: #0B132B;
-  --color-on-background: #0b1c30;
-  --color-surface-container-low: #eff4ff;
-  --color-on-secondary: #ffffff;
-  --color-on-error-container: #93000a;
-  --color-primary-fixed-dim: #bec5e5;
-  --color-primary-container: #131a33;
-  --color-on-primary-fixed: #131a33;
-  --color-secondary: #006398;
-  --color-draft-amber-bg: #FEF3C7;
-  --color-aurora-cyan: #06B6D4;
-  --color-polar-navy-surface: #1C2541;
-  --color-inverse-surface: #213145;
-  --color-surface-variant: #d3e4fe;
-  --color-tertiary-fixed: #a6f2d1;
-  --color-error-container: #ffdad6;
-  --color-surface-container-high: #dce9ff;
-  --color-surface-bright: #f8f9ff;
-  --color-error: #ba1a1a;
-  --color-on-secondary-fixed: #001d31;
-  --color-outline-variant: #c6c6ce;
+  --color-aurora-emerald: #10B981;
+  --color-ice-white: #F8FBFD;
   --color-pure-white: #FFFFFF;
-  --color-azure-accent: #0EA5E9;
-  --color-on-primary-fixed-variant: #3e4660;
-  --color-surface-container-lowest: #ffffff;
-  --color-primary-fixed: #dbe1ff;
-  --color-on-tertiary-container: #479175;
-  --color-surface-container: #e5eeff;
-  --color-secondary-fixed: #cce5ff;
-  --color-surface-container-highest: #d3e4fe;
-  --color-surface-tint: #565d79;
+  --color-on-surface: #172033;
+  --color-on-surface-variant: #667085;
+  --color-outline: #94A3B8;
+  --color-surface: #F8FBFD;
+  --color-surface-container: #EFF7FB;
+  --color-secondary: #1D6FA5;
+  --color-secondary-container: #DCEFFC;
+  --color-draft-amber-bg: #FEF3C7;
   --color-draft-amber-text: #92400E;
-  --color-on-primary: #ffffff;
-  --color-secondary-fixed-dim: #93ccff;
   --color-draft-amber-border: #F59E0B;
-  --color-tertiary: #000000;
-  --color-on-tertiary-fixed: #002116;
+  --color-border: #D6E3EC;
 
-  /* === FONT FAMILIES === */
-  --font-body-lg: "Inter", sans-serif;
-  --font-label-md: "Inter", sans-serif;
-  --font-headline-md: "Plus Jakarta Sans", sans-serif;
-  --font-label-sm: "Inter", sans-serif;
-  --font-headline-lg: "Plus Jakarta Sans", sans-serif;
-  --font-display-hero-mobile: "Plus Jakarta Sans", sans-serif;
-  --font-body-sm: "Inter", sans-serif;
-  --font-headline-lg-mobile: "Plus Jakarta Sans", sans-serif;
-  --font-display-hero: "Plus Jakarta Sans", sans-serif;
-  --font-code-sm: "Inter", sans-serif;
-  --font-body-md: "Inter", sans-serif;
-  --font-headline-sm: "Plus Jakarta Sans", sans-serif;
-  --font-title-md: "Plus Jakarta Sans", sans-serif;
-  --font-sans: "Inter", sans-serif;
-  --font-display: "Plus Jakarta Sans", sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
 
-  /* === FONT SIZES === */
-  --text-body-lg: 18px;
-  --text-body-lg--line-height: 28px;
-  --text-label-md: 13px;
-  --text-label-md--line-height: 18px;
-  --text-label-md--letter-spacing: 0.01em;
-  --text-headline-md: 24px;
-  --text-headline-md--line-height: 32px;
-  --text-headline-md--letter-spacing: -0.01em;
-  --text-label-sm: 11px;
-  --text-label-sm--line-height: 16px;
-  --text-label-sm--letter-spacing: 0.04em;
-  --text-headline-lg: 36px;
-  --text-headline-lg--line-height: 44px;
-  --text-headline-lg--letter-spacing: -0.02em;
-  --text-display-hero-mobile: 32px;
-  --text-display-hero-mobile--line-height: 40px;
-  --text-display-hero-mobile--letter-spacing: -0.015em;
-  --text-body-sm: 13px;
-  --text-body-sm--line-height: 20px;
-  --text-headline-lg-mobile: 26px;
-  --text-headline-lg-mobile--line-height: 34px;
-  --text-headline-lg-mobile--letter-spacing: -0.015em;
-  --text-display-hero: 48px;
-  --text-display-hero--line-height: 56px;
-  --text-display-hero--letter-spacing: -0.02em;
-  --text-code-sm: 12px;
-  --text-code-sm--line-height: 16px;
-  --text-body-md: 15px;
-  --text-body-md--line-height: 24px;
-  --text-headline-sm: 20px;
-  --text-headline-sm--line-height: 28px;
-  --text-title-md: 16px;
-  --text-title-md--line-height: 24px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 
-  /* === SPACING === */
-  --spacing-space-md: 1rem;
-  --spacing-margin: 2rem;
-  --spacing-gutter-mobile: 1rem;
-  --spacing-space-sm: 0.5rem;
-  --spacing-space-xl: 2.5rem;
-  --spacing-space-lg: 1.5rem;
-  --spacing-margin-mobile: 1rem;
-  --spacing-gutter: 1.5rem;
-  --spacing-space-xs: 0.25rem;
+  --shadow-soft: 0 4px 18px rgba(7,20,38,0.06);
+  --shadow-medium: 0 8px 28px rgba(7,20,38,0.10);
+  --shadow-elevated: 0 16px 44px rgba(7,20,38,0.14);
+  --shadow-frost: 0 8px 32px rgba(7,20,38,0.10);
+
+  --blur-frost: 12px;
+
+  --animate-fade-up: fade-up 0.5s ease-out both;
+  --animate-fade-in: fade-in 0.4s ease-out both;
+  --animate-soft-pulse: soft-pulse 2s ease-in-out infinite;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes soft-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
 }
 
 @layer base {
-  :root {
-    --background: #f8f9ff;
-    --foreground: #0b1c30;
+  html {
+    scroll-behavior: smooth;
   }
+  
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   body {
-    background-color: var(--color-surface);
-    color: var(--color-on-surface);
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color: var(--color-ink);
+    background: var(--color-snow);
   }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.015em;
+
+  ::selection {
+    background-color: rgba(56, 189, 248, 0.18);
+    color: var(--color-deep-ocean);
   }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border-ice); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-subtle); }
+}
+
+@layer utilities {
+  .frosted {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.60);
+  }
+  .frosted-dark {
+    background: rgba(7, 20, 38, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+  }
+  .animate-delay-100 { animation-delay: 100ms; }
+  .animate-delay-200 { animation-delay: 200ms; }
+  .animate-delay-300 { animation-delay: 300ms; }
+  .animate-delay-400 { animation-delay: 400ms; }
+}
+
+/* Leaflet overrides */
+.leaflet-popup-content-wrapper {
+  border-radius: 10px !important;
+  box-shadow: 0 4px 16px rgba(7, 20, 38, 0.12) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+.leaflet-popup-content {
+  margin: 0 !important;
+  font-family: "Inter", system-ui, sans-serif;
+}
+.leaflet-popup-tip {
+  box-shadow: none !important;
+}
+
+/* Dark Map Filter: Monochromatic deep ocean blue from standard OSM tiles */
+.dark-map-tiles {
+  filter: grayscale(100%) invert(100%) sepia(100%) hue-rotate(180deg) saturate(300%) brightness(60%) contrast(120%);
+}
+
+/* Premium Leaflet Popup Overrides */
+.premium-popup .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(7, 20, 38, 0.15);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.premium-popup .leaflet-popup-content {
+  margin: 0;
+}
+.premium-popup .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 16px 40px rgba(7, 20, 38, 0.15);
+}
+.premium-popup .leaflet-popup-close-button {
+  top: 12px !important;
+  right: 12px !important;
+  color: #64748b !important;
 }

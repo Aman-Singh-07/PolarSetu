@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Database, FileUp, CheckCircle2, Search, ArrowRight, Shield, Globe2, 
-  Activity, Clock, FileText, LayoutDashboard, LogOut
-} from 'lucide-react';
+import { LogOut, Globe2, Activity, Database, Navigation, FileCheck, FileText, ArrowRight } from 'lucide-react';
 import { api } from '../services/api';
 import { auth } from '../services/auth';
 import type { Resource, Expedition, OutreachDraft, Activity as ActivityType } from '../types';
@@ -17,323 +14,183 @@ export default function Admin() {
   const [activities, setActivities] = useState<ActivityType[]>([]);
   
   useEffect(() => {
-    // Auth check
-    const isAuthenticated = auth.isAuthenticated();
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const [resData, expData, draftData, actData] = await Promise.all([
-          api.getResources(),
-          api.getExpeditions(),
-          api.getReviewQueue(),
-          api.getActivities()
-        ]);
-        setResources(resData);
-        setExpeditions(expData);
-        setDrafts(draftData);
-        setActivities(actData || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadData();
+    if (!auth.isAuthenticated()) { navigate('/login'); return; }
+    Promise.all([api.getResources(), api.getExpeditions(), api.getReviewQueue(), api.getActivities()])
+      .then(([r, e, d, a]) => { setResources(r); setExpeditions(e); setDrafts(d); setActivities(a || []); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [navigate]);
 
-  const handleSignOut = () => {
-    auth.clearToken();
-    navigate('/login');
-    window.location.reload();
-  };
+  const handleSignOut = () => { auth.clearToken(); navigate('/login'); window.location.reload(); };
 
-  const pendingReviews = drafts.filter(d => d.status !== 'APPROVED' && d.status !== 'PUBLISHED');
-  const approvedDrafts = drafts.filter(d => d.status === 'APPROVED');
+  const pending = drafts.filter(d => d.status !== 'APPROVED' && d.status !== 'PUBLISHED');
 
-
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <div className="w-10 h-10 border-4 border-surface-variant border-t-secondary rounded-full animate-spin"></div>
-        <span className="font-label-md font-bold text-polar-midnight-deep uppercase tracking-widest">Loading Dashboard...</span>
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[calc(100vh-72px)] bg-snow">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 rounded-full border-2 border-border-ice border-t-cyan-accent animate-spin" />
+        <span className="text-[10px] text-muted uppercase tracking-[0.2em] font-bold">Initializing Workspace...</span>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
-    <div className="flex flex-col w-full bg-surface">
-      {/* Admin Header */}
-      <section className="relative w-full overflow-hidden bg-polar-midnight-deep text-pure-white py-10 lg:py-12 px-4 lg:px-8">
-        <div className="absolute inset-0 bg-[radial-gradient(#38BDF8_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.07] pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-polar-midnight-deep via-polar-midnight-deep/95 to-polar-navy-surface z-0"></div>
-        <div className="max-w-7xl mx-auto relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-glacial-sky">
-              <Shield className="w-4 h-4" />
-              <span className="font-label-sm text-xs font-bold uppercase tracking-widest">Authorized Command Center</span>
-            </div>
-            <h1 className="font-headline-lg text-3xl lg:text-4xl font-bold tracking-tight uppercase">Admin Dashboard</h1>
-            <p className="font-body-md text-base lg:text-lg text-pure-white/80 max-w-2xl leading-relaxed">
-              Manage POLARSETU knowledge resources, review outreach content, and monitor repository activity.
-            </p>
-          </div>
-          
-          <div className="flex flex-col gap-3 shrink-0">
-             <div className="flex items-center justify-start md:justify-end">
-                <span className="font-code-sm text-xs font-bold uppercase tracking-wider px-3 py-1.5 bg-draft-amber-bg/15 text-draft-amber-border rounded border border-draft-amber-border/30 backdrop-blur-sm flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5" /> Prototype Demonstration
-                </span>
-             </div>
-             <div className="flex flex-wrap items-center gap-3">
-               <Link to="/" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 font-label-sm text-sm hover:bg-white/10 transition-all text-pure-white">
-                  <Globe2 className="w-4 h-4" /> Public Platform
-               </Link>
-               <button onClick={handleSignOut} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 font-label-sm text-sm hover:bg-error/20 hover:border-error/40 hover:text-error transition-all text-pure-white/80">
-                  <LogOut className="w-4 h-4" /> Sign Out
-               </button>
-             </div>
-          </div>
-        </div>
-      </section>
+    <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-snow relative overflow-hidden">
+      {/* ─── CINEMATIC BACKGROUND ─── */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white via-snow to-frost opacity-80" />
+      </div>
 
-      {/* Main Content Grid */}
-      <section className="w-full px-4 lg:px-8 py-8">
-        <div className="max-w-7xl mx-auto flex flex-col gap-8">
-          
-          {/* Metrics Row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-pure-white p-5 lg:p-6 rounded-2xl border border-surface-variant shadow-sm hover:shadow-md transition-shadow flex flex-col gap-1 group">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-label-sm text-[10px] lg:text-xs font-bold text-on-surface-variant uppercase tracking-widest">Resources</span>
-                <div className="p-2 rounded-lg bg-surface-container group-hover:bg-secondary group-hover:text-pure-white transition-colors text-secondary">
-                  <Database className="w-4 h-4 lg:w-5 lg:h-5" />
+      <div className="relative z-10 w-full flex flex-col flex-1">
+        {/* ─── HEADER ─── */}
+        <section className="w-full border-b border-border-ice pt-10 pb-8 px-4 lg:px-8 bg-white/60 backdrop-blur-md">
+          <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="flex flex-col gap-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-accent/10 border border-cyan-accent/20 w-fit">
+                <Activity className="w-4 h-4 text-cyan-accent" />
+                <span className="text-[10px] font-bold text-deep-ocean uppercase tracking-[0.2em]">Live System Operations</span>
+              </div>
+              <h1 className="font-display text-4xl font-extrabold text-deep-ocean tracking-tight">Command Dashboard</h1>
+              <p className="text-[15px] text-muted font-medium">Manage repository data, expeditions, and approve AI outreach drafts.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link to="/" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[12px] text-[13px] font-bold text-deep-ocean bg-white hover:bg-frost border border-border-ice transition-colors shadow-sm hover:shadow-md">
+                <Globe2 className="w-4 h-4" /> Public Site
+              </Link>
+              <button onClick={handleSignOut} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[12px] text-[13px] font-bold text-error bg-white hover:bg-error hover:text-white border border-border-ice hover:border-error transition-all shadow-sm hover:shadow-md group">
+                <LogOut className="w-4 h-4 group-hover:text-white transition-colors" /> Sign Out
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── METRICS GRID ─── */}
+        <section className="w-full px-4 lg:px-8 pt-10 pb-6">
+          <div className="max-w-[1200px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {[
+              { label: 'Data Resources', value: resources.length, icon: Database, color: 'text-cyan-accent', bg: 'bg-cyan-accent/10' },
+              { label: 'Active Expeditions', value: expeditions.length, icon: Navigation, color: 'text-[#10B981]', bg: 'bg-[#10B981]/10' },
+              { label: 'Pending Review', value: pending.length, icon: FileCheck, color: 'text-[#F59E0B]', bg: 'bg-[#F59E0B]/10' },
+              { label: 'Total Outreach', value: drafts.length, icon: FileText, color: 'text-[#8B5CF6]', bg: 'bg-[#8B5CF6]/10' },
+            ].map(m => (
+              <div key={m.label} className="bg-white/80 backdrop-blur-xl rounded-[24px] p-6 border border-white shadow-[0_8px_30px_rgba(7,20,38,0.04)] hover:shadow-[0_16px_40px_rgba(7,20,38,0.08)] transition-shadow flex flex-col gap-5 relative overflow-hidden group">
+                <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity ${m.bg}`} />
+                <div className="flex items-center justify-between relative z-10">
+                  <div className={`w-12 h-12 rounded-[14px] ${m.bg} flex items-center justify-center border border-white`}>
+                    <m.icon className={`w-6 h-6 ${m.color}`} />
+                  </div>
+                </div>
+                <div className="relative z-10">
+                  <p className="font-display text-4xl font-extrabold text-deep-ocean leading-none mb-2">{m.value}</p>
+                  <p className="text-[11px] text-muted uppercase tracking-[0.1em] font-bold">{m.label}</p>
                 </div>
               </div>
-              <span className="text-3xl lg:text-4xl font-bold text-polar-midnight-deep font-display">{resources.length}</span>
-              <span className="font-body-sm text-xs text-on-surface-variant">Total indexed items</span>
-            </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ─── WORKSPACE PANELS ─── */}
+        <section className="w-full px-4 lg:px-8 pb-12 flex-1">
+          <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <div className="bg-pure-white p-5 lg:p-6 rounded-2xl border border-surface-variant shadow-sm hover:shadow-md transition-shadow flex flex-col gap-1 group">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-label-sm text-[10px] lg:text-xs font-bold text-on-surface-variant uppercase tracking-widest">Expeditions</span>
-                <div className="p-2 rounded-lg bg-surface-container group-hover:bg-secondary group-hover:text-pure-white transition-colors text-secondary">
-                  <Globe2 className="w-4 h-4 lg:w-5 lg:h-5" />
-                </div>
-              </div>
-              <span className="text-3xl lg:text-4xl font-bold text-polar-midnight-deep font-display">{expeditions.length}</span>
-              <span className="font-body-sm text-xs text-on-surface-variant">Cataloged missions</span>
-            </div>
-
-            <div className="bg-pure-white p-5 lg:p-6 rounded-2xl border border-draft-amber-border/40 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-1 group relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-draft-amber-bg/60 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform"></div>
-              <div className="flex items-center justify-between mb-3 relative z-10">
-                <span className="font-label-sm text-[10px] lg:text-xs font-bold text-draft-amber-text uppercase tracking-widest">Pending</span>
-                <div className="p-2 rounded-lg bg-draft-amber-bg text-draft-amber-text group-hover:bg-draft-amber-border group-hover:text-pure-white transition-colors">
-                  <Clock className="w-4 h-4 lg:w-5 lg:h-5" />
-                </div>
-              </div>
-              <span className="text-3xl lg:text-4xl font-bold text-polar-midnight-deep font-display relative z-10">{pendingReviews.length}</span>
-              <span className="font-body-sm text-xs text-on-surface-variant relative z-10">Awaiting human review</span>
-            </div>
-
-            <div className="bg-pure-white p-5 lg:p-6 rounded-2xl border border-surface-variant shadow-sm hover:shadow-md transition-shadow flex flex-col gap-1 group relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-aurora-emerald/10 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform"></div>
-              <div className="flex items-center justify-between mb-3 relative z-10">
-                <span className="font-label-sm text-[10px] lg:text-xs font-bold text-aurora-emerald uppercase tracking-widest">Approved</span>
-                <div className="p-2 rounded-lg bg-aurora-emerald/10 text-aurora-emerald group-hover:bg-aurora-emerald group-hover:text-pure-white transition-colors">
-                  <CheckCircle2 className="w-4 h-4 lg:w-5 lg:h-5" />
-                </div>
-              </div>
-              <span className="text-3xl lg:text-4xl font-bold text-polar-midnight-deep font-display relative z-10">{approvedDrafts.length}</span>
-              <span className="font-body-sm text-xs text-on-surface-variant relative z-10">Ready for dissemination</span>
-            </div>
-          </div>
-
-          {/* Workflow Indicator */}
-          <div className="bg-pure-white px-5 py-3.5 rounded-xl border border-surface-variant shadow-sm flex flex-wrap items-center justify-center gap-3 md:gap-5 font-label-sm text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
-             <span className="flex items-center gap-1.5"><FileUp className="w-3.5 h-3.5"/> Upload</span>
-             <ArrowRight className="w-3 h-3 text-outline" />
-             <span className="flex items-center gap-1.5"><Database className="w-3.5 h-3.5"/> Indexing</span>
-             <ArrowRight className="w-3 h-3 text-outline" />
-             <span className="flex items-center gap-1.5"><LayoutDashboard className="w-3.5 h-3.5"/> Discovery</span>
-             <ArrowRight className="w-3 h-3 text-outline" />
-             <span className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5"/> Outreach</span>
-             <ArrowRight className="w-3 h-3 text-outline" />
-             <span className="flex items-center gap-1.5 text-draft-amber-text"><Clock className="w-3.5 h-3.5"/> Review</span>
-             <ArrowRight className="w-3 h-3 text-outline" />
-             <span className="flex items-center gap-1.5 text-aurora-emerald"><CheckCircle2 className="w-3.5 h-3.5"/> Dissemination</span>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Left Column (Actions & Pending) */}
-            <div className="lg:col-span-7 flex flex-col gap-8">
+            {/* Left Column (Actions & Queue) */}
+            <div className="lg:col-span-2 flex flex-col gap-6">
               
-              {/* Quick Actions */}
-              <div className="flex flex-col gap-4">
-                <h2 className="font-label-md text-sm font-bold text-polar-midnight-deep uppercase tracking-widest flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-secondary" /> Core Operations
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Link to="/admin/upload" className="bg-white rounded-[24px] p-8 border border-white hover:border-cyan-accent/30 transition-all duration-300 group shadow-[0_8px_30px_rgba(7,20,38,0.04)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.12)] flex flex-col gap-3 relative overflow-hidden hover:-translate-y-1">
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="w-12 h-12 rounded-full bg-frost flex items-center justify-center mb-1 group-hover:bg-cyan-accent/10 transition-colors">
+                    <Database className="w-6 h-6 text-muted group-hover:text-cyan-accent transition-colors" />
+                  </div>
+                  <p className="text-xl font-bold text-deep-ocean group-hover:text-cyan-accent transition-colors flex items-center gap-2">
+                    Upload Resource <ArrowRight className="w-5 h-5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                  </p>
+                  <p className="text-[14px] text-muted font-medium">Inject new scientific data into the main repository.</p>
+                </Link>
+                
+                <Link to="/admin/review" className="bg-white rounded-[24px] p-8 border border-white hover:border-[#F59E0B]/30 transition-all duration-300 group shadow-[0_8px_30px_rgba(7,20,38,0.04)] hover:shadow-[0_12px_40px_rgba(245,158,11,0.12)] flex flex-col gap-3 relative overflow-hidden hover:-translate-y-1">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="w-12 h-12 rounded-full bg-amber-bg/50 flex items-center justify-center mb-1 group-hover:bg-[#F59E0B]/10 transition-colors">
+                    <FileCheck className="w-6 h-6 text-[#F59E0B] group-hover:scale-110 transition-transform" />
+                  </div>
+                  <p className="text-xl font-bold text-deep-ocean group-hover:text-[#F59E0B] transition-colors flex items-center gap-2">
+                    Review Queue <ArrowRight className="w-5 h-5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                  </p>
+                  <p className="text-[14px] text-muted font-medium">{pending.length} AI-generated drafts await editorial approval.</p>
+                </Link>
+              </div>
+
+              {/* Editorial Queue List */}
+              <div className="bg-white rounded-[24px] border border-border-ice shadow-[0_8px_30px_rgba(7,20,38,0.04)] overflow-hidden flex flex-col">
+                <div className="px-6 py-5 border-b border-border-ice flex items-center justify-between bg-frost/50">
+                  <h2 className="text-[15px] font-bold text-deep-ocean flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-cyan-accent" /> Editorial Queue
+                  </h2>
+                  <Link to="/admin/review" className="text-[11px] font-bold text-cyan-accent uppercase tracking-[0.1em] hover:text-deep-ocean transition-colors bg-white px-3 py-1.5 rounded-lg border border-border-ice shadow-sm hover:shadow-md">View Full Queue</Link>
+                </div>
+                
+                {pending.length === 0 ? (
+                  <div className="p-16 flex flex-col items-center justify-center text-center gap-4 bg-white/50">
+                    <div className="w-16 h-16 rounded-full bg-frost flex items-center justify-center border border-border-ice">
+                      <FileCheck className="w-7 h-7 text-muted/50" />
+                    </div>
+                    <p className="text-[15px] text-muted font-medium">Queue is completely empty.<br/>All drafts have been reviewed.</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border-ice flex flex-col bg-white">
+                    {pending.slice(0, 5).map(d => (
+                      <div key={d.id} className="px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-frost transition-colors group">
+                        <div className="flex flex-col gap-1.5">
+                          <p className="text-[16px] text-deep-ocean font-bold group-hover:text-cyan-accent transition-colors">
+                            {d.outputType.replace('_', ' ')}
+                          </p>
+                          <p className="text-[11px] text-muted uppercase tracking-[0.1em] font-bold flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-warn" /> Source Ref: {d.sourceIds[0]}
+                          </p>
+                        </div>
+                        <Link to="/admin/review" className="px-5 py-2.5 rounded-[10px] text-[13px] font-bold text-deep-ocean bg-ice-blue hover:bg-cyan-accent hover:text-white transition-all shadow-sm hover:shadow-md flex items-center justify-center">
+                          Review Draft
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column (Activity Feed) */}
+            <div className="bg-white rounded-[24px] border border-border-ice shadow-[0_8px_30px_rgba(7,20,38,0.04)] overflow-hidden flex flex-col">
+              <div className="px-6 py-5 border-b border-border-ice bg-frost/50">
+                <h2 className="text-[15px] font-bold text-deep-ocean flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-[#10B981]" /> System Activity
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Link to="/admin/upload" className="flex items-start gap-4 p-5 rounded-2xl bg-pure-white hover:bg-surface-container-low border border-surface-variant hover:border-secondary/30 transition-all group shadow-sm hover:shadow-md">
-                     <div className="w-11 h-11 rounded-xl bg-polar-midnight-deep text-pure-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform">
-                       <FileUp className="w-5 h-5" />
-                     </div>
-                     <div className="flex flex-col gap-1 pt-0.5">
-                       <span className="font-label-md font-bold text-polar-midnight-deep group-hover:text-secondary transition-colors">Ingest Resource</span>
-                       <span className="font-body-sm text-sm text-on-surface-variant leading-tight">Upload & index new polar datasets or media</span>
-                     </div>
-                  </Link>
-                  <Link to="/admin/review" className="flex items-start gap-4 p-5 rounded-2xl bg-pure-white hover:bg-draft-amber-bg/20 border border-surface-variant hover:border-draft-amber-border/50 transition-all group shadow-sm hover:shadow-md">
-                     <div className="w-11 h-11 rounded-xl bg-draft-amber-border text-pure-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform">
-                       <Clock className="w-5 h-5" />
-                     </div>
-                     <div className="flex flex-col gap-1 pt-0.5">
-                       <span className="font-label-md font-bold text-polar-midnight-deep group-hover:text-draft-amber-text transition-colors">Review Outreach</span>
-                       <span className="font-body-sm text-sm text-on-surface-variant leading-tight">Approve AI-generated educational drafts</span>
-                     </div>
-                  </Link>
-                  <Link to="/explore" className="flex items-start gap-4 p-5 rounded-2xl bg-pure-white hover:bg-surface-container-low border border-surface-variant hover:border-secondary/30 transition-all group shadow-sm hover:shadow-md">
-                     <div className="w-11 h-11 rounded-xl bg-azure-accent/10 text-azure-accent flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                       <Search className="w-5 h-5" />
-                     </div>
-                     <div className="flex flex-col gap-1 pt-0.5">
-                       <span className="font-label-md font-bold text-polar-midnight-deep group-hover:text-secondary transition-colors">View Repository</span>
-                       <span className="font-body-sm text-sm text-on-surface-variant leading-tight">Browse FAIR-compliant indexed content</span>
-                     </div>
-                  </Link>
-                  <Link to="/expeditions" className="flex items-start gap-4 p-5 rounded-2xl bg-pure-white hover:bg-surface-container-low border border-surface-variant hover:border-secondary/30 transition-all group shadow-sm hover:shadow-md">
-                     <div className="w-11 h-11 rounded-xl bg-surface-container-high text-polar-midnight-deep flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                       <Globe2 className="w-5 h-5" />
-                     </div>
-                     <div className="flex flex-col gap-1 pt-0.5">
-                       <span className="font-label-md font-bold text-polar-midnight-deep group-hover:text-secondary transition-colors">Mission Control</span>
-                       <span className="font-body-sm text-sm text-on-surface-variant leading-tight">Explore structured expedition logs & data</span>
-                     </div>
-                  </Link>
-                </div>
               </div>
-
-              {/* Pending Reviews Table */}
-              <div className="flex flex-col gap-4">
-                 <div className="flex items-center justify-between">
-                   <h2 className="font-label-md text-sm font-bold text-polar-midnight-deep uppercase tracking-widest flex items-center gap-2">
-                     <Shield className="w-4 h-4 text-draft-amber-text" /> Editorial Queue
-                   </h2>
-                   <Link to="/admin/review" className="text-secondary font-label-sm text-xs font-bold uppercase tracking-wider hover:underline flex items-center gap-1">View All <ArrowRight className="w-3 h-3" /></Link>
-                 </div>
-                 
-                 <div className="bg-pure-white rounded-2xl border border-surface-variant shadow-sm overflow-hidden">
-                    {pendingReviews.length === 0 ? (
-                      <div className="p-10 flex flex-col items-center justify-center text-center gap-3">
-                        <CheckCircle2 className="w-10 h-10 text-aurora-emerald opacity-40" />
-                        <span className="text-on-surface-variant font-label-sm uppercase tracking-widest font-bold">Queue Empty — All Reviewed</span>
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-surface-variant">
-                        {pendingReviews.slice(0, 4).map(draft => (
-                          <div key={draft.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-container-low/50 transition-colors group">
-                            <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-                               <div className="flex flex-wrap items-center gap-2">
-                                 <span className="font-code-sm text-[10px] font-bold uppercase tracking-wider text-draft-amber-text border border-draft-amber-border/40 px-2 py-0.5 rounded bg-draft-amber-bg/30">Pending</span>
-                                 <span className="font-code-sm text-[10px] text-outline uppercase">{draft.id}</span>
-                                 <span className="hidden sm:inline font-code-sm text-[10px] text-outline ml-auto">{new Date(draft.createdAt).toLocaleDateString()}</span>
-                               </div>
-                               <span className="font-title-md text-base font-bold text-polar-midnight-deep truncate group-hover:text-secondary transition-colors">{draft.outputType}</span>
-                               <span className="font-body-sm text-sm text-on-surface-variant truncate">Target: {draft.audience} • Source: {draft.sourceIds[0]}</span>
-                            </div>
-                            <Link to="/admin/review" className="shrink-0 w-full sm:w-auto px-5 py-2.5 rounded-lg bg-polar-midnight-deep text-pure-white font-label-sm text-xs font-bold uppercase tracking-wider hover:bg-polar-navy-surface transition-all shadow-sm text-center">
-                               Review Draft
-                            </Link>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                 </div>
-              </div>
-
-            </div>
-
-            {/* Right Column (Activity & System) */}
-            <div className="lg:col-span-5 flex flex-col gap-8">
               
-              {/* Recent Activity */}
-              <div className="flex flex-col gap-4">
-                 <h2 className="font-label-md text-sm font-bold text-polar-midnight-deep uppercase tracking-widest flex items-center gap-2">
-                   <Clock className="w-4 h-4 text-secondary" /> Recent Activity
-                 </h2>
-                 <div className="bg-pure-white rounded-2xl border border-surface-variant shadow-sm p-5">
-                   {activities.length === 0 ? (
-                      <div className="text-center text-on-surface-variant font-body-sm py-6">Repository activity will appear here.</div>
-                   ) : (
-                     <div className="flex flex-col gap-0">
-                        {activities.map((act, i) => (
-                          <div key={`${act.id}-${i}`} className="flex gap-4 relative">
-                            {/* Timeline connector */}
-                            {i < activities.length - 1 && (
-                              <div className="absolute left-[9px] top-6 bottom-0 w-px bg-surface-variant"></div>
-                            )}
-                            {/* Timeline dot */}
-                            <div className="w-[18px] h-[18px] rounded-full shrink-0 mt-0.5 border-2 relative z-10 border-secondary bg-surface-container"></div>
-                            <div className="flex flex-col gap-0.5 min-w-0 pb-5">
-                               <span className="font-label-sm text-sm font-bold text-polar-midnight-deep leading-tight">{act.title}</span>
-                               <span className="font-body-sm text-sm text-on-surface-variant truncate leading-tight">{act.description}</span>
-                               <span className="font-code-sm text-[10px] text-outline uppercase tracking-wider mt-1">{new Date(act.date).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-                        ))}
-                     </div>
-                   )}
-                 </div>
+              <div className="p-6 flex-1 overflow-y-auto bg-white">
+                {activities.length === 0 ? (
+                  <div className="text-center text-muted text-sm py-12 font-medium">No recent activity</div>
+                ) : (
+                  <div className="flex flex-col gap-6 relative before:absolute before:inset-y-0 before:left-[5px] before:w-[2px] before:bg-border-ice">
+                    {activities.map((a, i) => (
+                      <div key={`${a.id}-${i}`} className="flex gap-4 relative group">
+                        <div className="w-3 h-3 rounded-full bg-white border-[2px] border-cyan-accent mt-1 shrink-0 z-10 group-hover:bg-cyan-accent transition-colors shadow-[0_0_0_4px_white]" />
+                        <div className="flex flex-col gap-1.5">
+                          <p className="text-[14px] text-deep-ocean font-bold leading-tight">{a.title}</p>
+                          <p className="text-[13px] text-muted leading-relaxed font-medium">{a.description}</p>
+                          <p className="text-[10px] text-subtle uppercase tracking-[0.1em] font-bold mt-1">
+                            {new Date(a.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-
-              {/* System Status */}
-              <div className="flex flex-col gap-4">
-                 <h2 className="font-label-md text-sm font-bold text-polar-midnight-deep uppercase tracking-widest flex items-center gap-2">
-                   <Activity className="w-4 h-4 text-aurora-emerald" /> System Status
-                 </h2>
-                 <div className="bg-pure-white rounded-2xl border border-surface-variant shadow-sm divide-y divide-surface-variant overflow-hidden">
-                    <div className="p-4 flex items-center justify-between hover:bg-surface-container-low/50 transition-colors">
-                      <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
-                           <Database className="w-4 h-4 text-secondary" />
-                         </div>
-                         <span className="font-label-sm text-sm font-bold text-polar-midnight-deep">Repository Database</span>
-                      </div>
-                      <span className="font-code-sm text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-surface-container text-on-surface-variant border border-surface-variant">Demo Mode</span>
-                    </div>
-                    <div className="p-4 flex items-center justify-between hover:bg-surface-container-low/50 transition-colors">
-                      <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-lg bg-aurora-emerald/10 flex items-center justify-center">
-                           <Activity className="w-4 h-4 text-aurora-emerald" />
-                         </div>
-                         <span className="font-label-sm text-sm font-bold text-polar-midnight-deep">Source-Grounded AI</span>
-                      </div>
-                      <span className="font-code-sm text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-surface-container text-on-surface-variant border border-surface-variant">Demo Mode</span>
-                    </div>
-                    <div className="p-4 flex items-center justify-between hover:bg-surface-container-low/50 transition-colors">
-                      <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
-                           <Globe2 className="w-4 h-4 text-secondary" />
-                         </div>
-                         <span className="font-label-sm text-sm font-bold text-polar-midnight-deep">Indexing Engine</span>
-                      </div>
-                      <span className="font-code-sm text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-surface-container text-on-surface-variant border border-surface-variant">Prototype</span>
-                    </div>
-                 </div>
-              </div>
-
             </div>
+
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

@@ -1,432 +1,146 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Search as SearchIcon, Camera, Video, Image as ImageIcon, Crosshair, Share2, Info, X, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { api } from '../services/api';
-import type { MediaItem, Expedition } from '../types';
-
-const CATEGORIES = [
-  { id: 'all', label: 'All Media' },
-  { id: 'field', label: 'Field Research' },
-  { id: 'stations', label: 'Research Stations' },
-  { id: 'instruments', label: 'Instruments' },
-];
+import type { MediaItem } from '../types';
+import { Link } from 'react-router-dom';
+import { Image as ImageIcon, Sparkles, Camera, Play, Aperture } from 'lucide-react';
+import { Skeleton, EmptyState, ErrorState } from '../components/ui';
 
 export default function Media() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
-  const [expeditions, setExpeditions] = useState<Expedition[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  const q = searchParams.get('q') || '';
-  const categoryFilter = searchParams.get('category') || 'all';
-  
-  const [searchQuery, setSearchQuery] = useState(q);
-  const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
-  
-  const navigate = useNavigate();
-
   const [error, setError] = useState(false);
-
-  const loadData = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const [mediaData, expData] = await Promise.all([
-        api.getMedia(),
-        api.getExpeditions()
-      ]);
-      setMediaItems(mediaData || []);
-      setExpeditions(expData || []);
-      
-      if (mediaData && mediaData.length > 0 && !selectedMediaId) {
-        setSelectedMediaId(mediaData[0].id);
-      }
-    } catch (err) {
-      console.error('Failed to load media:', err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [filter, setFilter] = useState('All');
 
   useEffect(() => {
-    loadData();
-  }, [selectedMediaId]);
+    api.getMedia()
+      .then(data => setMedia(data || []))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, []);
 
-  useEffect(() => {
-    setSearchQuery(q);
-  }, [q]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery) {
-      searchParams.set('q', searchQuery);
-    } else {
-      searchParams.delete('q');
-    }
-    setSearchParams(searchParams);
-  };
-
-  const setCategory = (catId: string) => {
-    if (catId === 'all') {
-      searchParams.delete('category');
-    } else {
-      searchParams.set('category', catId);
-    }
-    setSearchParams(searchParams);
-  };
-
-  const filteredMedia = useMemo(() => {
-    return mediaItems.filter(item => {
-      // Basic text search
-      if (q) {
-        const query = q.toLowerCase();
-        const matches = 
-          item.title.toLowerCase().includes(query) || 
-          item.description.toLowerCase().includes(query) || 
-          item.region.toLowerCase().includes(query);
-        if (!matches) return false;
-      }
-      
-      // Category filter (derived from title/description for demo purposes)
-      if (categoryFilter !== 'all') {
-        const text = (item.title + ' ' + item.description).toLowerCase();
-        if (categoryFilter === 'stations' && !text.includes('station')) return false;
-        if (categoryFilter === 'instruments' && !text.includes('ctd') && !text.includes('lidar') && !text.includes('sensor')) return false;
-        if (categoryFilter === 'field' && text.includes('station')) return false; // Rough heuristic
-      }
-      return true;
-    });
-  }, [mediaItems, q, categoryFilter]);
-
-  const selectedItem = useMemo(() => {
-    return filteredMedia.find(m => m.id === selectedMediaId) || filteredMedia[0] || null;
-  }, [filteredMedia, selectedMediaId]);
-
-  const relatedExpedition = useMemo(() => {
-    if (!selectedItem || !selectedItem.expeditionId) return null;
-    return expeditions.find(e => e.id === selectedItem.expeditionId) || null;
-  }, [selectedItem, expeditions]);
-
-  const antarcticaCount = mediaItems.filter(m => m.region === 'Antarctica').length;
-  const arcticCount = mediaItems.filter(m => m.region === 'Arctic').length;
-  const himalayaCount = mediaItems.filter(m => m.region === 'Himalayas').length;
+  const filtered = filter === 'All' ? media : media.filter(m => m.type === filter || m.caption?.toLowerCase().includes(filter.toLowerCase()));
 
   return (
-    <div className="flex flex-col w-full bg-surface min-h-screen">
-      {/* Top Command & Provenance Bar */}
-      <div className="w-full bg-polar-midnight-deep text-pure-white px-4 lg:px-8 py-2.5 border-b border-white/10">
-        <div className="max-w-[1360px] mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center px-2 py-0.5 rounded bg-surface-container-high/20 text-glacial-sky font-code-sm text-[11px] font-semibold">MoES / NCPOR Archive</span>
-            <span className="text-white/40 text-xs hidden sm:inline">•</span>
-            <span className="font-label-sm text-label-sm text-surface-container-highest tracking-wide uppercase hidden sm:inline">Cryospheric Visual Archive & Media Dissemination Layer</span>
+    <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-snow">
+      {/* ─── CINEMATIC HEADER ─── */}
+      <section className="relative w-full bg-deep-ocean pt-24 pb-32 px-4 lg:px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-ocean-navy via-deep-ocean to-deep-ocean" />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay" />
+        
+        <div className="relative z-10 max-w-[1100px] mx-auto flex flex-col items-center text-center gap-6 animate-fade-up">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-lg">
+            <Aperture className="w-4 h-4 text-cyan-accent" />
+            <span className="text-white text-[11px] font-bold tracking-[0.25em] uppercase">Media Archive</span>
           </div>
-          <div className="flex items-center gap-3 font-code-sm text-code-sm text-glacial-sky">
-            <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-aurora-emerald animate-pulse"></span>Feed Synchronized</span>
-            <span className="text-white/30 hidden sm:inline">|</span>
-            <span className="text-pure-white/80 hidden sm:inline">FAIR Open-Access</span>
-          </div>
+          
+          <h1 className="font-display text-5xl md:text-[64px] font-extrabold text-white tracking-tight leading-[1.1] drop-shadow-2xl">
+            Visual Records
+          </h1>
+          
+          <p className="text-lg md:text-xl text-white/70 font-light max-w-2xl leading-relaxed drop-shadow-md">
+            Photographic and video documentation from Indian polar research field operations.
+          </p>
         </div>
-      </div>
+      </section>
 
-      {/* Header & Search Console */}
-      <section className="w-full bg-surface-container-low px-4 lg:px-8 py-8 lg:py-12 border-b border-slate-border/50">
-        <div className="max-w-[1360px] mx-auto flex flex-col gap-8">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="flex flex-col gap-3 max-w-3xl">
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 rounded bg-draft-amber-bg text-draft-amber-text font-label-sm text-[10px] font-bold uppercase tracking-wider shadow-sm">Prototype Demonstration Data</span>
-                <span className="px-2.5 py-1 rounded bg-surface-container text-secondary font-label-sm text-[10px] font-bold uppercase tracking-wider shadow-sm">{mediaItems.length} Catalogued Assets</span>
-              </div>
-              <h1 className="font-headline-lg text-headline-lg font-bold text-polar-midnight-deep tracking-tight">Polar Media Explorer</h1>
-              <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl leading-relaxed">
-                Explore field photographs, research stations, instruments and expedition moments from India's polar research ecosystem.
-              </p>
-            </div>
+      {/* ─── FLOATING FILTERS ─── */}
+      <section className="w-full px-4 lg:px-8 -mt-10 relative z-30 mb-16">
+        <div className="max-w-[1100px] mx-auto flex justify-center">
+          <div className="inline-flex bg-white/95 backdrop-blur-xl rounded-[20px] p-1.5 shadow-[0_16px_40px_rgba(7,20,38,0.12)] border border-white relative overflow-hidden group">
+            <div className="absolute inset-0 bg-cyan-accent/10 blur-[20px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
             
-            {/* Quick Metrics */}
-            <div className="grid grid-cols-3 gap-2 bg-pure-white p-2 rounded-xl shadow-sm self-start shrink-0">
-              <div className="flex flex-col px-4 py-2 bg-surface-container-low rounded-lg">
-                <span className="font-label-sm text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Antarctica</span>
-                <span className="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep leading-none">{antarcticaCount}</span>
-              </div>
-              <div className="flex flex-col px-4 py-2 bg-surface-container-low rounded-lg">
-                <span className="font-label-sm text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Arctic</span>
-                <span className="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep leading-none">{arcticCount}</span>
-              </div>
-              <div className="flex flex-col px-4 py-2 bg-surface-container-low rounded-lg">
-                <span className="font-label-sm text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Himalaya</span>
-                <span className="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep leading-none">{himalayaCount}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Search & Filter Controls */}
-          <div className="flex flex-col gap-4">
-            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-pure-white p-2 rounded-xl shadow-sm">
-              <div className="relative flex-1 flex items-center">
-                <SearchIcon className="absolute left-4 w-5 h-5 text-outline-variant" />
-                <input
-                  className="w-full bg-ice-white rounded-lg pl-12 pr-4 py-3 text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-azure-accent transition-all"
-                  placeholder="Search media by expedition, keyword, instrument, station..."
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button type="button" onClick={() => {setSearchQuery(''); setSearchParams({});}} className="absolute right-4 text-on-surface-variant hover:text-error">
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <button type="submit" className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-polar-midnight-deep text-pure-white hover:bg-polar-navy-surface rounded-lg font-label-md text-label-md font-semibold transition-colors">
-                  Search
+            <div className="relative flex items-center z-10">
+              {[
+                { id: 'All', label: 'All Formats', icon: Aperture },
+                { id: 'PHOTO', label: 'Photography', icon: Camera },
+                { id: 'VIDEO', label: 'Video', icon: Play }
+              ].map(f => (
+                <button 
+                  key={f.id} 
+                  onClick={() => setFilter(f.id)} 
+                  className={`flex items-center gap-2 px-6 py-3 rounded-[14px] text-sm font-bold transition-all duration-300 ${
+                    filter === f.id 
+                      ? 'bg-deep-ocean text-white shadow-md scale-100' 
+                      : 'text-muted hover:text-deep-ocean hover:bg-frost scale-95 hover:scale-100'
+                  }`}
+                >
+                  <f.icon className={`w-4 h-4 ${filter === f.id ? 'text-cyan-accent' : ''}`} />
+                  {f.label}
                 </button>
-              </div>
-            </form>
-
-            {/* Category Carousel */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-              {CATEGORIES.map(cat => {
-                const isActive = categoryFilter === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCategory(cat.id)}
-                    className={`px-4 py-2 rounded-full font-label-md text-label-md font-semibold transition-all whitespace-nowrap shadow-sm border ${
-                      isActive
-                        ? 'bg-polar-midnight-deep text-pure-white border-polar-midnight-deep'
-                        : 'bg-pure-white text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low border-slate-border'
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                );
-              })}
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Main Workspace */}
-      <section className="w-full px-4 lg:px-8 py-8">
-        <div className="max-w-[1360px] mx-auto flex flex-col xl:flex-row items-start gap-8">
-          
-          {/* Left Side: Gallery Grid */}
-          <div className="w-full xl:w-2/3 flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant">
-                <span className="font-bold text-polar-midnight-deep uppercase tracking-wider">
-                  Showing {filteredMedia.length} of {mediaItems.length} Artifacts
-                </span>
-              </div>
+      {/* ─── CONTENT ─── */}
+      <section className="w-full px-4 lg:px-8 pb-32 flex-1">
+        <div className="max-w-[1100px] mx-auto">
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex flex-col gap-4">
+                  <Skeleton className="w-full aspect-[4/3] rounded-[20px]" />
+                  <Skeleton className="w-2/3 h-6 rounded-md" />
+                  <Skeleton className="w-1/3 h-4 rounded-md" />
+                </div>
+              ))}
             </div>
-
-            {loading ? (
-              <div className="py-20 flex justify-center">
-                <div className="w-10 h-10 border-4 border-surface-container-high border-t-secondary rounded-full animate-spin"></div>
-              </div>
-            ) : error ? (
-              <div className="bg-surface rounded-xl p-16 text-center border border-slate-border shadow-sm flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center mb-4">
-                  <AlertCircle className="w-8 h-8 text-error" />
-                </div>
-                <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">Unable to load media resources.</h3>
-                <p className="font-body-md text-body-md text-on-surface-variant mb-6">There was a problem connecting to the server.</p>
-                <button onClick={loadData} className="px-6 py-2 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface">
-                  Retry
-                </button>
-              </div>
-            ) : mediaItems.length === 0 ? (
-              <div className="bg-pure-white rounded-xl p-16 text-center border border-slate-border shadow-sm flex flex-col items-center">
-                <ImageIcon className="w-12 h-12 text-outline-variant mx-auto mb-4" />
-                <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">No media resources are currently available.</h3>
-                <p className="font-body-md text-body-md text-on-surface-variant mb-6">The backend repository is currently empty.</p>
-              </div>
-            ) : filteredMedia.length === 0 ? (
-              <div className="bg-pure-white rounded-xl p-16 text-center border border-slate-border shadow-sm">
-                <ImageIcon className="w-12 h-12 text-outline-variant mx-auto mb-4" />
-                <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">No media found</h3>
-                <p className="font-body-md text-body-md text-on-surface-variant mb-6">Adjust your search or clear filters to see more.</p>
-                <button onClick={() => {setSearchQuery(''); setSearchParams({});}} className="px-6 py-2 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface">
-                  Clear All Filters
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredMedia.map((item) => {
-                  const isSelected = selectedMediaId === item.id;
-                  return (
-                    <article 
-                      key={item.id} 
-                      onClick={() => setSelectedMediaId(item.id)}
-                      className={`group flex flex-col bg-pure-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer border-2 ${isSelected ? 'border-secondary' : 'border-transparent'}`}
-                    >
-                      <div className="relative w-full aspect-[16/10] bg-polar-navy-surface overflow-hidden">
-                        <img 
-                          alt={item.title} 
-                          className={`w-full h-full object-cover transition-transform duration-700 ${isSelected ? 'scale-105' : 'group-hover:scale-105'}`} 
-                          src={item.thumbnailUrl || ''} 
-                        />
-                        <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                          <span className="px-2 py-0.5 rounded bg-polar-midnight-deep/90 backdrop-blur-sm text-pure-white font-label-sm text-[10px] font-bold tracking-wider uppercase">
-                            {item.expeditionId || 'Archival'}
-                          </span>
-                          <span className="px-2 py-0.5 rounded bg-azure-accent/90 backdrop-blur-sm text-pure-white font-label-sm text-[10px] font-bold uppercase">
-                            {item.type}
-                          </span>
-                        </div>
-                        {item.type === 'VIDEO' && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-12 h-12 rounded-full bg-polar-midnight-deep/70 backdrop-blur-sm flex items-center justify-center text-pure-white shadow-lg">
-                              <Video className="w-6 h-6 ml-0.5" />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-4 flex flex-col gap-2">
-                        <div className="flex items-center justify-between text-on-surface-variant font-code-sm text-code-sm">
-                          <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-secondary" /> {item.region}</span>
-                          <span>{item.year}</span>
-                        </div>
-                        <h3 className={`font-title-md text-title-md font-bold line-clamp-1 transition-colors ${isSelected ? 'text-secondary' : 'text-polar-midnight-deep group-hover:text-secondary'}`}>
-                          {item.title}
-                        </h3>
-                        <p className="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
-                          {item.description}
-                        </p>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Right Side: Sticky Inspector Panel */}
-          <aside className="w-full xl:w-1/3 flex flex-col gap-6 sticky top-24">
-            {selectedItem ? (
-              <div className="bg-pure-white rounded-xl shadow-md border border-slate-border flex flex-col overflow-hidden">
-                {/* Header */}
-                <div className="p-4 flex items-center justify-between border-b border-slate-border bg-surface-container-lowest">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-aurora-emerald"></span>
-                    <span className="font-label-md text-label-md font-bold uppercase tracking-wider text-polar-midnight-deep">Archival Specimen</span>
-                  </div>
-                  <span className="font-code-sm text-code-sm text-secondary bg-surface-container px-2 py-0.5 rounded font-semibold">
-                    {selectedItem.id}
-                  </span>
-                </div>
-
-                {/* Preview Image */}
-                <div className="relative w-full aspect-video bg-polar-midnight-deep overflow-hidden">
-                  <img 
-                    alt={selectedItem.title} 
-                    className="w-full h-full object-cover" 
-                    src={selectedItem.thumbnailUrl || ''} 
-                  />
-                  {selectedItem.type === 'VIDEO' && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-polar-midnight-deep/70 backdrop-blur-sm flex items-center justify-center text-pure-white shadow-lg cursor-pointer hover:bg-polar-midnight-deep transition-colors">
-                        <Video className="w-8 h-8 ml-1" />
-                      </div>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-polar-midnight-deep/90 via-transparent to-transparent flex flex-col justify-end p-4 pointer-events-none">
-                    <div className="flex items-center justify-between text-pure-white text-xs">
-                      <span className="font-code-sm flex items-center gap-1.5 opacity-90"><Camera className="w-3.5 h-3.5 text-glacial-sky" /> High-Resolution Capture</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-5 flex flex-col gap-5">
-                  <div className="flex flex-col gap-2">
-                    <h4 className="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep leading-snug">
-                      {selectedItem.title}
-                    </h4>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">
-                      {selectedItem.description}
-                    </p>
-                  </div>
-
-                  {/* Metadata Table */}
-                  <div className="bg-ice-white rounded-lg p-4 flex flex-col gap-2.5 font-code-sm text-code-sm text-on-surface border border-slate-border/60">
-                    <div className="flex justify-between py-1 border-b border-slate-border/60">
-                      <span className="text-on-surface-variant">Location:</span>
-                      <span className="font-semibold text-polar-midnight-deep text-right">{selectedItem.caption || selectedItem.region}</span>
-                    </div>
-                    {relatedExpedition && (
-                      <div className="flex justify-between py-1 border-b border-slate-border/60">
-                        <span className="text-on-surface-variant">Expedition Lead:</span>
-                        <span className="font-semibold text-polar-midnight-deep text-right">{relatedExpedition.name}</span>
+          ) : error ? (
+            <ErrorState message="Unable to load the media archive." onRetry={() => window.location.reload()} />
+          ) : filtered.length === 0 ? (
+            <EmptyState
+              icon={ImageIcon}
+              title="Media Archive Empty"
+              description="No catalogued media resources are currently available in the public archive."
+              actionLabel="Explore Research"
+              onAction={() => window.location.href = '/explore'}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {filtered.map(item => (
+                <article key={item.id} className="group flex flex-col gap-5">
+                  <div className="w-full aspect-[4/3] rounded-[24px] overflow-hidden bg-deep-ocean/5 shadow-[0_8px_30px_rgba(7,20,38,0.06)] group-hover:shadow-[0_20px_50px_rgba(29,111,165,0.12)] relative transition-all duration-500 group-hover:-translate-y-2 border border-border-ice/50 group-hover:border-cyan-accent/30">
+                    {item.thumbnailUrl ? (
+                      <img src={item.thumbnailUrl} alt={item.caption || item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-muted/30">
+                        <ImageIcon className="w-12 h-12" />
                       </div>
                     )}
-                    <div className="flex justify-between py-1 border-b border-slate-border/60">
-                      <span className="text-on-surface-variant">Date Captured:</span>
-                      <span className="font-semibold text-polar-midnight-deep text-right">{selectedItem.year}</span>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-on-surface-variant">Format:</span>
-                      <span className="font-semibold text-polar-midnight-deep text-right">{selectedItem.type === 'VIDEO' ? '4K MP4' : 'TIFF RAW'}</span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-col gap-3 pt-2">
-                    <button 
-                      onClick={() => navigate(`/outreach`, { state: { sourceId: selectedItem.id } })}
-                      className="w-full py-3 px-4 bg-polar-midnight-deep hover:bg-polar-navy-surface text-pure-white rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-2 shadow-sm transition-all"
-                    >
-                      <Share2 className="w-4 h-4 text-glacial-sky" />
-                      <span>Export to Outreach Studio</span>
-                    </button>
                     
-                    <div className="grid grid-cols-2 gap-3">
-                      {relatedExpedition && (
-                        <button 
-                          onClick={() => navigate(`/expeditions/${relatedExpedition.id}`)}
-                          className="w-full py-2.5 px-3 bg-surface-container-high hover:bg-surface-container text-secondary rounded-lg font-label-sm text-label-sm font-semibold flex items-center justify-center gap-1.5 transition-colors"
-                        >
-                          <MapPin className="w-4 h-4" />
-                          <span>View Expedition</span>
-                        </button>
-                      )}
-                      <button 
-                        onClick={() => navigate(`/explore?q=${selectedItem.id}`)}
-                        className={`w-full py-2.5 px-3 bg-surface-container-low hover:bg-surface-container text-on-surface rounded-lg font-label-sm text-label-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${!relatedExpedition ? 'col-span-2' : ''}`}
-                      >
-                        <SearchIcon className="w-4 h-4" />
-                        <span>Find Resources</span>
-                      </button>
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-deep-ocean/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    
+                    <div className="absolute top-4 left-4 bg-deep-ocean/80 backdrop-blur-md text-white text-[10px] uppercase tracking-[0.2em] font-bold px-3 py-1.5 rounded-lg border border-white/10 shadow-lg">
+                      {item.type}
                     </div>
                   </div>
-
-                  {/* Provenance Footer */}
-                  <div className="mt-2 p-3 rounded-lg bg-surface-container-lowest border border-slate-border flex items-start gap-3">
-                    <Info className="w-5 h-5 text-aurora-emerald shrink-0 mt-0.5" />
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-label-sm text-label-sm font-bold text-polar-midnight-deep uppercase">NCPOR Provenance</span>
-                      <p className="font-body-sm text-[11px] leading-tight text-on-surface-variant">
-                        Prototype Media Record. Usage rights apply to MoES educational derivatives only.
+                  
+                  <div className="flex flex-col gap-2 px-2">
+                    <div className="flex items-center gap-2 text-[11px] text-muted font-bold uppercase tracking-[0.15em]">
+                      {item.location && <span className="text-glacial-blue">{item.location}</span>}
+                    </div>
+                    
+                    <h3 className="font-display text-[22px] font-bold text-deep-ocean group-hover:text-glacial-blue transition-colors leading-[1.2]">
+                      {item.title}
+                    </h3>
+                    
+                    {item.caption && (
+                      <p className="text-[15px] text-ink/70 font-light line-clamp-2 mt-1 leading-relaxed">
+                        {item.caption}
                       </p>
-                    </div>
+                    )}
+                    
+                    <Link to={`/outreach?sourceId=${item.id}`} className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted hover:text-cyan-accent transition-all duration-300 mt-4 self-start group/link">
+                      <Sparkles className="w-3.5 h-3.5 group-hover/link:rotate-12 transition-transform" /> 
+                      Create Outreach
+                    </Link>
                   </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-surface-container-low rounded-xl p-10 flex flex-col items-center justify-center text-center h-full min-h-[400px] border border-slate-border/50">
-                <Crosshair className="w-12 h-12 text-outline-variant mb-4" />
-                <h4 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">Select a Media Artifact</h4>
-                <p className="font-body-sm text-body-sm text-on-surface-variant">
-                  Click on any media card in the gallery to inspect high-resolution imagery, view related expedition metadata, and access outreach actions.
-                </p>
-              </div>
-            )}
-          </aside>
-          
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

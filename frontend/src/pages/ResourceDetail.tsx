@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Resource } from '../types';
-import { ArrowLeft, Sparkles, Edit3, Calendar, MapPin, CheckCircle2, Tag } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ExternalLink, Sparkles, Send } from 'lucide-react';
 
 export default function ResourceDetail() {
   const { id } = useParams();
@@ -13,190 +13,158 @@ export default function ResourceDetail() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    const fetchResource = async (resId: string) => {
-      setLoading(true);
-      setError(null);
-      setNotFound(false);
+    const load = async (resId: string) => {
+      setLoading(true); setError(null); setNotFound(false);
       try {
         const data = await api.getResource(resId);
-        if (!data) {
-          setNotFound(true);
-        } else {
-          setResource(data);
-          try {
-            const relData = await api.getResourceRelations(resId);
-            setRelations(relData || []);
-          } catch (e) {
-            console.error('Failed to load relations', e);
-          }
-        }
-      } catch (err) {
-        setError('Unable to load this resource.');
-      } finally {
-        setLoading(false);
-      }
+        if (!data) { setNotFound(true); return; }
+        setResource(data);
+        try { setRelations((await api.getResourceRelations(resId)) || []); } catch {}
+      } catch { setError('Unable to load this resource.'); }
+      finally { setLoading(false); }
     };
-
-    if (id) {
-      fetchResource(id);
-    }
+    if (id) load(id);
   }, [id]);
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'DATASET': return 'text-secondary bg-surface-container-high';
-      case 'PUBLICATION': return 'text-azure-accent bg-surface-container-high';
-      default: return 'text-aurora-emerald bg-surface-container-high';
-    }
-  };
-
   if (loading) return (
-    <div className="py-24 flex flex-col items-center justify-center text-on-surface-variant font-body-md">
-      <div className="w-8 h-8 rounded-full border-2 border-secondary border-t-transparent animate-spin mb-4"></div>
-      Loading resource details...
+    <div className="py-32 flex flex-col items-center justify-center bg-snow min-h-[calc(100vh-64px)]">
+      <div className="w-8 h-8 rounded-full border-2 border-border-ice border-t-glacial-blue animate-spin mb-4" />
+      <span className="text-xs uppercase tracking-widest font-semibold text-muted">Loading Record</span>
     </div>
   );
 
   if (notFound || !resource) return (
-    <div className="py-24 flex flex-col items-center justify-center text-center">
-      <h2 className="font-headline-md text-headline-md font-bold text-polar-midnight-deep mb-2">Resource not found</h2>
-      <p className="font-body-md text-body-md text-on-surface-variant mb-6">The requested resource does not exist or has been removed.</p>
-      <Link to="/explore" className="px-6 py-2.5 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface transition-colors">
-        Back to Repository
-      </Link>
+    <div className="py-32 flex flex-col items-center justify-center text-center px-4 bg-snow min-h-[calc(100vh-64px)]">
+      <h2 className="font-display text-2xl font-bold text-deep-ocean mb-2">Record Not Found</h2>
+      <p className="text-sm text-ink/70 mb-8 font-light">The requested resource does not exist or has been removed from the archive.</p>
+      <Link to="/explore" className="px-6 py-3 bg-deep-ocean text-white text-sm font-semibold rounded-lg hover:bg-ocean-navy transition-colors">Return to Archive</Link>
     </div>
   );
 
   if (error) return (
-    <div className="py-24 flex flex-col items-center justify-center text-center">
-      <h2 className="font-headline-md text-headline-md font-bold text-error mb-2">{error}</h2>
-      <div className="flex gap-4 mt-4">
-        <button onClick={() => window.location.reload()} className="px-6 py-2.5 bg-surface-container-low text-secondary font-label-md font-semibold rounded-lg hover:bg-surface-container transition-colors">
-          Retry
-        </button>
-        <Link to="/explore" className="px-6 py-2.5 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface transition-colors">
-          Back to Repository
-        </Link>
+    <div className="py-32 flex flex-col items-center justify-center text-center px-4 bg-snow min-h-[calc(100vh-64px)]">
+      <p className="text-sm text-error font-medium mb-6">{error}</p>
+      <div className="flex gap-4">
+        <button onClick={() => window.location.reload()} className="px-6 py-3 border border-border-ice bg-white text-deep-ocean font-semibold text-sm rounded-lg hover:bg-frost transition-colors">Retry</button>
+        <Link to="/explore" className="px-6 py-3 bg-deep-ocean text-white font-semibold text-sm rounded-lg hover:bg-ocean-navy transition-colors">Return to Archive</Link>
       </div>
     </div>
   );
 
   return (
-    <div className="flex flex-col w-full">
-      {/* Header */}
-      <section className="w-full bg-ice-white py-6 px-4 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col gap-4">
-          <Link to="/explore" className="inline-flex items-center gap-1 text-secondary font-label-sm text-label-sm hover:text-polar-midnight-deep transition-colors self-start">
-            <ArrowLeft className="w-4 h-4" /> Back to Repository
-          </Link>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className={`px-2.5 py-0.5 rounded font-code-sm text-code-sm font-semibold ${getTypeColor(resource.type)}`}>{resource.type}</span>
-            {resource.status === 'PUBLISHED' && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-semibold">
-                <CheckCircle2 className="w-3 h-3" /> Verified
-              </span>
-            )}
-            <span className="font-code-sm text-code-sm text-outline">{resource.id}</span>
+    <div className="flex flex-col w-full bg-snow min-h-[calc(100vh-64px)]">
+      {/* ─── HEADER ─── */}
+      <section className="w-full pt-12 pb-16 px-4 lg:px-8 bg-white border-b border-border-ice/50">
+        <div className="max-w-[1000px] mx-auto flex flex-col gap-8">
+          <nav className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted">
+            <Link to="/explore" className="hover:text-deep-ocean transition-colors flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" /> Archive</Link>
+            <span className="text-border-ice">/</span>
+            <span className="text-deep-ocean">{resource.type}</span>
+          </nav>
+          
+          <div className="flex flex-col gap-4">
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-deep-ocean leading-[1.1] tracking-tight">{resource.title}</h1>
+            <div className="flex flex-wrap items-center gap-4 text-sm text-ink font-medium">
+              {resource.region && <span className="px-3 py-1 bg-frost rounded-full border border-border-ice/50">{resource.region}</span>}
+              {resource.year && <span className="text-muted">{resource.year}</span>}
+              {resource.author && <span className="text-muted font-light pl-2 border-l border-border-ice">{resource.author}</span>}
+            </div>
           </div>
-          <h1 className="font-headline-lg text-headline-lg font-bold text-polar-midnight-deep tracking-tight">{resource.title}</h1>
         </div>
       </section>
 
-      {/* Content */}
-      <section className="w-full px-4 lg:px-8 py-10">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            <div className="bg-pure-white p-6 rounded-xl shadow-sm flex flex-col gap-4">
-              <h2 className="font-headline-sm text-headline-sm font-bold text-polar-midnight-deep">Description</h2>
-              <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">{resource.description}</p>
+      {/* ─── CONTENT ─── */}
+      <section className="w-full px-4 lg:px-8 py-16">
+        <div className="max-w-[1000px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16">
+          
+          {/* Main Description */}
+          <div className="md:col-span-8 flex flex-col gap-10">
+            <div className="prose prose-sm md:prose-base max-w-none">
+              <p className="text-[15px] text-ink/80 leading-loose whitespace-pre-line font-light">
+                {resource.description}
+              </p>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-wrap gap-3">
-              <Link to={`/ai?resourceId=${resource.id}`} className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-polar-midnight-deep text-on-primary font-title-md text-title-md hover:bg-polar-navy-surface transition-colors shadow-sm">
-                <Sparkles className="w-5 h-5 text-glacial-sky" /> Ask AI About This
+            {/* Source Access */}
+            {resource.sourceUrl && (
+              <div className="pt-6 border-t border-border-ice/50">
+                <a href={resource.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-border-ice bg-white text-sm font-semibold text-deep-ocean hover:text-cyan-accent hover:border-cyan-accent/30 transition-all shadow-soft group">
+                  <ExternalLink className="w-4 h-4 text-muted group-hover:text-cyan-accent transition-colors" /> Access Primary Source
+                </a>
+              </div>
+            )}
+
+            {/* Contextual Actions */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-10 mt-2">
+              <Link to={`/ai?resourceId=${resource.id}`} className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-xl bg-deep-ocean text-white text-sm font-bold hover:bg-ocean-navy transition-colors shadow-elevated group">
+                <Sparkles className="w-4 h-4 text-cyan-accent" /> Ask AI about this <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link to={`/outreach?sourceId=${resource.id}`} className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-surface-container-low text-secondary font-title-md text-title-md hover:bg-surface-container transition-colors">
-                <Edit3 className="w-5 h-5" /> Generate Outreach
+              <Link to={`/outreach?sourceId=${resource.id}`} className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-xl border border-border-ice bg-white text-sm font-bold text-deep-ocean hover:bg-frost transition-colors shadow-soft group">
+                <Send className="w-4 h-4 text-muted group-hover:text-deep-ocean transition-colors" /> Create Outreach Draft
               </Link>
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="flex flex-col gap-6">
-            <div className="bg-pure-white rounded-xl p-6 shadow-sm flex flex-col gap-4">
-              <h3 className="font-title-md text-title-md font-semibold text-polar-midnight-deep border-b border-slate-border pb-2">Metadata</h3>
-              <dl className="flex flex-col gap-3">
+          {/* Sidebar Metadata (Open Layout, no heavy cards) */}
+          <aside className="md:col-span-4 flex flex-col gap-12">
+            
+            <div className="flex flex-col gap-5">
+              <h3 className="text-[10px] font-bold text-muted uppercase tracking-widest border-b border-border-ice pb-2">Technical Metadata</h3>
+              <dl className="flex flex-col gap-4 text-sm font-light">
                 {resource.author && (
-                  <div>
-                    <dt className="font-label-sm text-label-sm uppercase tracking-wider text-outline mb-0.5">Author / Institution</dt>
-                    <dd className="font-body-md text-body-md text-on-surface">{resource.author} {resource.institution && `• ${resource.institution}`}</dd>
+                  <div className="flex flex-col gap-1">
+                    <dt className="text-[11px] text-muted uppercase tracking-wider font-semibold">Author / Institution</dt>
+                    <dd className="text-ink">{resource.author}{resource.institution && <span className="text-muted"> · {resource.institution}</span>}</dd>
                   </div>
                 )}
-                <div>
-                  <dt className="font-label-sm text-label-sm uppercase tracking-wider text-outline mb-0.5">Year</dt>
-                  <dd className="font-body-md text-body-md text-on-surface flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-on-surface-variant" /> {resource.year}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="font-label-sm text-label-sm uppercase tracking-wider text-outline mb-0.5">Region</dt>
-                  <dd className="font-body-md text-body-md text-on-surface flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-on-surface-variant" /> {resource.region}
-                  </dd>
-                </div>
                 {resource.researchArea && (
-                  <div>
-                    <dt className="font-label-sm text-label-sm uppercase tracking-wider text-outline mb-0.5">Research Area</dt>
-                    <dd className="font-body-md text-body-md text-on-surface">{resource.researchArea}</dd>
+                  <div className="flex flex-col gap-1">
+                    <dt className="text-[11px] text-muted uppercase tracking-wider font-semibold">Research Area</dt>
+                    <dd className="text-ink">{resource.researchArea}</dd>
                   </div>
                 )}
                 {resource.expeditionId && (
-                  <div>
-                    <dt className="font-label-sm text-label-sm uppercase tracking-wider text-outline mb-0.5">Related Expedition</dt>
-                    <dd>
-                      <Link to={`/expeditions/${resource.expeditionId}`} className="inline-flex items-center gap-1 text-secondary font-label-md text-label-md font-semibold hover:underline">
-                        {resource.expeditionId}
-                      </Link>
-                    </dd>
+                  <div className="flex flex-col gap-1">
+                    <dt className="text-[11px] text-muted uppercase tracking-wider font-semibold">Associated Expedition</dt>
+                    <dd><Link to={`/expeditions/${resource.expeditionId}`} className="text-glacial-blue font-medium hover:underline">{resource.expeditionId}</Link></dd>
                   </div>
                 )}
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[11px] text-muted uppercase tracking-wider font-semibold">Status</dt>
+                  <dd className="text-ink capitalize">{resource.status}</dd>
+                </div>
               </dl>
             </div>
 
             {resource.keywords && resource.keywords.length > 0 && (
-              <div className="bg-pure-white rounded-xl p-6 shadow-sm flex flex-col gap-3">
-                <h3 className="font-title-md text-title-md font-semibold text-polar-midnight-deep flex items-center gap-2">
-                  <Tag className="w-4 h-4 text-secondary" /> Keywords
-                </h3>
-                <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-col gap-4">
+                <h3 className="text-[10px] font-bold text-muted uppercase tracking-widest border-b border-border-ice pb-2">Keywords</h3>
+                <div className="flex flex-wrap gap-2">
                   {resource.keywords.map(kw => (
-                    <span key={kw} className="px-2.5 py-1 rounded-lg bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">{kw}</span>
+                    <span key={kw} className="px-3 py-1.5 rounded-full bg-white text-xs font-medium text-ink border border-border-ice shadow-sm">{kw}</span>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Relations */}
-            <div className="bg-pure-white rounded-xl p-6 shadow-sm flex flex-col gap-4">
-              <h3 className="font-title-md text-title-md font-semibold text-polar-midnight-deep border-b border-slate-border pb-2">Related Resources</h3>
-              {relations.length > 0 ? (
+            {relations.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <h3 className="text-[10px] font-bold text-muted uppercase tracking-widest border-b border-border-ice pb-2">Related Resources</h3>
                 <ul className="flex flex-col gap-3">
-                  {relations.map((rel, idx) => (
-                    <li key={idx} className="flex flex-col gap-1">
-                      <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">{rel.relationType}</span>
-                      <Link to={`/research/${rel.fromResourceId === resource.id ? rel.toResourceId : rel.fromResourceId}`} className="font-body-md text-body-md text-secondary hover:underline">
-                        {rel.fromResourceId === resource.id ? rel.toResourceId : rel.fromResourceId}
-                      </Link>
-                    </li>
-                  ))}
+                  {relations.map((rel, i) => {
+                    const rid = rel.fromResourceId === resource.id ? rel.toResourceId : rel.fromResourceId;
+                    return (
+                      <li key={i} className="flex flex-col gap-1">
+                        <span className="text-[10px] text-muted uppercase tracking-widest font-semibold">{rel.relationType}</span>
+                        <Link to={`/research/${rid}`} className="text-sm font-medium text-glacial-blue hover:text-deep-ocean transition-colors break-all leading-snug">{rid}</Link>
+                      </li>
+                    );
+                  })}
                 </ul>
-              ) : (
-                <p className="font-body-sm text-body-sm text-on-surface-variant italic">No related resources found.</p>
-              )}
-            </div>
-          </div>
+              </div>
+            )}
+
+          </aside>
         </div>
       </section>
     </div>

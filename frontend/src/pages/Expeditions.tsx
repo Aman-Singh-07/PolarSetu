@@ -1,462 +1,222 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { MapPin, Calendar, Search as SearchIcon, Filter, X, ChevronRight, BookOpen, Database, Camera } from 'lucide-react';
+import { Search as SearchIcon, ArrowRight, X, MapPin, SlidersHorizontal, Navigation } from 'lucide-react';
 import { api } from '../services/api';
-import type { Expedition, Resource, MediaItem } from '../types';
+import type { Expedition } from '../types';
+import { Skeleton, EmptyState, ErrorState } from '../components/ui';
 
 const EXPEDITION_IMAGES: Record<string, string> = {
   'EXP-43': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZlU0zKQ2fFmf3pyyxCzDmnJXg5L2Xj5SFAtHGSFS24kA0Gy58tAoWbTbUXqoGsekW5ZGVs6dqXXl-slkh9BnQJrowMjTnI9nnGQRWqDnG5dNYMPMEn_sLqSiNuzu-5lmTWUBYAQp6sygCs2C6UWIy4P03eL-w0hWfXwd3WJQ8kwAFp1kB-SnFBBPtQBDHatOHRxJKYaehqvpc6OmwpbpKPRQdMGzgI3cP85LtHag7OJP7QoCs2NerDA',
   'EXP-ARC-15': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDB96sKfj2s1GP-c4K4liF32nJk6pqICs30jsSS1NnNd5dzn4ykdY0PyEOGQGyci-tWIbPkpGZNDPBgTXzxXGGr3elVT4A7ujheEbfdvpBDzu13jOxlU0GSgwsnizLarYDOymKsDbyYWRzYSAMiCXID7VzCUsIEIQ1znRyY9FIyODNc14oNsWRL17GHi2WhyUnLpa-j40NYGS0pB8F7qsL4sbyO-IoSP2c8FRtD1Dsp3c5de68u1EvlYw',
   'EXP-SO-2024': 'https://lh3.googleusercontent.com/aida-public/AB6AXuBV_C6b5zrKkQSFIhMOvZZn6R1_m0viH4zJ6telQyT419UgjW68niXGtanxETA0KhUkk7u7ZDCRoo8G_3TX4uRj7IjyjCh1KhhfLBb7VNFm0b5XBUenvylXHIxgPQW5bL-mL8EWZ5H1IoPPjf8WVP4Gg8OLjhDrnAplWyW9F1Fqxewx6cTtETEK9t63P0vpIAzj9pOGuAUmkp_145lHVXmNB39MGwf1_-kTM_ja55If4ejn8Uw_t6rMIw',
   'EXP-42': 'https://lh3.googleusercontent.com/aida-public/AB6AXuCoh_p2zMxwZwU_Tz-12xqiAZAyn2SGIt01c1Hw3MNhXKESF8DCd1BaJot_jsT0LzOFYzVlA3Hez-MLsuhb_wY8ShfUEDvzvq91fuHEdW1i83wF-d43RhGObbdOOmaYKL7W3E-V6ai2p_IP8ZdEU48cTzcKUuCi6k2mMvaumxoZ3bjmef4tDLaXiP4XAoMcZXGwZJf-_x802BVm6_SnwoCVeo9KQIdjR-mmGrjZxZYxR6Q82lDbi31x6Q',
-  'EXP-HIM-5': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZlU0zKQ2fFmf3pyyxCzDmnJXg5L2Xj5SFAtHGSFS24kA0Gy58tAoWbTbUXqoGsekW5ZGVs6dqXXl-slkh9BnQJrowMjTnI9nnGQRWqDnG5dNYMPMEn_sLqSiNuzu-5lmTWUBYAQp6sygCs2C6UWIy4P03eL-w0hWfXwd3WJQ8kwAFp1kB-SnFBBPtQBDHatOHRxJKYaehqvpc6OmwpbpKPRQdMGzgI3cP85LtHag7OJP7QoCs2NerDA' // fallback
+  'EXP-HIM-5': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZlU0zKQ2fFmf3pyyxCzDmnJXg5L2Xj5SFAtHGSFS24kA0Gy58tAoWbTbUXqoGsekW5ZGVs6dqXXl-slkh9BnQJrowMjTnI9nnGQRWqDnG5dNYMPMEn_sLqSiNuzu-5lmTWUBYAQp6sygCs2C6UWIy4P03eL-w0hWfXwd3WJQ8kwAFp1kB-SnFBBPtQBDHatOHRxJKYaehqvpc6OmwpbpKPRQdMGzgI3cP85LtHag7OJP7QoCs2NerDA'
 };
 
 export default function Expeditions() {
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
   const regionFilter = searchParams.get('region') || '';
-  const yearFilter = searchParams.get('year') || '';
-  const themeFilter = searchParams.get('theme') || '';
 
   const [searchQuery, setSearchQuery] = useState(q);
   const [expeditions, setExpeditions] = useState<Expedition[]>([]);
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-
-  const loadData = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const [expData, resData, mediaData] = await Promise.all([
-        api.getExpeditions(),
-        api.getResources(),
-        api.getMedia()
-      ]);
-      setExpeditions(expData || []);
-      setResources(resData || []);
-      setMedia(mediaData || []);
-    } catch (err) {
-      console.error('Failed to load expeditions:', err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    loadData();
+    api.getExpeditions()
+      .then(data => setExpeditions(data || []))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
   }, []);
 
-  // Update local search input if URL changes externally
-  useEffect(() => {
-    setSearchQuery(q);
-  }, [q]);
+  useEffect(() => { setSearchQuery(q); }, [q]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery) {
-      searchParams.set('q', searchQuery);
-    } else {
-      searchParams.delete('q');
-    }
+    searchQuery ? searchParams.set('q', searchQuery) : searchParams.delete('q');
     setSearchParams(searchParams);
   };
 
-  const updateFilter = (key: string, value: string) => {
-    if (value) {
-      searchParams.set(key, value);
-    } else {
-      searchParams.delete(key);
+  const filtered = useMemo(() => {
+    let data = [...expeditions];
+    if (q) {
+      const lq = q.toLowerCase();
+      data = data.filter(e => e.name.toLowerCase().includes(lq) || e.objective.toLowerCase().includes(lq) || e.region.toLowerCase().includes(lq));
     }
-    setSearchParams(searchParams);
-  };
+    if (regionFilter) data = data.filter(e => e.region === regionFilter);
+    return data;
+  }, [expeditions, q, regionFilter]);
 
-  const clearAllFilters = () => {
-    setSearchParams({});
-    setSearchQuery('');
-  };
-
-  // Extract available filter options directly from data
-  const availableYears = useMemo(() => Array.from(new Set(expeditions.map(e => e.year))).sort((a, b) => b - a), [expeditions]);
-  const availableRegions = useMemo(() => Array.from(new Set(expeditions.map(e => e.region))).sort(), [expeditions]);
-  const availableThemes = ['Glaciology', 'Oceanography', 'Atmospheric', 'Cryosphere', 'Geophysical', 'Carbon'];
-
-  // Apply filters
-  const filteredExpeditions = useMemo(() => {
-    return expeditions.filter(exp => {
-      // Search text (matches name, region, objective)
-      if (q) {
-        const query = q.toLowerCase();
-        const matchesQuery = 
-          exp.name.toLowerCase().includes(query) || 
-          exp.region.toLowerCase().includes(query) || 
-          exp.objective.toLowerCase().includes(query) ||
-          exp.year.toString().includes(query);
-        if (!matchesQuery) return false;
-      }
-      
-      // Region
-      if (regionFilter && exp.region.toLowerCase() !== regionFilter.toLowerCase()) return false;
-      
-      // Year
-      if (yearFilter && exp.year.toString() !== yearFilter) return false;
-      
-      // Theme (simple substring match on objective for demo)
-      if (themeFilter && !exp.objective.toLowerCase().includes(themeFilter.toLowerCase())) return false;
-      
-      return true;
-    }).sort((a, b) => b.year - a.year); // Sort newest first
-  }, [expeditions, q, regionFilter, yearFilter, themeFilter]);
-
-  // Group by year for the timeline view
-  const timelineGroups = useMemo(() => {
-    const groups: Record<number, Expedition[]> = {};
-    filteredExpeditions.forEach(exp => {
-      if (!groups[exp.year]) groups[exp.year] = [];
-      groups[exp.year].push(exp);
-    });
-    return Object.entries(groups)
-      .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA)) // Newest first
-      .map(([year, exps]) => ({ year: Number(year), expeditions: exps }));
-  }, [filteredExpeditions]);
-
-  const hasFilters = Boolean(q || regionFilter || yearFilter || themeFilter);
-
-  // Helper to count linked resources
-  const getResourceStats = (expId: string) => {
-    const expResources = resources.filter(r => r.expeditionId === expId);
-    const expMedia = media.filter(m => m.expeditionId === expId);
-    return {
-      datasets: expResources.filter(r => r.type === 'DATASET').length,
-      pubs: expResources.filter(r => r.type === 'PUBLICATION' || r.type === 'REPORT').length,
-      media: expMedia.length,
-      total: expResources.length + expMedia.length
-    };
-  };
-
-  const getStatus = (endDate: string) => {
-    const end = new Date(endDate).getTime();
-    const now = new Date('2026-09-28').getTime(); // Using mock current date
-    return end < now ? 'Completed' : 'Ongoing';
-  };
+  const clearAll = () => { setSearchParams({}); setSearchQuery(''); };
 
   return (
-    <div className="flex flex-col w-full bg-surface min-h-screen">
-      {/* Header */}
-      <section className="w-full bg-polar-midnight-deep text-ice-white py-12 px-4 lg:px-8 relative overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-azure-accent/10 via-polar-midnight-deep to-polar-midnight-deep"></div>
+    <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-snow">
+      {/* ─── CINEMATIC HEADER ─── */}
+      <section className="relative w-full bg-deep-ocean pt-24 pb-32 px-4 lg:px-8 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-ocean-navy via-deep-ocean to-deep-ocean" />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay" />
         
-        <div className="max-w-[1360px] mx-auto flex flex-col gap-6 relative z-10">
-          <div className="flex flex-col gap-2 max-w-3xl">
-            <h1 className="font-headline-lg text-headline-lg font-bold tracking-tight">Polar Expeditions</h1>
-            <p className="font-body-lg text-body-lg text-surface-dim">
-              Explore India's scientific journeys across the Arctic, Antarctic and associated polar research environments.
-            </p>
+        <div className="relative z-10 max-w-[1000px] mx-auto flex flex-col items-center text-center gap-6 animate-fade-up">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-lg">
+            <Navigation className="w-4 h-4 text-cyan-accent" />
+            <span className="text-white text-[11px] font-bold tracking-[0.25em] uppercase">Journey Archive</span>
           </div>
           
-          {/* Search Box */}
-          <form onSubmit={handleSearch} className="relative max-w-3xl mt-4">
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant w-5 h-5" />
-            <input
-              className="w-full pl-12 pr-28 py-3.5 bg-pure-white text-polar-midnight-deep font-body-md text-body-md rounded-xl focus:outline-none focus:ring-2 focus:ring-azure-accent transition-all shadow-lg"
-              placeholder="Search expeditions by name, year, region or research theme..."
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search Expeditions"
-            />
-            <button 
-              type="submit" 
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 bg-polar-midnight-deep text-on-primary font-label-md text-label-md rounded-lg hover:bg-polar-navy-surface transition-colors font-bold"
-            >
-              Search
-            </button>
-          </form>
+          <h1 className="font-display text-5xl md:text-[64px] font-extrabold text-white tracking-tight leading-[1.1] drop-shadow-2xl">
+            Expedition Records
+          </h1>
+          
+          <p className="text-lg md:text-xl text-white/70 font-light max-w-2xl leading-relaxed drop-shadow-md">
+            Chronicles of India's polar research journeys across Antarctica, the Arctic, and the Himalayas.
+          </p>
         </div>
       </section>
 
-      {/* Main Content Area */}
-      <section className="w-full px-4 lg:px-8 py-8 lg:py-12 flex-1">
-        <div className="max-w-[1360px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+      {/* ─── FLOATING SEARCH & FILTERS ─── */}
+      <section className="w-full px-4 lg:px-8 -mt-10 relative z-30 mb-16">
+        <div className="max-w-[1000px] mx-auto relative group">
+          {/* Ambient Glow */}
+          <div className="absolute inset-0 bg-cyan-accent/20 blur-[30px] rounded-[24px] opacity-0 group-focus-within:opacity-100 transition-opacity duration-700" />
           
-          {/* Left Sidebar Filters */}
-          <aside className={`lg:col-span-3 flex flex-col gap-6 ${isMobileFilterOpen ? 'block' : 'hidden lg:flex'}`}>
-            <div className="bg-pure-white rounded-xl shadow-sm p-6 flex flex-col gap-8 border border-slate-border">
-              <div className="flex items-center justify-between">
-                <span className="font-title-md text-title-md font-bold text-polar-midnight-deep flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-secondary" />
-                  Filters
-                </span>
-                {hasFilters && (
-                  <button onClick={clearAllFilters} className="font-label-sm text-label-sm text-secondary hover:underline">
-                    Clear All
-                  </button>
-                )}
-              </div>
-
-              {/* Geographic Region */}
-              <div className="flex flex-col gap-3">
-                <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Region</span>
-                <div className="flex flex-col gap-2">
-                  <button 
-                    onClick={() => updateFilter('region', '')}
-                    className={`text-left px-3 py-2 rounded-lg font-body-sm text-body-sm transition-colors ${!regionFilter ? 'bg-surface-container text-polar-midnight-deep font-semibold' : 'text-on-surface hover:bg-surface-container-low'}`}
-                  >
-                    All Regions
-                  </button>
-                  {availableRegions.map(region => (
-                    <button 
-                      key={region}
-                      onClick={() => updateFilter('region', region)}
-                      className={`text-left px-3 py-2 rounded-lg font-body-sm text-body-sm transition-colors ${regionFilter === region ? 'bg-surface-container text-polar-midnight-deep font-semibold' : 'text-on-surface hover:bg-surface-container-low'}`}
-                    >
-                      {region}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Year */}
-              <div className="flex flex-col gap-3">
-                <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Year</span>
-                <div className="flex flex-wrap gap-2">
-                  <button 
-                    onClick={() => updateFilter('year', '')}
-                    className={`px-3 py-1.5 rounded-lg font-code-sm text-code-sm transition-colors ${!yearFilter ? 'bg-polar-midnight-deep text-pure-white' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'}`}
-                  >
-                    All
-                  </button>
-                  {availableYears.map(year => (
-                    <button 
-                      key={year}
-                      onClick={() => updateFilter('year', year.toString())}
-                      className={`px-3 py-1.5 rounded-lg font-code-sm text-code-sm transition-colors ${yearFilter === year.toString() ? 'bg-polar-midnight-deep text-pure-white' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'}`}
-                    >
-                      {year}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Research Theme */}
-              <div className="flex flex-col gap-3">
-                <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Research Theme</span>
-                <div className="flex flex-col gap-2">
-                  <button 
-                    onClick={() => updateFilter('theme', '')}
-                    className={`text-left px-3 py-2 rounded-lg font-body-sm text-body-sm transition-colors ${!themeFilter ? 'bg-surface-container text-polar-midnight-deep font-semibold' : 'text-on-surface hover:bg-surface-container-low'}`}
-                  >
-                    All Themes
-                  </button>
-                  {availableThemes.map(theme => (
-                    <button 
-                      key={theme}
-                      onClick={() => updateFilter('theme', theme)}
-                      className={`text-left px-3 py-2 rounded-lg font-body-sm text-body-sm transition-colors ${themeFilter === theme ? 'bg-surface-container text-polar-midnight-deep font-semibold' : 'text-on-surface hover:bg-surface-container-low'}`}
-                    >
-                      {theme}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </aside>
-
-          {/* Right Main Timeline & Grid */}
-          <main className="lg:col-span-9 flex flex-col gap-6">
+          {/* Main Search Container */}
+          <div className="relative bg-white/95 backdrop-blur-xl rounded-[24px] shadow-[0_16px_40px_rgba(7,20,38,0.12)] border border-white flex flex-col md:flex-row overflow-hidden transition-all duration-300 group-focus-within:border-cyan-accent/40 group-focus-within:shadow-[0_20px_50px_rgba(56,189,248,0.15)]">
             
-            {/* Active Tags Bar & Mobile Filter Toggle */}
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <h2 className="font-title-md text-title-md font-bold text-polar-midnight-deep">
-                {loading ? 'Loading...' : `${filteredExpeditions.length} ${filteredExpeditions.length === 1 ? 'Expedition' : 'Expeditions'}`}
-              </h2>
-              
-              <div className="flex items-center gap-2">
-                <button 
-                  className="lg:hidden flex items-center gap-2 px-4 py-2 bg-pure-white border border-slate-border text-secondary font-label-sm text-label-sm rounded-lg shadow-sm"
-                  onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+            <form onSubmit={handleSearch} className="flex-1 flex items-center px-6 py-5 md:py-0">
+              <label htmlFor="expedition-search" className="sr-only">Search expeditions</label>
+              <SearchIcon className="w-5 h-5 text-muted shrink-0" />
+              <input
+                id="expedition-search"
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search expeditions by name or objective..."
+                className="w-full bg-transparent border-none outline-none px-4 text-lg font-medium text-deep-ocean placeholder:text-muted/50"
+              />
+              <button type="submit" className="hidden" aria-hidden="true">Search</button>
+            </form>
+            
+            <div className="hidden md:block w-px bg-border-ice/60 my-4" />
+            
+            <div className="flex items-center px-4 py-3 bg-frost/50 md:bg-transparent border-t md:border-t-0 border-border-ice/60 gap-3">
+              <div className="relative group/select flex-1 md:flex-none">
+                <label htmlFor="region-filter" className="sr-only">Filter by region</label>
+                <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none group-hover/select:text-cyan-accent transition-colors" />
+                <select
+                  id="region-filter"
+                  value={regionFilter}
+                  onChange={e => { e.target.value ? searchParams.set('region', e.target.value) : searchParams.delete('region'); setSearchParams(searchParams); }}
+                  className="w-full md:w-[180px] pl-10 pr-8 py-3 bg-white hover:bg-ice-blue/30 text-sm text-ink font-semibold rounded-xl cursor-pointer appearance-none outline-none border border-border-ice/50 hover:border-cyan-accent/30 transition-all shadow-sm"
                 >
-                  <Filter className="w-4 h-4" /> {isMobileFilterOpen ? 'Close Filters' : 'Filters'}
-                </button>
+                  <option value="">All Regions</option>
+                  <option value="Antarctica">Antarctica</option>
+                  <option value="Arctic">Arctic</option>
+                  <option value="Himalayas">Himalayas</option>
+                  <option value="Southern Ocean">Southern Ocean</option>
+                </select>
               </div>
             </div>
+          </div>
 
-            {hasFilters && (
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className="font-label-sm text-label-sm text-on-surface-variant mr-1">Active:</span>
-                {q && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pure-white border border-slate-border text-secondary font-label-sm text-label-sm shadow-sm">
-                    Query: {q}
-                    <button onClick={() => updateFilter('q', '')} className="hover:text-error ml-1"><X className="w-3.5 h-3.5" /></button>
-                  </span>
-                )}
-                {regionFilter && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pure-white border border-slate-border text-secondary font-label-sm text-label-sm shadow-sm">
-                    Region: {regionFilter}
-                    <button onClick={() => updateFilter('region', '')} className="hover:text-error ml-1"><X className="w-3.5 h-3.5" /></button>
-                  </span>
-                )}
-                {yearFilter && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pure-white border border-slate-border text-secondary font-label-sm text-label-sm shadow-sm">
-                    Year: {yearFilter}
-                    <button onClick={() => updateFilter('year', '')} className="hover:text-error ml-1"><X className="w-3.5 h-3.5" /></button>
-                  </span>
-                )}
-                {themeFilter && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pure-white border border-slate-border text-secondary font-label-sm text-label-sm shadow-sm">
-                    Theme: {themeFilter}
-                    <button onClick={() => updateFilter('theme', '')} className="hover:text-error ml-1"><X className="w-3.5 h-3.5" /></button>
-                  </span>
-                )}
-              </div>
-            )}
-
-            {loading ? (
-              <div className="py-20 flex justify-center">
-                <div className="w-10 h-10 border-4 border-surface-container-high border-t-secondary rounded-full animate-spin"></div>
-              </div>
-            ) : error ? (
-               <div className="bg-pure-white rounded-xl p-16 flex flex-col items-center justify-center text-center border border-slate-border shadow-sm">
-                  <X className="w-16 h-16 text-error mb-4" />
-                  <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">Unable to load expeditions.</h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant max-w-md mb-6">There was a problem connecting to the server. Please try again later.</p>
-                  <button onClick={() => loadData()} className="px-6 py-2.5 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface transition-colors">
-                    Retry
+          {/* Active Filters Bar */}
+          {(q || regionFilter) && (
+            <div className="flex flex-wrap items-center gap-2 mt-4 px-2">
+              {q && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-deep-ocean text-white text-xs font-bold shadow-md tracking-wide">
+                  "{q}" 
+                  <button aria-label="Clear search" onClick={() => { searchParams.delete('q'); setSearchQuery(''); setSearchParams(searchParams); }} className="hover:text-cyan-accent bg-white/10 p-0.5 rounded-full transition-colors">
+                    <X className="w-3 h-3" />
                   </button>
-               </div>
-            ) : filteredExpeditions.length === 0 ? (
-              <div className="bg-pure-white rounded-xl p-16 flex flex-col items-center justify-center text-center border border-slate-border shadow-sm">
-                <MapPin className="w-16 h-16 text-slate-border-strong mb-4" />
-                <h3 className="font-headline-sm text-headline-sm font-semibold text-polar-midnight-deep mb-2">No expeditions match the selected filters.</h3>
-                <p className="font-body-md text-body-md text-on-surface-variant max-w-md mb-6">
-                  Try adjusting your search terms or clearing the selected filters to view all expeditions.
-                </p>
-                <button onClick={clearAllFilters} className="px-6 py-2.5 bg-polar-midnight-deep text-pure-white font-label-md font-semibold rounded-lg hover:bg-polar-navy-surface transition-colors">
-                  Clear Filters
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-12">
-                {timelineGroups.map(group => (
-                  <div key={group.year} className="flex flex-col gap-6 relative">
-                    {/* Timeline Year Marker */}
-                    <div className="flex items-center gap-4 sticky top-24 z-20 bg-surface/90 backdrop-blur py-2">
-                      <div className="w-16 font-headline-md text-headline-md font-bold text-polar-midnight-deep">
-                        {group.year}
+                </span>
+              )}
+              {regionFilter && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-border-ice text-deep-ocean text-xs font-bold shadow-sm tracking-wide">
+                  Region: {regionFilter} 
+                  <button aria-label="Clear region filter" onClick={() => { searchParams.delete('region'); setSearchParams(searchParams); }} className="hover:text-error hover:bg-error/10 p-0.5 rounded-full transition-colors">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              <button onClick={clearAll} className="text-[11px] font-bold text-muted hover:text-deep-ocean hover:underline uppercase tracking-widest ml-2 transition-colors">
+                Clear All
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ─── RESULTS ─── */}
+      <section className="w-full px-4 lg:px-8 pb-32 flex-1">
+        <div className="max-w-[1000px] mx-auto">
+          <div className="flex items-center justify-between border-b-2 border-border-ice/40 pb-4 mb-8">
+            <span className="text-xs text-muted font-bold uppercase tracking-[0.2em]">
+              {loading ? 'Retrieving records...' : `${filtered.length} Record${filtered.length !== 1 ? 's' : ''} Found`}
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="flex flex-col gap-5">
+              {[1, 2, 3].map(i => <Skeleton key={i} className="w-full h-[220px] rounded-[24px]" />)}
+            </div>
+          ) : error ? (
+            <ErrorState message="Unable to load expeditions." onRetry={() => window.location.reload()} />
+          ) : filtered.length === 0 ? (
+            <EmptyState
+              icon={MapPin}
+              title="No expeditions found"
+              description="Adjust your search terms or filters to find what you're looking for."
+              actionLabel="Clear All Filters"
+              onAction={clearAll}
+            />
+          ) : (
+            <div className="flex flex-col gap-6">
+              {filtered.map(exp => (
+                <article key={exp.id} className="group bg-white rounded-[24px] p-4 md:p-6 flex flex-col md:flex-row gap-8 items-stretch border border-border-ice/60 shadow-[0_4px_20px_rgba(7,20,38,0.02)] hover:shadow-[0_16px_40px_rgba(29,111,165,0.08)] hover:border-cyan-accent/40 hover:-translate-y-1 transition-all duration-300">
+                  
+                  {/* Image Section */}
+                  {EXPEDITION_IMAGES[exp.id] ? (
+                    <div className="w-full md:w-[320px] shrink-0 rounded-[16px] overflow-hidden relative shadow-sm">
+                      <img 
+                        src={EXPEDITION_IMAGES[exp.id]} 
+                        alt={exp.name} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                        style={{ minHeight: '220px' }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-deep-ocean/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                  ) : (
+                    <div className="w-full md:w-[320px] shrink-0 rounded-[16px] overflow-hidden relative shadow-sm bg-frost flex items-center justify-center">
+                       <MapPin className="w-12 h-12 text-muted/30" />
+                    </div>
+                  )}
+                  
+                  {/* Content Section */}
+                  <div className="flex-1 flex flex-col justify-center py-2 md:pr-4">
+                    <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.15em] mb-4">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ice-blue/40 text-ocean-navy">
+                        <MapPin className="w-3.5 h-3.5" />
+                        {exp.region}
                       </div>
-                      <div className="h-px bg-slate-border-strong flex-1"></div>
+                      <span className="text-muted">{exp.year}</span>
                     </div>
                     
-                    {/* Year's Expeditions */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-0 lg:pl-4">
-                      {group.expeditions.map(exp => {
-                        const stats = getResourceStats(exp.id);
-                        const status = getStatus(exp.endDate);
-                        
-                        return (
-                          <article key={exp.id} className="flex flex-col rounded-xl bg-pure-white border border-slate-border overflow-hidden shadow-sm hover:shadow-md transition-shadow group h-full">
-                            {/* Image Header */}
-                            <div className="relative h-48 w-full overflow-hidden bg-polar-midnight-deep">
-                              <img
-                                alt={exp.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
-                                src={EXPEDITION_IMAGES[exp.id] || EXPEDITION_IMAGES['EXP-HIM-5']}
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-polar-midnight-deep/80 via-transparent to-transparent pointer-events-none"></div>
-                              
-                              <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-                                <span className="px-2.5 py-1 rounded bg-pure-white/95 text-polar-midnight-deep font-label-sm text-[10px] uppercase tracking-wider font-bold shadow-sm">
-                                  {exp.region}
-                                </span>
-                                {status === 'Completed' && (
-                                  <span className="px-2.5 py-1 rounded bg-aurora-emerald/90 text-pure-white font-label-sm text-[10px] uppercase tracking-wider font-bold shadow-sm">
-                                    Completed
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {/* Content */}
-                            <div className="p-6 flex flex-col flex-1 gap-4">
-                              <div className="flex flex-col gap-2 flex-1">
-                                <div className="flex items-center justify-between text-on-surface-variant font-code-sm text-code-sm mb-1">
-                                  <div className="flex items-center gap-1.5">
-                                    <Calendar className="w-4 h-4" />
-                                    <span>{new Date(exp.startDate).toLocaleDateString(undefined, {month: 'short'})} — {new Date(exp.endDate).toLocaleDateString(undefined, {month: 'short', year: 'numeric'})}</span>
-                                  </div>
-                                  <span className="text-outline-variant font-mono">{exp.id}</span>
-                                </div>
-                                
-                                <h3 className="font-title-md text-title-md font-bold text-polar-midnight-deep line-clamp-2 group-hover:text-secondary transition-colors">
-                                  <Link to={`/expeditions/${exp.id}`}>
-                                    {exp.name}
-                                  </Link>
-                                </h3>
-                                
-                                <p className="font-body-sm text-body-sm text-on-surface-variant line-clamp-3 mt-1">
-                                  {exp.objective}
-                                </p>
-                              </div>
-                              
-                              {/* Meta Stats Row */}
-                              {stats.total > 0 && (
-                                <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-border">
-                                  {stats.datasets > 0 && (
-                                    <div className="flex items-center gap-1.5 text-on-surface-variant font-label-sm text-label-sm" title={`${stats.datasets} Datasets`}>
-                                      <Database className="w-4 h-4 text-aurora-emerald" />
-                                      <span>{stats.datasets}</span>
-                                    </div>
-                                  )}
-                                  {stats.pubs > 0 && (
-                                    <div className="flex items-center gap-1.5 text-on-surface-variant font-label-sm text-label-sm" title={`${stats.pubs} Publications & Reports`}>
-                                      <BookOpen className="w-4 h-4 text-azure-accent" />
-                                      <span>{stats.pubs}</span>
-                                    </div>
-                                  )}
-                                  {stats.media > 0 && (
-                                    <div className="flex items-center gap-1.5 text-on-surface-variant font-label-sm text-label-sm" title={`${stats.media} Media Items`}>
-                                      <Camera className="w-4 h-4 text-secondary" />
-                                      <span>{stats.media}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                              
-                              {/* CTA Actions */}
-                              <div className="flex flex-wrap items-center gap-2 pt-2 mt-auto">
-                                <Link 
-                                  to={`/expeditions/${exp.id}`} 
-                                  className="flex-1 px-4 py-2 rounded-lg bg-polar-midnight-deep text-pure-white font-label-sm text-label-sm hover:bg-polar-navy-surface transition-colors flex items-center justify-center gap-2 font-semibold"
-                                >
-                                  Explore Expedition <ChevronRight className="w-4 h-4" />
-                                </Link>
-                                
-                                {stats.total > 0 && (
-                                  <Link 
-                                    to={`/explore?q=${exp.id}`} 
-                                    className="px-4 py-2 rounded-lg bg-surface-container-low text-secondary font-label-sm text-label-sm hover:bg-surface-container transition-colors font-semibold border border-transparent hover:border-slate-border"
-                                    title="View linked research"
-                                  >
-                                    View Research
-                                  </Link>
-                                )}
-                              </div>
-                            </div>
-                          </article>
-                        );
-                      })}
-                    </div>
+                    <Link to={`/expeditions/${exp.id}`} className="font-display text-[26px] font-bold text-deep-ocean group-hover:text-glacial-blue transition-colors leading-[1.2] mb-3">
+                      {exp.name}
+                    </Link>
+                    
+                    <p className="text-[15px] text-ink/70 font-light leading-relaxed mb-6 line-clamp-3">
+                      {exp.objective}
+                    </p>
+                    
+                    <Link to={`/expeditions/${exp.id}`} className="inline-flex items-center gap-1.5 text-xs font-bold text-glacial-blue hover:text-cyan-accent transition-all duration-300 self-start group/link">
+                      View Expedition Log 
+                      <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
+                    </Link>
                   </div>
-                ))}
-              </div>
-            )}
-          </main>
-
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

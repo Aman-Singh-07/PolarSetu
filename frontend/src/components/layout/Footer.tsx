@@ -1,77 +1,41 @@
 import { Link } from 'react-router-dom';
-import { Shield, BadgeCheck } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-polar-midnight-deep text-ice-white pt-10 pb-6">
-      <div className="w-full px-4 lg:px-8 max-w-7xl mx-auto flex flex-col gap-10">
-        
-        <div className="p-4 rounded-lg bg-draft-amber-bg text-draft-amber-text flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Shield className="w-5 h-5 text-draft-amber-border" />
-            <span className="font-label-md text-label-md font-semibold tracking-wide uppercase">FAIR Data & Provenance Notice</span>
-          </div>
-          <p className="font-body-sm text-body-sm">All scientific outputs remain under institutional provenance. AI tools provide grounded drafts requiring human editorial sign-off.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-2 flex flex-col gap-4">
-            <div className="flex items-center gap-3">
+    <footer className="w-full bg-deep-ocean text-white/90 border-t border-white/10">
+      <div className="max-w-[1200px] mx-auto px-4 lg:px-8 py-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          {/* Brand */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
               <img
-                alt="POLARSETU Emblem"
-                className="h-8 w-auto object-contain brightness-0 invert"
+                alt="POLARSETU"
+                className="h-5 w-auto object-contain brightness-0 invert"
                 src="https://lh3.googleusercontent.com/aida/AEtjO1VXEr7AYLMmREImv4E52a7As9vSLcuPX2Tah0iKkNYpSXL-ZTRjw1tNmKkosj2FukeZj9LfB1KWGXuN-m1-MGKfRV6CkwD91Ufankky5MozJscRQ_7jMgBamSM7flV83WTRa8EwqmSG-PTLCeYe_96jRnhjagkkbl8PRO2Z8XF5RJlPUJrS0QAu0qZqx6bhG3wpA05rHjshP9RxV9o8N1MlnxYOPHjQnZ_hHTLWztoyBvyZuOTRw1g29_Gu"
               />
-              <span className="font-headline-sm text-headline-sm font-bold text-pure-white">POLARSETU</span>
-              <span className="px-1.5 py-0.5 rounded bg-polar-navy-surface text-glacial-sky font-code-sm text-code-sm uppercase">MoES / NCPOR</span>
+              <span className="font-display text-base font-bold text-white tracking-wide">POLARSETU</span>
             </div>
-            <p className="font-body-sm text-body-sm text-pure-white/80 max-w-md">
-              Official digital outreach and polar cryospheric knowledge infrastructure under the Ministry of Earth Sciences (MoES), Government of India, and the National Centre for Polar and Ocean Research (NCPOR), Vasco da Gama, Goa.
-            </p>
-            <p className="font-label-sm text-label-sm text-outline-variant mt-2">
-              Coordinating Indian research operations in Antarctica, the Arctic, and the Himalayas.
+            <p className="text-[13px] text-white/60">
+              Polar Science Knowledge & Outreach Platform
             </p>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <span className="font-label-md text-label-md font-semibold text-glacial-sky uppercase tracking-wider mb-2">Polar Stations</span>
-            <Link to="/expeditions" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Maitri Station (Antarctica)</Link>
-            <Link to="/expeditions" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Bharati Station (Antarctica)</Link>
-            <Link to="/expeditions" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Himadri (Ny-Ålesund, Arctic)</Link>
-            <Link to="/expeditions" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Himansh (Spiti, Himalaya)</Link>
-            <Link to="/expeditions" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">IndARC Mooring System</Link>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <span className="font-label-md text-label-md font-semibold text-glacial-sky uppercase tracking-wider mb-2">Programmes</span>
-            <Link to="/explore" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Indian Antarctic Programme</Link>
-            <Link to="/explore" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Arctic Observation Network</Link>
-            <Link to="/explore" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Cryosphere & Climate Hub</Link>
-            <Link to="/explore" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Open Repositories & DOI Data</Link>
-            <Link to="/admin/review" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Editorial Review Queue</Link>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <span className="font-label-md text-label-md font-semibold text-glacial-sky uppercase tracking-wider mb-2">Quick Navigation</span>
-            <Link to="/" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">About PolarSetu</Link>
-            <Link to="/expeditions" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Expedition Archives</Link>
-            <Link to="/explore" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Datasets & Catalogs</Link>
-            <Link to="/outreach" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Outreach Studio</Link>
-            <Link to="/admin" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Public API & Standards</Link>
-            <Link to="/" className="font-body-sm text-body-sm text-inverse-on-surface hover:text-glacial-sky transition-colors">Data Policy & Privacy</Link>
+          {/* Links */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <Link to="/explore" className="text-[13px] text-ice-blue/70 hover:text-white transition-colors">Research</Link>
+            <Link to="/expeditions" className="text-[13px] text-ice-blue/70 hover:text-white transition-colors">Expeditions</Link>
+            <Link to="/media" className="text-[13px] text-ice-blue/70 hover:text-white transition-colors">Media</Link>
+            <Link to="/map" className="text-[13px] text-ice-blue/70 hover:text-white transition-colors">Map</Link>
+            <Link to="/login" className="text-[13px] text-ice-blue/70 hover:text-white transition-colors">Admin Sign In</Link>
           </div>
         </div>
 
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-outline-variant font-label-sm text-label-sm border-t border-white/10">
-          <p>© 2026 PolarSetu • Ministry of Earth Sciences (MoES), Govt. of India & NCPOR.</p>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5 text-aurora-emerald">
-              <BadgeCheck className="w-4 h-4" /> NCPOR Provenance Verified
-            </span>
-            <span>ISO/TC 211 & FAIR Compliant</span>
-          </div>
+        <div className="mt-6 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="text-[11px] text-white/40 tracking-wide">© 2026 PolarSetu Prototype</p>
+          <p className="text-[11px] text-white/40 tracking-wide">
+            AI outputs require human editorial review.
+          </p>
         </div>
-
       </div>
     </footer>
   );

@@ -1,22 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Sparkles, ShieldCheck, Loader2, AlertCircle, Globe2, Snowflake, Mountain, Database, RotateCcw, SlidersHorizontal, Compass, Shield, Search as SearchIcon, Mic, CheckCircle, Megaphone, ArrowRight, Copy, Code, ThumbsUp, ExternalLink, Verified } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { Loader2, ArrowRight, X, Send, Mic, Sparkles, Copy, FileText, Beaker } from 'lucide-react';
 import { api } from '../services/api';
 import type { AIResponse, Resource } from '../types';
-
-const SCOPES = [
-  { id: 'all', label: 'All Polar Repositories', icon: Globe2, detail: 'Active', color: 'text-glacial-sky', desc: 'Active' },
-  { id: 'antarctica', label: 'Antarctica (Maitri & Bharati)', icon: Snowflake, detail: '43 Expeditions', color: 'text-outline', desc: '43 Expeditions' },
-  { id: 'arctic', label: 'Arctic Himadri (Ny-Ålesund)', icon: Globe2, detail: 'IndARC', color: 'text-outline', desc: 'IndARC' },
-  { id: 'himalayas', label: 'Himalayan Cryosphere (Himansh)', icon: Mountain, detail: 'Spiti Basin', color: 'text-outline', desc: 'Spiti Basin' },
-];
-
-const SUGGESTED_QUERIES = [
-  "What were the major findings related to Antarctic sea ice dynamics in 2024?",
-  "How does black carbon deposition affect Himadri glacier melt rates?",
-  "List oceanographic datasets collected during the 43rd Antarctic expedition",
-  "Explain psychrotolerant bacteria discovered in Lake Priyadarshini for a school student"
-];
 
 export default function AskAI() {
   const [searchParams] = useSearchParams();
@@ -28,396 +14,310 @@ export default function AskAI() {
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<AIResponse | null>(null);
-  const [activeScope, setActiveScope] = useState('all');
   const [isListening, setIsListening] = useState(false);
-  const [speechError, setSpeechError] = useState<string | null>(null);
+  const [voiceError, setVoiceError] = useState('');
   const [copied, setCopied] = useState(false);
-
-  const handleVoice = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setSpeechError("Voice input is not supported in this browser.");
-      return;
-    }
-    if (isListening) return;
-
-    setSpeechError(null);
-    setIsListening(true);
-    
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setQuestion(prev => (prev ? prev + ' ' + transcript : transcript));
-    };
-    
-    recognition.onerror = (event: any) => {
-      if (event.error === 'not-allowed') {
-        setSpeechError("Microphone access was not granted. You can continue with text input.");
-      } else {
-        setSpeechError("Voice recognition error occurred.");
-      }
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-    
-    recognition.start();
-  };
-
-  const handleCopy = () => {
-    if (response?.answer) {
-      navigator.clipboard.writeText(response.answer).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      });
-    }
-  };
+  
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     if (resourceId) {
-      api.getResource(resourceId).then(res => {
-        if (res) setContextResource(res);
-      });
+      api.getResource(resourceId).then(res => { if (res) setContextResource(res); });
     }
   }, [resourceId]);
 
   useEffect(() => {
     if (initialQuery && !response && !loading) {
+      setQuestion(initialQuery);
       handleAsk(undefined, initialQuery);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery]);
 
+  useEffect(() => {
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setQuestion(prev => (prev ? prev + ' ' : '') + transcript);
+        setIsListening(false);
+      };
+
+      recognition.onerror = (event: any) => {
+        if (event.error === 'not-allowed') {
+          setVoiceError('Microphone access was not granted. You can continue with text input.');
+        } else {
+          setVoiceError('Voice input error: ' + event.error);
+        }
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+  }, []);
+
+  const toggleListen = () => {
+    if (!recognitionRef.current) {
+      setVoiceError('Voice input is not supported in this browser.');
+      return;
+    }
+    setVoiceError('');
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (err) {
+        setIsListening(false);
+      }
+    }
+  };
+
   const handleAsk = async (e?: React.FormEvent, q?: string) => {
     if (e) e.preventDefault();
+    if (isListening) recognitionRef.current?.stop();
     const queryToAsk = q || question;
     if (!queryToAsk.trim()) return;
-    
     setQuestion(queryToAsk);
     setLoading(true);
     setResponse(null);
+    setCopied(false);
     try {
       const res = await api.askPolarAI({ question: queryToAsk, resourceId });
       setResponse(res);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setResponse({ answer: "Unable to reach the AI service at this time.", sources: [], evidenceStatus: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
+  const clearContext = () => { setContextResource(null); navigate('/ai'); };
+  
+  const handleCopy = () => {
+    if (response?.answer) {
+      navigator.clipboard.writeText(response.answer);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const SUGGESTED = [
+    { text: "What were the major findings related to Antarctic sea ice in recent expeditions?", icon: Sparkles },
+    { text: "How does black carbon deposition affect Himalayan glacier melt rates?", icon: Beaker },
+    { text: "List oceanographic datasets collected during the 43rd Antarctic expedition", icon: FileText }
+  ];
+
   return (
-    <div className="flex flex-col w-full min-h-[calc(100vh-80px)] bg-surface">
-      
-      {/* Top Command & Provenance Bar */}
-      <section className="w-full bg-surface-container-low py-6 px-4 lg:px-8">
-        <div className="max-w-[1360px] mx-auto flex flex-col gap-4">
-          
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-aurora-emerald animate-pulse"></span>
-              <span>MoES / NCPOR Grounded Scientific RAG Pipeline</span>
-            </div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-draft-amber-bg text-draft-amber-text font-label-sm text-label-sm">
-              <ShieldCheck className="w-4 h-4 text-draft-amber-border" />
-              <span>Source-Grounded AI: Answers are constrained to retrieved repository sources and display supporting citations.</span>
-            </div>
+    <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-snow relative">
+      {/* ─── CINEMATIC HEADER ─── */}
+      <section className="relative w-full bg-deep-ocean pt-16 pb-16 px-4 lg:px-8 overflow-hidden shrink-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-ocean-navy via-deep-ocean to-deep-ocean" />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay" />
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at top, rgba(56,189,248,0.4) 0%, transparent 50%)' }} />
+        
+        <div className="relative z-10 max-w-[800px] mx-auto text-center flex flex-col items-center gap-6 animate-fade-up">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_0_20px_rgba(56,189,248,0.2)]">
+            <Sparkles className="w-4 h-4 text-cyan-accent" />
+            <span className="text-white text-[11px] font-bold tracking-[0.25em] uppercase">AI Knowledge Engine</span>
           </div>
-          
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="max-w-3xl flex flex-col gap-1">
-              <h1 className="font-headline-lg text-headline-lg font-bold text-polar-midnight-deep tracking-tight">Ask Polar AI</h1>
-              <p className="font-body-lg text-body-lg text-on-surface-variant">
-                Explore India's Polar Science through grounded repository evidence
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-pure-white shadow-sm border border-slate-border/50">
-              <Database className="text-secondary w-6 h-6" />
-              <div className="flex flex-col">
-                <span className="font-label-sm text-label-sm uppercase tracking-wider text-outline">Active Grounding Index</span>
-                <span className="font-code-sm text-code-sm font-semibold text-polar-midnight-deep">186 Papers • 320 Datasets • 44 Expedition Dossiers</span>
-              </div>
-              <span className="ml-2 px-2 py-0.5 rounded bg-surface-container-high text-polar-navy-surface font-code-sm text-code-sm font-bold hidden sm:inline-block">Prototype Demonstration Data</span>
-            </div>
-          </div>
+          <h1 className="font-display text-5xl md:text-[64px] font-extrabold text-white tracking-tight leading-[1.1] drop-shadow-2xl">
+            Ask Polar AI
+          </h1>
+          <p className="text-lg md:text-xl text-white/70 font-light max-w-2xl leading-relaxed drop-shadow-md">
+            Query the entire repository. Answers are strictly constrained to verified official sources and generate automatic citations.
+          </p>
         </div>
       </section>
 
-      {/* Main Workspace */}
-      <section className="w-full px-4 lg:px-8 py-10">
-        <div className="max-w-[1360px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* ─── MAIN INTERFACE ─── */}
+      <section className="w-full px-4 lg:px-8 pb-32 flex-1 flex flex-col items-center z-20">
+        <div className="max-w-[800px] w-full flex flex-col gap-6 flex-1 relative">
           
-          {/* LEFT SIDEBAR */}
-          <aside className="lg:col-span-4 flex flex-col gap-6">
-            
-            {/* Scope Filter Card */}
-            <div className="bg-pure-white rounded-xl p-6 shadow-sm flex flex-col gap-4 border border-slate-border/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="w-5 h-5 text-secondary" />
-                  <h2 className="font-headline-sm text-headline-sm text-polar-midnight-deep font-semibold">Corpus Scope</h2>
-                </div>
-                <button onClick={() => setActiveScope('all')} className="text-secondary font-label-sm text-label-sm hover:underline">Reset</button>
+          {/* Context Banner */}
+          {contextResource && (
+            <div className="bg-white/95 backdrop-blur-xl border border-white p-5 rounded-[20px] shadow-[0_16px_40px_rgba(7,20,38,0.08)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in relative group overflow-hidden mt-6">
+              <div className="absolute inset-0 bg-cyan-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex flex-col gap-1.5 relative z-10">
+                <span className="text-[10px] text-cyan-accent uppercase tracking-[0.2em] font-bold flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-accent animate-pulse" />
+                  Active Context Window
+                </span>
+                <span className="text-base font-bold text-deep-ocean line-clamp-1">{contextResource.title}</span>
+              </div>
+              <button onClick={clearContext} className="shrink-0 text-xs font-bold text-muted hover:text-error hover:bg-error/10 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 relative z-10" aria-label="Clear Context">
+                <X className="w-4 h-4" /> Clear Context
+              </button>
+            </div>
+          )}
+
+          {voiceError && (
+            <div className="bg-amber-bg text-amber-text p-4 border border-amber-border rounded-[16px] text-sm font-medium shadow-sm animate-fade-in">
+               {voiceError}
+            </div>
+          )}
+
+          {/* Loading State */}
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-24 gap-6 animate-pulse">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 bg-cyan-accent/20 blur-xl rounded-full" />
+                <div className="w-12 h-12 rounded-full border-2 border-border-ice border-t-cyan-accent animate-spin relative z-10" />
+              </div>
+              <span className="text-xs font-bold text-muted tracking-[0.2em] uppercase">Consulting Archive...</span>
+            </div>
+          )}
+
+          {/* Chat Response */}
+          {response && !loading && (
+            <div className="flex flex-col gap-8 animate-fade-up w-full mt-8">
+              {/* User Question */}
+              <div className="self-end bg-deep-ocean text-white px-6 py-4 rounded-[24px] rounded-tr-[4px] max-w-[85%] shadow-[0_12px_30px_rgba(7,20,38,0.15)] border border-white/10">
+                <p className="text-[15px] font-medium leading-relaxed">{question}</p>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="font-label-sm text-label-sm uppercase tracking-wider text-outline mb-1">Geographic Domain</label>
-                {SCOPES.map(scope => (
-                  <button
-                    key={scope.id}
-                    onClick={() => setActiveScope(scope.id)}
-                    className={`w-full text-left px-3 py-2.5 rounded-lg font-label-md text-label-md flex items-center justify-between transition-all ${
-                      activeScope === scope.id
-                        ? 'bg-polar-midnight-deep text-pure-white'
-                        : 'bg-surface-container-low hover:bg-surface-container text-on-surface'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <scope.icon className={`w-4 h-4 ${activeScope === scope.id ? 'text-glacial-sky' : 'text-outline'}`} />
-                      {scope.label}
-                    </span>
-                    <span className={`font-code-sm text-code-sm ${activeScope === scope.id ? 'text-glacial-sky px-1.5 py-0.5 rounded bg-polar-navy-surface' : 'text-outline'}`}>
-                      {scope.desc}
-                    </span>
+              {/* AI Answer Card */}
+              <div className="self-start bg-white/95 backdrop-blur-xl border border-white p-8 md:p-10 rounded-[24px] rounded-tl-[4px] w-full flex flex-col gap-8 shadow-[0_20px_50px_rgba(7,20,38,0.06)] relative overflow-hidden group">
+                {/* Decorative glowing edge */}
+                <div className="absolute top-0 left-0 w-[4px] h-full bg-gradient-to-b from-cyan-accent to-glacial-blue" />
+                <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-cyan-accent/5 rounded-full blur-[80px] -mr-[150px] -mt-[150px] pointer-events-none" />
+                
+                <div className="flex items-start justify-between gap-6 relative z-10">
+                  <div className="flex items-center gap-3 mb-2 absolute -top-4 -left-2">
+                    <Sparkles className="w-4 h-4 text-cyan-accent" />
+                  </div>
+                  <p className="text-[16px] text-ink leading-[1.8] whitespace-pre-line font-light mt-4">
+                    {response.answer}
+                  </p>
+                  
+                  <button onClick={handleCopy} className="shrink-0 text-[10px] uppercase tracking-[0.2em] font-bold text-muted hover:text-cyan-accent transition-colors flex flex-col items-center gap-1 mt-4">
+                    <Copy className="w-4 h-4" />
+                    {copied ? 'Copied' : 'Copy'}
                   </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Suggested Queries */}
-            <div className="bg-pure-white rounded-xl p-6 shadow-sm flex flex-col gap-4 border border-slate-border/50">
-              <div className="flex items-center gap-2">
-                <Compass className="w-5 h-5 text-secondary" />
-                <h3 className="font-title-md text-title-md text-polar-midnight-deep font-semibold">Suggested Scientific Queries</h3>
-              </div>
-              <div className="flex flex-col gap-2">
-                {SUGGESTED_QUERIES.map((q, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleAsk(undefined, q)}
-                    className="text-left p-3 rounded-lg bg-surface-container-low hover:bg-surface-container hover:text-secondary text-on-surface font-body-sm text-body-sm transition-all group flex items-start gap-2"
-                  >
-                    <ArrowRight className="w-4 h-4 text-secondary mt-0.5 group-hover:translate-x-0.5 transition-transform shrink-0" />
-                    <span>"{q}"</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Repository Integrity Notice */}
-            <div className="bg-polar-midnight-deep text-ice-white rounded-xl p-5 shadow-sm flex flex-col gap-2 relative overflow-hidden">
-              <div className="absolute -right-6 -bottom-6 w-28 h-28 rounded-full bg-secondary/20 blur-xl pointer-events-none"></div>
-              <div className="flex items-center gap-2 text-glacial-sky font-label-md text-label-md font-semibold uppercase tracking-wider">
-                <Shield className="w-5 h-5" />
-                <span>Repository Integrity Mandate</span>
-              </div>
-              <p className="font-body-sm text-body-sm text-inverse-on-surface opacity-90 leading-relaxed relative z-10">
-                Scientific sources remain primary authoritative documents. AI synthesis is strictly grounded in cited passages. Any synthesis without an explicit NCPOR or peer-reviewed anchor is flagged and discarded.
-              </p>
-            </div>
-          </aside>
-
-          {/* RIGHT MAIN AREA */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
-            
-            {/* Resource Context (if applicable) */}
-            {contextResource && (
-              <div className="bg-surface-container rounded-xl p-4 border border-slate-border flex items-center justify-between gap-4 shadow-sm">
-                <div className="flex flex-col gap-1">
-                  <span className="font-label-sm text-[10px] font-bold text-outline uppercase tracking-wider">Current Research Context</span>
-                  <span className="font-title-md text-title-md font-semibold text-polar-midnight-deep">{contextResource.title}</span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="font-code-sm text-code-sm px-2 py-0.5 rounded bg-pure-white text-secondary font-medium">{contextResource.type}</span>
-                    <span className="font-code-sm text-code-sm text-outline-variant">{contextResource.year}</span>
-                    <span className="font-code-sm text-code-sm text-outline-variant">• {contextResource.region}</span>
-                  </div>
                 </div>
-                <button onClick={() => { setContextResource(null); navigate('/ai'); }} className="p-2 text-outline hover:text-on-surface transition-colors shrink-0">
-                  <RotateCcw className="w-5 h-5" />
-                </button>
-              </div>
-            )}
 
-            {/* Query Input Bar */}
-            <div className="bg-pure-white rounded-xl p-2 shadow-md flex flex-col sm:flex-row items-center gap-2 border border-slate-border/50">
-              <form onSubmit={handleAsk} className="flex items-center gap-2 flex-1 w-full pl-3">
-                <SearchIcon className="text-secondary w-6 h-6 shrink-0" />
-                <input 
-                  type="text" 
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  placeholder="Ask polar questions grounded in NCPOR expedition datasets..."
-                  className="w-full py-3 bg-transparent text-polar-midnight-deep font-body-md text-body-md placeholder-outline focus:outline-none"
-                  disabled={loading}
-                />
-              </form>
-              <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto justify-end pr-1 pb-1 sm:pb-0 relative">
-                {speechError && (
-                  <div className="absolute -top-10 right-0 bg-draft-amber-bg text-draft-amber-text border border-draft-amber-border text-xs px-2 py-1 rounded shadow-sm whitespace-nowrap z-10">
-                    {speechError}
-                  </div>
-                )}
-                <button 
-                  type="button" 
-                  onClick={handleVoice}
-                  className={`p-3 rounded-lg hover:bg-surface-container-high transition-all shrink-0 hidden sm:flex ${isListening ? 'bg-aurora-emerald/10 text-aurora-emerald animate-pulse' : 'bg-surface-container text-on-surface'}`}
-                  title={isListening ? "Listening..." : "Use voice input"}
-                >
-                  <Mic className="w-5 h-5" />
-                </button>
-                <button 
-                  onClick={(e) => handleAsk(e as any)}
-                  disabled={!question.trim() || loading}
-                  className="w-full sm:w-auto px-6 py-3 rounded-lg bg-polar-midnight-deep hover:bg-polar-navy-surface disabled:opacity-50 text-pure-white font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm transition-all"
-                >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin text-glacial-sky" /> : <Sparkles className="w-5 h-5 text-glacial-sky" />}
-                  <span>Ask Polar AI</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Response Area */}
-            {response && (
-              <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <article className="bg-pure-white rounded-xl shadow-md p-6 flex flex-col gap-6 border border-slate-border/50">
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-4 bg-surface-container-low -mx-6 -mt-6 p-5 rounded-t-xl border-b border-slate-border/50">
-                    <div className="flex items-center gap-3">
-                      <span className="px-2 py-1 rounded bg-polar-midnight-deep text-glacial-sky font-code-sm text-code-sm font-semibold uppercase">Grounded Response</span>
-                      <span className="font-label-md text-label-md text-polar-midnight-deep font-semibold truncate max-w-sm sm:max-w-md" title={question}>
-                        Query: {question}
-                      </span>
-                    </div>
-                    {response.sources.length > 0 ? (
-                      <div className="flex items-center gap-1.5 text-aurora-emerald font-label-sm text-label-sm font-bold uppercase tracking-wider">
-                        <Verified className="w-4 h-4" />
-                        <span>{response.evidenceStatus || '100% Provenance Matched'}</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 text-draft-amber-text font-label-sm text-label-sm font-bold uppercase tracking-wider">
-                        <AlertCircle className="w-4 h-4" />
-                        <span>{response.evidenceStatus || 'Insufficient Evidence'}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col gap-4">
-                    <p className="font-body-md text-body-md text-on-surface leading-relaxed whitespace-pre-wrap">
-                      {response.answer}
-                    </p>
-                  </div>
-
-                  {response.sources.length > 0 && (
-                    <div className="p-3 rounded-lg bg-surface-container flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-2 text-polar-midnight-deep">
-                        <CheckCircle className="w-5 h-5 text-aurora-emerald" />
-                        <span className="font-code-sm text-code-sm font-semibold">
-                          Grounded in {response.sources.length} Verified Repository Sources • Unverified claims omitted.
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Actions Toolbar */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button 
-                        onClick={() => navigate('/outreach', { state: { sourceId: response.sources[0]?.id } })}
-                        disabled={response.sources.length === 0}
-                        className="px-4 py-2.5 rounded-lg bg-polar-midnight-deep hover:bg-polar-navy-surface text-pure-white font-label-md text-label-md flex items-center gap-2 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Megaphone className="w-5 h-5 text-glacial-sky" />
-                        <span>Send to Outreach Studio</span>
-                      </button>
-                      <button 
-                        onClick={handleCopy}
-                        className="px-4 py-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md flex items-center gap-2 transition-all"
-                      >
-                        {copied ? <CheckCircle className="w-5 h-5 text-aurora-emerald" /> : <Copy className="w-5 h-5 text-secondary" />}
-                        <span className="hidden sm:inline">{copied ? "Copied" : "Copy Answer"}</span>
-                      </button>
-                      <button disabled className="px-4 py-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface opacity-50 cursor-not-allowed font-label-md text-label-md flex items-center gap-2 transition-all">
-                        <Code className="w-5 h-5 text-secondary" />
-                        <span className="hidden sm:inline">Export BibTeX (Demo)</span>
-                      </button>
-                    </div>
-                    <button disabled className="px-3 py-2.5 rounded-lg text-outline font-label-sm text-label-sm flex items-center gap-1.5 transition-all opacity-50 cursor-not-allowed">
-                      <ThumbsUp className="w-4 h-4" />
-                      <span className="hidden sm:inline">Provide Feedback (Demo)</span>
-                    </button>
-                  </div>
-                </article>
-
-                {/* Source Evidence Cards Grid */}
-                {response.sources.length > 0 && (
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Database className="w-5 h-5 text-secondary" />
-                        <h3 className="font-headline-sm text-headline-sm text-polar-midnight-deep font-semibold">
-                          Grounding Source Documents & Datasets ({response.sources.length})
-                        </h3>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {/* Citations Grid */}
+                {response.sources && response.sources.length > 0 && (
+                  <div className="pt-8 border-t border-border-ice/60 flex flex-col gap-4 relative z-10">
+                    <span className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold flex items-center gap-2">
+                      <FileText className="w-3.5 h-3.5" /> Verified Sources
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {response.sources.map((src, i) => (
-                        <div key={i} className="bg-pure-white rounded-xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4 border border-slate-border/50">
-                          <div className="flex flex-col gap-2">
-                            <div className="flex items-center justify-between">
-                              <span className="px-2 py-1 rounded bg-surface-container text-secondary font-label-sm text-[10px] font-bold uppercase tracking-wider">
-                                {src.type}
-                              </span>
-                              <span className="font-code-sm text-[11px] font-bold text-outline uppercase">{src.id}</span>
-                            </div>
-                            <h4 className="font-title-md text-title-md font-semibold text-polar-midnight-deep line-clamp-3">
-                              {src.title}
-                            </h4>
-                            {src.pageOrSection && (
-                              <p className="font-body-sm text-body-sm text-on-surface-variant font-medium mt-1">
-                                Reference: {src.pageOrSection}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center justify-between pt-3 border-t border-slate-border/50 mt-1">
-                            <span className="inline-flex items-center gap-1 font-label-sm text-[10px] uppercase font-bold text-aurora-emerald">
-                              <Verified className="w-3.5 h-3.5" /> Indexed
-                            </span>
-                            <button 
-                              onClick={() => navigate(`/research/${src.id}`)}
-                              className="inline-flex items-center gap-1 text-secondary font-label-sm text-label-sm hover:underline font-semibold"
-                            >
-                              <span>View Resource</span>
-                              <ExternalLink className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
+                        <Link key={i} to={`/research/${src.id}`} className="p-4 bg-frost/50 hover:bg-white rounded-[16px] border border-border-ice/50 hover:border-cyan-accent/30 hover:shadow-medium transition-all flex flex-col gap-2 group/src">
+                          <span className="font-display font-bold text-[15px] text-deep-ocean group-hover/src:text-glacial-blue transition-colors line-clamp-2 leading-snug">
+                            {src.title}
+                          </span>
+                          {(src as any).snippet && <p className="text-[13px] text-muted/80 italic line-clamp-2 font-light">"{(src as any).snippet}"</p>}
+                        </Link>
                       ))}
                     </div>
                   </div>
                 )}
-                
-                {response.sources.length === 0 && (
-                   <div className="bg-surface-container rounded-xl p-6 flex flex-col items-center text-center gap-4 border border-slate-border/50">
-                      <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center">
-                         <AlertCircle className="w-6 h-6 text-outline" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                         <h3 className="font-title-md text-title-md font-bold text-polar-midnight-deep">No Matching Repository Sources</h3>
-                         <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mx-auto">The system could not identify relevant, authoritative repository resources to support an answer to this query.</p>
-                      </div>
-                      <button onClick={() => navigate('/explore')} className="mt-2 px-6 py-2.5 rounded-lg bg-polar-midnight-deep hover:bg-polar-navy-surface text-pure-white font-label-md text-label-md flex items-center justify-center gap-2 shadow-sm transition-all">
-                         <SearchIcon className="w-4 h-4 text-glacial-sky" /> Explore Repository
-                      </button>
-                   </div>
+
+                {/* Follow-up Action */}
+                {resourceId && (
+                  <div className="pt-2 relative z-10">
+                    <Link to={`/outreach?sourceId=${resourceId}`} className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 bg-deep-ocean text-white text-sm font-bold rounded-[14px] hover:bg-ocean-navy transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
+                      Create Outreach Draft <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Suggestions List (Shown initially) */}
+          {!response && !loading && !initialQuery && (
+            <div className="flex flex-col gap-6 mt-12 w-full animate-fade-in">
+              <span className="text-[11px] text-muted font-bold uppercase tracking-[0.2em] text-center mb-2">Example Queries</span>
+              <div className="grid grid-cols-1 gap-4">
+                {SUGGESTED.map((sug, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setQuestion(sug.text); handleAsk(undefined, sug.text); }}
+                    className="text-left px-6 py-5 rounded-[20px] bg-white border border-white hover:border-cyan-accent/30 shadow-[0_8px_30px_rgba(7,20,38,0.04)] hover:shadow-[0_16px_40px_rgba(56,189,248,0.08)] transition-all duration-300 text-[15px] text-ink font-light group flex items-center gap-5 hover:-translate-y-1"
+                  >
+                    <div className="w-10 h-10 rounded-[12px] bg-frost flex items-center justify-center shrink-0 group-hover:bg-cyan-accent/10 transition-colors">
+                      <sug.icon className="w-5 h-5 text-muted group-hover:text-cyan-accent transition-colors" />
+                    </div>
+                    <span className="flex-1 leading-relaxed">"{sug.text}"</span>
+                    <ArrowRight className="w-5 h-5 text-border-ice group-hover:text-cyan-accent group-hover:translate-x-1 transition-all shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex-1 min-h-[140px]" />
+
+          {/* ─── FLOATING INPUT AREA ─── */}
+          <div className="sticky bottom-8 z-40 w-full pt-4">
+            {isListening && (
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-deep-ocean text-[10px] font-bold tracking-[0.2em] uppercase px-5 py-2 rounded-full animate-soft-pulse flex items-center gap-2 shadow-[0_8px_20px_rgba(7,20,38,0.1)] border border-border-ice">
+                <div className="w-2 h-2 rounded-full bg-error animate-pulse" /> Listening...
+              </div>
             )}
+            
+            <form onSubmit={handleAsk} className="relative group/form">
+              {/* Ambient Glow */}
+              <div className="absolute inset-0 bg-cyan-accent/20 blur-[30px] rounded-full opacity-0 group-focus-within/form:opacity-100 transition-opacity duration-700 pointer-events-none" />
+              
+              <div className="relative bg-white/95 backdrop-blur-2xl p-2 rounded-full shadow-[0_16px_40px_rgba(7,20,38,0.12)] border border-white flex items-center gap-2 transition-all duration-300 group-focus-within/form:border-cyan-accent/40 group-focus-within/form:shadow-[0_20px_50px_rgba(56,189,248,0.15)]">
+                
+                <div className="flex-1 flex items-center pl-6">
+                  <label htmlFor="ai-input" className="sr-only">Ask a question</label>
+                  <input 
+                    id="ai-input"
+                    type="text"
+                    value={question}
+                    onChange={e => setQuestion(e.target.value)}
+                    placeholder="Ask Polar AI anything about Indian polar science..."
+                    className="w-full bg-transparent border-none outline-none text-[15px] font-medium text-deep-ocean placeholder:text-muted/60"
+                    disabled={loading}
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2 shrink-0 pr-1">
+                  <button
+                    type="button"
+                    onClick={toggleListen}
+                    disabled={loading}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${isListening ? 'bg-error/10 text-error' : 'bg-transparent hover:bg-frost text-muted hover:text-deep-ocean'}`}
+                    aria-label={isListening ? "Stop voice input" : "Start voice input"}
+                    title="Voice Input"
+                  >
+                    <Mic className={`w-5 h-5 ${isListening ? 'animate-pulse' : ''}`} aria-hidden="true" />
+                  </button>
+                  
+                  <button 
+                    type="submit"
+                    disabled={!question.trim() || loading}
+                    className="w-12 h-12 bg-deep-ocean hover:bg-cyan-accent disabled:opacity-50 disabled:hover:bg-deep-ocean text-white hover:text-deep-ocean font-bold rounded-full transition-all duration-300 flex items-center justify-center shadow-md disabled:cursor-not-allowed group/btn"
+                    aria-label="Send question"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Send className="w-5 h-5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
+                
+              </div>
+            </form>
           </div>
+          
         </div>
       </section>
     </div>

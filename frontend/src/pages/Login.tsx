@@ -1,175 +1,107 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Lock, User, Eye, EyeOff, Loader2, ArrowLeft, Shield } from 'lucide-react';
-import { api } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 import { auth } from '../services/auth';
+import { api } from '../services/api';
+import { Loader2, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      return;
-    }
-
-    setLoading(true);
-    
+    if (!email || !password) return;
+    setLoading(true); setError('');
     try {
-      const response = await api.login(email, password);
-      auth.setToken(response.token);
+      const res = await api.login(email, password);
+      auth.setToken(res.token);
       navigate('/admin');
-      window.location.reload(); // Refresh to update Navbar state
     } catch (err: any) {
-      if (err.status === 401) {
-        setError('Invalid email or password.');
-      } else {
-        setError('Unable to connect to the POLARSETU API. Try Again.');
-      }
+      setError(err.message || 'Invalid credentials.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDemoLogin = () => {
+  const handleDemo = () => {
     setEmail('admin@polarsetu.in');
     setPassword('password123');
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center p-4 bg-surface relative">
-      
-      {/* Background Subtle Texture */}
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-      
-      <div className="max-w-md w-full relative z-10 flex flex-col gap-6">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-72px)] py-12 px-4 bg-snow relative overflow-y-auto">
+      {/* ─── CINEMATIC BACKGROUND ─── */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white via-snow to-frost opacity-80" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-accent/5 rounded-full blur-[100px]" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-[420px] flex flex-col gap-8 animate-fade-up">
         
-        {/* Back Link */}
-        <div className="flex justify-start">
-          <Link to="/" className="inline-flex items-center gap-2 text-on-surface-variant hover:text-polar-midnight-deep font-label-sm text-sm transition-colors group">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to POLARSETU
-          </Link>
+        {/* ─── HEADER ─── */}
+        <div className="text-center flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-[20px] bg-white border border-border-ice flex items-center justify-center shadow-[0_12px_30px_rgba(7,20,38,0.06)]">
+            <ShieldCheck className="w-8 h-8 text-cyan-accent" />
+          </div>
+          <div>
+            <h1 className="font-display text-3xl font-extrabold text-deep-ocean tracking-tight drop-shadow-sm">System Access</h1>
+            <p className="text-[12px] text-muted mt-2 font-bold tracking-[0.2em] uppercase">POLARSETU Admin Console</p>
+          </div>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-pure-white p-8 sm:p-10 rounded-2xl shadow-xl border border-surface-variant flex flex-col gap-8">
+        {/* ─── FORM ─── */}
+        <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-xl rounded-[24px] p-8 border border-white shadow-[0_20px_50px_rgba(7,20,38,0.08)] flex flex-col gap-6 relative overflow-hidden group">
+          {/* Top glowing accent */}
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-cyan-accent via-glacial-blue to-cyan-accent opacity-90" />
           
-          {/* Header */}
-          <div className="flex flex-col gap-2 items-center text-center">
-            <img
-              alt="POLARSETU"
-              className="h-10 w-auto object-contain mb-2"
-              src="https://lh3.googleusercontent.com/aida/AEtjO1VXEr7AYLMmREImv4E52a7As9vSLcuPX2Tah0iKkNYpSXL-ZTRjw1tNmKkosj2FukeZj9LfB1KWGXuN-m1-MGKfRV6CkwD91Ufankky5MozJscRQ_7jMgBamSM7flV83WTRa8EwqmSG-PTLCeYe_96jRnhjagkkbl8PRO2Z8XF5RJlPUJrS0QAu0qZqx6bhG3wpA05rHjshP9RxV9o8N1MlnxYOPHjQnZ_hHTLWztoyBvyZuOTRw1g29_Gu"
-            />
-            <h1 className="text-3xl font-headline-lg font-bold text-polar-midnight-deep tracking-tight uppercase">Sign In</h1>
-            <p className="font-body-sm text-sm text-on-surface-variant max-w-[280px]">
-              Access the POLARSETU administration workspace.
-            </p>
-          </div>
-
-          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            
-            {error && (
-              <div className="p-3 bg-error/5 border border-error/20 text-error text-sm font-label-md rounded-lg flex items-center justify-center gap-2">
-                <Shield className="w-4 h-4 shrink-0" /> {error}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-4">
-              {/* Email Field */}
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="email" className="font-label-sm text-xs font-bold text-polar-midnight-deep uppercase tracking-widest">
-                  Email
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-outline">
-                    <User className="h-5 w-5" />
-                  </div>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    className="block w-full pl-10 border border-surface-variant rounded-lg py-3 bg-surface-container-low text-on-surface font-body-md transition-all focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Password Field */}
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="password" className="font-label-sm text-xs font-bold text-polar-midnight-deep uppercase tracking-widest">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-outline">
-                    <Lock className="h-5 w-5" />
-                  </div>
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    autoComplete="current-password"
-                    className="block w-full pl-10 pr-10 border border-surface-variant rounded-lg py-3 bg-surface-container-low text-on-surface font-body-md transition-all focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-outline hover:text-on-surface transition-colors focus:outline-none"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
+          {error && (
+            <div className="flex items-center gap-2 p-4 bg-error/5 border border-error/20 rounded-[14px] text-[13px] text-error font-bold animate-fade-in shadow-sm">
+              <AlertTriangle className="w-4 h-4 shrink-0" /> {error}
             </div>
+          )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center py-3.5 px-4 rounded-xl font-label-md font-bold uppercase tracking-wider text-pure-white bg-polar-midnight-deep hover:bg-polar-navy-surface focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed mt-2"
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Signing In...
-                </span>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </form>
-
-          {/* Prototype Demo Access */}
-          <div className="border-t border-surface-variant pt-5 flex flex-col gap-3">
-             <span className="font-label-sm text-[10px] font-bold uppercase tracking-widest text-outline text-center">Prototype Demo Access</span>
-             <button 
-                type="button" 
-                onClick={handleDemoLogin}
-                className="w-full py-2.5 rounded-lg border border-surface-variant bg-surface-container-low hover:bg-surface-container text-polar-midnight-deep font-label-sm text-sm font-bold uppercase tracking-wider transition-colors text-center"
-             >
-               Use Prototype Administrator Account
-             </button>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="email-input" className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold ml-1">Email Address</label>
+            <input 
+              id="email-input"
+              type="email" 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+              className="w-full px-5 py-4 bg-white/50 border border-border-ice rounded-[16px] text-[15px] text-ink focus:outline-none focus:border-cyan-accent/50 focus:bg-white focus:ring-4 focus:ring-cyan-accent/10 transition-all placeholder:text-muted/40 font-medium shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]" 
+              placeholder="admin@polarsetu.in" 
+              autoComplete="email" 
+            />
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            <label htmlFor="password-input" className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold ml-1">Password</label>
+            <input 
+              id="password-input"
+              type="password" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              className="w-full px-5 py-4 bg-white/50 border border-border-ice rounded-[16px] text-[15px] text-ink focus:outline-none focus:border-cyan-accent/50 focus:bg-white focus:ring-4 focus:ring-cyan-accent/10 transition-all placeholder:text-muted/40 font-medium shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]" 
+              placeholder="••••••••" 
+              autoComplete="current-password" 
+            />
           </div>
 
-          <div className="flex items-center justify-center gap-2 text-on-surface-variant opacity-60">
-            <Shield className="w-3.5 h-3.5" />
-            <span className="font-code-sm text-[10px] uppercase tracking-wider font-bold">Administrative access to POLARSETU</span>
-          </div>
+          <button 
+            type="submit" 
+            disabled={loading || !email || !password} 
+            className="w-full mt-4 py-4 bg-deep-ocean hover:bg-cyan-accent disabled:bg-border-ice disabled:text-muted disabled:shadow-none disabled:cursor-not-allowed disabled:hover:translate-y-0 text-white hover:text-deep-ocean text-[15px] font-extrabold rounded-[16px] transition-all duration-300 shadow-[0_8px_20px_rgba(7,20,38,0.15)] hover:shadow-[0_12px_25px_rgba(56,189,248,0.3)] hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 group/btn"
+          >
+            {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Authenticating...</> : 'Authenticate Session'}
+          </button>
+        </form>
 
+        <div className="text-center">
+          <button onClick={handleDemo} className="text-[11px] text-muted/60 hover:text-cyan-accent uppercase tracking-widest font-bold transition-colors">
+            Use Demo Credentials
+          </button>
         </div>
       </div>
     </div>
