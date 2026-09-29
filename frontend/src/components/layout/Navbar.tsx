@@ -10,6 +10,7 @@ const PUBLIC_LINKS = [
   { path: '/explore',      label: 'Research' },
   { path: '/expeditions',  label: 'Expeditions' },
   { path: '/media',        label: 'Media' },
+  { path: '/lesson-plans', label: 'Lesson Plans' },
   { path: '/map',          label: 'Map' },
   { path: '/ai',           label: 'Ask AI' },
 ];
@@ -68,18 +69,20 @@ export default function Navbar() {
     <>
       <header className="fixed top-0 left-0 right-0 w-full z-50 bg-white/90 backdrop-blur-[12px] border-b border-border-ice transition-all">
         <div className="h-[64px] lg:h-[72px] container-standard flex items-center justify-between">
-          
+
           {/* LEFT: Logo */}
           <div className="flex-1 flex items-center justify-start">
             <Link to="/" className="flex items-center gap-2.5 group outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent rounded-md" aria-label="AICYGRAM Home">
               <img
-                alt="AICYGRAM Logo"
-                className="h-8 w-auto object-contain group-hover:opacity-90 transition-opacity"
+                alt="Product Logo"
+                className="h-[40px] md:h-[48px] w-auto object-contain group-hover:opacity-90 transition-opacity"
                 src="/Aicygram.svg"
               />
-              <span className="font-gluon text-[22px] tracking-[0.1em] font-medium text-deep-ocean group-hover:opacity-80 transition-opacity ml-1">
-                AICYGRAM
-              </span>
+              <img
+                alt="AICYGRAM Name"
+                className="h-[40px] lg:h-[120px] w-auto object-contain group-hover:opacity-90 transition-opacity"
+                src="/Product_Name.svg"
+              />
             </Link>
           </div>
 
