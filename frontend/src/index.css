@@ -44,6 +44,7 @@
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --font-gluon: "Gluon", "Plus Jakarta Sans", sans-serif;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -57,12 +58,12 @@
 
   --blur-frost: 12px;
 
-  --animate-fade-up: fade-up 0.5s ease-out both;
+  --animate-fade-up: fade-up 0.3s ease-out both;
   --animate-fade-in: fade-in 0.4s ease-out both;
   --animate-soft-pulse: soft-pulse 2s ease-in-out infinite;
 
   @keyframes fade-up {
-    from { opacity: 0; transform: translateY(12px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }
   @keyframes fade-in {
@@ -120,6 +121,20 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.10);
+  }
+  .container-standard {
+    width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  @media (min-width: 768px) {
+    .container-standard { padding-left: 24px; padding-right: 24px; }
+  }
+  @media (min-width: 1024px) {
+    .container-standard { padding-left: 32px; padding-right: 32px; }
   }
   .animate-delay-100 { animation-delay: 100ms; }
   .animate-delay-200 { animation-delay: 200ms; }

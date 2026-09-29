@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { Menu, X } from 'lucide-react';
 import { auth } from '../../services/auth';
+import { Button } from '../ui/Button';
 
 const PUBLIC_LINKS = [
   { path: '/',             label: 'Discover' },
@@ -15,9 +16,25 @@ const PUBLIC_LINKS = [
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
+  const adminDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (adminDropdownRef.current && !adminDropdownRef.current.contains(event.target as Node)) {
+        setAdminOpen(false);
+      }
+    };
+    if (adminOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [adminOpen]);
 
   useEffect(() => { setIsAuth(auth.isAuthenticated()); }, [location.pathname]);
   useEffect(() => { setMobileOpen(false); setAdminOpen(false); }, [location.pathname]);
@@ -39,7 +56,7 @@ export default function Navbar() {
   const handleLogout = () => {
     auth.clearToken();
     setIsAuth(false);
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   const isActive = (path: string) => {
@@ -49,34 +66,39 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 w-full z-50 bg-[#F8FBFD]/90 backdrop-blur-[12px] border-b border-border-ice/80 transition-all">
-        <div className="h-[72px] w-full max-w-[1400px] mx-auto px-4 lg:px-8 flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0 group" aria-label="POLARSETU Home">
-            <img
-              alt="POLARSETU"
-              className="h-7 w-auto object-contain group-hover:opacity-90 transition-opacity"
-              src="https://lh3.googleusercontent.com/aida/AEtjO1VXEr7AYLMmREImv4E52a7As9vSLcuPX2Tah0iKkNYpSXL-ZTRjw1tNmKkosj2FukeZj9LfB1KWGXuN-m1-MGKfRV6CkwD91Ufankky5MozJscRQ_7jMgBamSM7flV83WTRa8EwqmSG-PTLCeYe_96jRnhjagkkbl8PRO2Z8XF5RJlPUJrS0QAu0qZqx6bhG3wpA05rHjshP9RxV9o8N1MlnxYOPHjQnZ_hHTLWztoyBvyZuOTRw1g29_Gu"
-            />
-            <span className="font-display text-lg font-bold tracking-tight text-deep-ocean group-hover:text-cyan-accent transition-colors">POLARSETU</span>
-          </Link>
+      <header className="fixed top-0 left-0 right-0 w-full z-50 bg-white/90 backdrop-blur-[12px] border-b border-border-ice transition-all">
+        <div className="h-[64px] lg:h-[72px] container-standard flex items-center justify-between">
+          
+          {/* LEFT: Logo */}
+          <div className="flex-1 flex items-center justify-start">
+            <Link to="/" className="flex items-center gap-2.5 group outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent rounded-md" aria-label="AICYGRAM Home">
+              <img
+                alt="AICYGRAM Logo"
+                className="h-8 w-auto object-contain group-hover:opacity-90 transition-opacity"
+                src="/Aicygram.svg"
+              />
+              <span className="font-gluon text-[22px] tracking-[0.1em] font-medium text-deep-ocean group-hover:opacity-80 transition-opacity ml-1">
+                AICYGRAM
+              </span>
+            </Link>
+          </div>
 
-          {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1.5" aria-label="Main navigation">
+          {/* CENTER: Desktop Nav */}
+          <nav className="hidden lg:flex flex-none items-center justify-center gap-1" aria-label="Main navigation">
             {PUBLIC_LINKS.map(link => {
+              const active = isActive(link.path);
               const isAi = link.path === '/ai';
               return (
                 <Link
                   key={link.path}
                   to={link.path}
                   className={clsx(
-                    'relative px-1 py-2 mx-3 font-sans text-[14px] transition-all duration-300',
-                    isActive(link.path)
-                      ? 'text-deep-ocean font-bold'
-                      : isAi ? 'text-glacial-blue font-semibold hover:text-cyan-accent' : 'text-muted font-medium hover:text-deep-ocean'
+                    'px-4 py-2 relative rounded-md font-sans text-[14.5px] transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent',
+                    active
+                      ? 'text-deep-ocean font-bold after:absolute after:bottom-1 after:left-4 after:right-4 after:h-[2px] after:bg-deep-ocean after:rounded-full'
+                      : isAi ? 'text-glacial-blue font-semibold hover:bg-frost' : 'text-muted font-medium hover:text-deep-ocean hover:bg-frost'
                   )}
                 >
-                  {isActive(link.path) && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-deep-ocean rounded-full" />}
                   {isAi && <span className="inline-block mr-1.5 opacity-80 text-cyan-accent">✧</span>}
                   {link.label}
                 </Link>
@@ -84,45 +106,45 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Right side */}
-          <div className="flex items-center gap-3">
+          {/* RIGHT: Auth & Mobile Menu */}
+          <div className="flex-1 flex items-center justify-end gap-3">
             {isAuth ? (
-              <div className="relative hidden lg:block">
+              <div className="relative hidden lg:block" ref={adminDropdownRef}>
                 <button
                   onClick={() => setAdminOpen(prev => !prev)}
-                  className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-frost transition-colors"
+                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-[10px] hover:bg-frost transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent"
                   aria-expanded={adminOpen}
                   aria-haspopup="true"
                 >
-                  <div className="w-7 h-7 rounded-full bg-deep-ocean text-white flex items-center justify-center text-xs font-bold">A</div>
-                  <span className="text-sm font-medium text-deep-ocean">Admin</span>
+                  <div className="w-8 h-8 rounded-[8px] bg-deep-ocean text-white flex items-center justify-center text-[13px] font-bold">A</div>
+                  <span className="text-[14px] font-bold text-deep-ocean">Admin</span>
                 </button>
                 {adminOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setAdminOpen(false)} />
-                    <div className="absolute right-0 top-full mt-3 w-48 bg-white/95 backdrop-blur-xl rounded-[16px] shadow-[0_16px_40px_rgba(7,20,38,0.12)] border border-border-ice flex flex-col p-2 z-50 animate-fade-up">
-                      <Link to="/admin" onClick={() => setAdminOpen(false)} className="px-3 py-2 text-[13px] font-bold rounded-lg hover:bg-frost text-deep-ocean transition-colors">Dashboard</Link>
-                      <Link to="/admin/upload" onClick={() => setAdminOpen(false)} className="px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-frost text-ink transition-colors">Upload</Link>
-                      <Link to="/admin/review" onClick={() => setAdminOpen(false)} className="px-3 py-2 text-[13px] font-medium rounded-lg hover:bg-frost text-ink transition-colors">Review</Link>
-                      <div className="h-px bg-border-ice/60 mx-2 my-1.5" />
-                      <button onClick={() => { setAdminOpen(false); handleLogout(); }} className="px-3 py-2 text-[13px] font-bold text-left text-error hover:text-white rounded-lg hover:bg-error transition-colors">Sign Out</button>
-                    </div>
-                  </>
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white backdrop-blur-xl rounded-[12px] shadow-elevated border border-border-ice flex flex-col p-2 z-50 animate-fade-up">
+                    <Link to="/admin" onClick={() => setAdminOpen(false)} className="px-3 py-2.5 text-[14px] font-bold rounded-lg hover:bg-frost text-deep-ocean transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent">Dashboard</Link>
+                    <Link to="/admin/resources" onClick={() => setAdminOpen(false)} className="px-3 py-2.5 text-[14px] font-medium rounded-lg hover:bg-frost text-ink transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent">Resources</Link>
+                    <Link to="/admin/upload" onClick={() => setAdminOpen(false)} className="px-3 py-2.5 text-[14px] font-medium rounded-lg hover:bg-frost text-ink transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent">Upload</Link>
+                    <Link to="/admin/review" onClick={() => setAdminOpen(false)} className="px-3 py-2.5 text-[14px] font-medium rounded-lg hover:bg-frost text-ink transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent">Review</Link>
+                    <div className="h-px bg-border-ice mx-2 my-1.5" />
+                    <button onClick={() => { setAdminOpen(false); handleLogout(); }} className="px-3 py-2.5 text-[14px] font-bold text-left text-error hover:text-white rounded-lg hover:bg-error transition-colors outline-none focus-visible:ring-2 focus-visible:ring-error">Sign Out</button>
+                  </div>
                 )}
               </div>
             ) : (
-              <Link to="/login" className="hidden lg:inline-flex px-4 py-1.5 rounded-md text-sm font-medium text-muted hover:text-deep-ocean hover:bg-frost transition-colors">
-                Sign In
-              </Link>
+              <div className="hidden lg:block">
+                <Button variant="primary" onClick={() => navigate('/login')}>
+                  Sign In
+                </Button>
+              </div>
             )}
 
             <button
-              className="lg:hidden p-2 rounded-md hover:bg-frost transition-colors"
+              className="lg:hidden w-11 h-11 flex items-center justify-center rounded-md hover:bg-frost transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
             >
-              {mobileOpen ? <X className="w-5 h-5 text-ink" /> : <Menu className="w-5 h-5 text-ink" />}
+              {mobileOpen ? <X className="w-6 h-6 text-ink" /> : <Menu className="w-6 h-6 text-ink" />}
             </button>
           </div>
         </div>
@@ -131,50 +153,58 @@ export default function Navbar() {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)}>
-          <div className="absolute inset-0 bg-deep-ocean/20 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-deep-ocean/30 backdrop-blur-[2px] transition-opacity" />
         </div>
       )}
 
       {/* Mobile drawer */}
       <div
         className={clsx(
-          'fixed top-16 right-0 bottom-0 w-72 z-50 bg-white shadow-elevated flex flex-col transform transition-transform duration-300 ease-out lg:hidden',
+          'fixed top-[64px] right-0 bottom-0 w-full sm:w-80 z-50 bg-white shadow-elevated flex flex-col transform transition-transform duration-300 ease-out lg:hidden border-l border-border-ice',
           mobileOpen ? 'translate-x-0' : 'translate-x-full'
         )}
         role="dialog"
         aria-modal="true"
+        aria-label="Mobile menu"
       >
-        <nav className="flex flex-col p-4 gap-0.5 flex-1 overflow-y-auto" aria-label="Mobile navigation">
+        <nav className="flex flex-col p-6 gap-2 flex-1 overflow-y-auto" aria-label="Mobile navigation">
           {PUBLIC_LINKS.map(link => {
+            const active = isActive(link.path);
             const isAi = link.path === '/ai';
             return (
               <Link
                 key={link.path}
                 to={link.path}
                 className={clsx(
-                  'px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
-                  isActive(link.path)
-                    ? 'text-deep-ocean bg-ice-blue/50 font-semibold'
-                    : isAi ? 'text-glacial-blue hover:bg-frost hover:text-deep-ocean' : 'text-muted hover:bg-frost hover:text-deep-ocean'
+                  'flex items-center min-h-[44px] px-4 rounded-[10px] text-[16px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent',
+                  active
+                    ? 'text-deep-ocean bg-ice-blue/30 font-bold'
+                    : isAi ? 'text-glacial-blue font-bold hover:bg-frost' : 'text-muted font-medium hover:bg-frost hover:text-deep-ocean'
                 )}
               >
-                {isAi && <span className="inline-block mr-1.5 opacity-70">✧</span>}
+                {isAi && <span className="inline-block mr-2 text-cyan-accent">✧</span>}
                 {link.label}
               </Link>
             );
           })}
 
-          <div className="h-px bg-border-ice my-3" />
+          <div className="h-px bg-border-ice my-4 mx-2" />
 
           {isAuth ? (
             <>
-              <Link to="/admin" className="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-frost hover:text-deep-ocean transition-colors">Dashboard</Link>
-              <Link to="/admin/upload" className="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-frost hover:text-deep-ocean transition-colors">Upload</Link>
-              <Link to="/admin/review" className="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-frost hover:text-deep-ocean transition-colors">Review</Link>
-              <button onClick={handleLogout} className="px-3 py-2.5 rounded-md text-sm text-left text-error hover:bg-red-50 transition-colors mt-1">Sign Out</button>
+              <div className="px-4 py-2 text-[12px] font-bold text-muted uppercase tracking-wider">Admin Panel</div>
+              <Link to="/admin" className="flex items-center min-h-[44px] px-4 rounded-[10px] text-[15px] font-medium text-ink hover:bg-frost transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent">Dashboard</Link>
+              <Link to="/admin/resources" className="flex items-center min-h-[44px] px-4 rounded-[10px] text-[15px] font-medium text-ink hover:bg-frost transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent">Resources</Link>
+              <Link to="/admin/upload" className="flex items-center min-h-[44px] px-4 rounded-[10px] text-[15px] font-medium text-ink hover:bg-frost transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent">Upload</Link>
+              <Link to="/admin/review" className="flex items-center min-h-[44px] px-4 rounded-[10px] text-[15px] font-medium text-ink hover:bg-frost transition-colors outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent">Review</Link>
+              <button onClick={handleLogout} className="flex items-center min-h-[44px] px-4 rounded-[10px] text-[15px] font-bold text-error hover:bg-error/10 transition-colors mt-2 outline-none focus-visible:ring-2 focus-visible:ring-error text-left">Sign Out</button>
             </>
           ) : (
-            <Link to="/login" className="px-3 py-2.5 rounded-md text-sm font-medium text-muted hover:bg-frost hover:text-deep-ocean transition-colors">Sign In</Link>
+            <div className="pt-2">
+              <Button className="w-full" onClick={() => navigate('/login')}>
+                Sign In
+              </Button>
+            </div>
           )}
         </nav>
       </div>

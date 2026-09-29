@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Resource } from '../types';
-import { ArrowLeft, ArrowRight, ExternalLink, Sparkles, Send } from 'lucide-react';
+import { ArrowRight, ExternalLink, Sparkles, Send, ChevronRight } from 'lucide-react';
+import { Button, Skeleton } from '../components/ui';
 
 export default function ResourceDetail() {
   const { id } = useParams();
@@ -15,6 +16,7 @@ export default function ResourceDetail() {
   useEffect(() => {
     const load = async (resId: string) => {
       setLoading(true); setError(null); setNotFound(false);
+      setResource(null); setRelations([]);
       try {
         const data = await api.getResource(resId);
         if (!data) { setNotFound(true); return; }
@@ -26,144 +28,245 @@ export default function ResourceDetail() {
     if (id) load(id);
   }, [id]);
 
+  // ── Loading ──
   if (loading) return (
-    <div className="py-32 flex flex-col items-center justify-center bg-snow min-h-[calc(100vh-64px)]">
-      <div className="w-8 h-8 rounded-full border-2 border-border-ice border-t-glacial-blue animate-spin mb-4" />
-      <span className="text-xs uppercase tracking-widest font-semibold text-muted">Loading Record</span>
+    <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-snow">
+      <section className="w-full bg-snow pt-10 md:pt-16 pb-8">
+        <div className="container-standard">
+          <Skeleton className="h-4 w-[180px] rounded mb-6" />
+          <Skeleton className="h-5 w-[80px] rounded mb-4" />
+          <Skeleton className="h-10 w-[70%] rounded mb-3" />
+          <Skeleton className="h-10 w-[50%] rounded mb-4" />
+          <Skeleton className="h-4 w-[240px] rounded" />
+        </div>
+      </section>
+      <section className="w-full pb-24">
+        <div className="container-standard grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8">
+            <Skeleton className="h-[300px] w-full rounded-[12px]" />
+          </div>
+          <div className="lg:col-span-4">
+            <Skeleton className="h-[260px] w-full rounded-[12px]" />
+          </div>
+        </div>
+      </section>
     </div>
   );
 
+  // ── Not Found ──
   if (notFound || !resource) return (
-    <div className="py-32 flex flex-col items-center justify-center text-center px-4 bg-snow min-h-[calc(100vh-64px)]">
-      <h2 className="font-display text-2xl font-bold text-deep-ocean mb-2">Record Not Found</h2>
-      <p className="text-sm text-ink/70 mb-8 font-light">The requested resource does not exist or has been removed from the archive.</p>
-      <Link to="/explore" className="px-6 py-3 bg-deep-ocean text-white text-sm font-semibold rounded-lg hover:bg-ocean-navy transition-colors">Return to Archive</Link>
+    <div className="flex flex-col items-center justify-center text-center px-5 bg-snow min-h-[calc(100vh-72px)] py-32">
+      <h2 className="font-display text-[24px] font-bold text-deep-ocean mb-2">Resource not found</h2>
+      <p className="text-[15px] text-ink/60 mb-8">The requested resource could not be found in the current repository.</p>
+      <Link to="/explore">
+        <Button>Back to Research</Button>
+      </Link>
     </div>
   );
 
+  // ── Error ──
   if (error) return (
-    <div className="py-32 flex flex-col items-center justify-center text-center px-4 bg-snow min-h-[calc(100vh-64px)]">
-      <p className="text-sm text-error font-medium mb-6">{error}</p>
-      <div className="flex gap-4">
-        <button onClick={() => window.location.reload()} className="px-6 py-3 border border-border-ice bg-white text-deep-ocean font-semibold text-sm rounded-lg hover:bg-frost transition-colors">Retry</button>
-        <Link to="/explore" className="px-6 py-3 bg-deep-ocean text-white font-semibold text-sm rounded-lg hover:bg-ocean-navy transition-colors">Return to Archive</Link>
+    <div className="flex flex-col items-center justify-center text-center px-5 bg-snow min-h-[calc(100vh-72px)] py-32">
+      <p className="text-[15px] text-ink font-medium mb-2">{error}</p>
+      <p className="text-[14px] text-muted mb-6">Please try again.</p>
+      <div className="flex gap-3">
+        <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
+        <Link to="/explore"><Button>Back to Research</Button></Link>
       </div>
     </div>
   );
 
   return (
-    <div className="flex flex-col w-full bg-snow min-h-[calc(100vh-64px)]">
+    <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-snow">
+
       {/* ─── HEADER ─── */}
-      <section className="w-full pt-12 pb-16 px-4 lg:px-8 bg-white border-b border-border-ice/50">
-        <div className="max-w-[1000px] mx-auto flex flex-col gap-8">
-          <nav className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-muted">
-            <Link to="/explore" className="hover:text-deep-ocean transition-colors flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" /> Archive</Link>
-            <span className="text-border-ice">/</span>
-            <span className="text-deep-ocean">{resource.type}</span>
+      <section className="w-full bg-snow pt-8 md:pt-12 pb-8">
+        <div className="container-standard flex flex-col gap-5">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-[13px] text-muted">
+            <Link to="/explore" className="hover:text-glacial-blue transition-colors font-medium">Research</Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-ink/40 truncate max-w-[300px]">{resource.title}</span>
           </nav>
-          
-          <div className="flex flex-col gap-4">
-            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-deep-ocean leading-[1.1] tracking-tight">{resource.title}</h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-ink font-medium">
-              {resource.region && <span className="px-3 py-1 bg-frost rounded-full border border-border-ice/50">{resource.region}</span>}
-              {resource.year && <span className="text-muted">{resource.year}</span>}
-              {resource.author && <span className="text-muted font-light pl-2 border-l border-border-ice">{resource.author}</span>}
-            </div>
+
+          {/* Type */}
+          <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-glacial-blue">
+            {resource.type || 'RESOURCE'}
+          </span>
+
+          {/* Title */}
+          <h1 className="font-display text-[32px] md:text-[40px] font-bold text-ink tracking-tight leading-[1.15]">
+            {resource.title}
+          </h1>
+
+          {/* Core metadata row */}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] text-muted font-medium">
+            {resource.region && <span>{resource.region}</span>}
+            {resource.region && resource.year && <span>·</span>}
+            {resource.year && <span>{resource.year}</span>}
+            {(resource.region || resource.year) && resource.author && <span>·</span>}
+            {resource.author && <span>{resource.author}</span>}
           </div>
         </div>
       </section>
 
-      {/* ─── CONTENT ─── */}
-      <section className="w-full px-4 lg:px-8 py-16">
-        <div className="max-w-[1000px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16">
-          
-          {/* Main Description */}
-          <div className="md:col-span-8 flex flex-col gap-10">
-            <div className="prose prose-sm md:prose-base max-w-none">
-              <p className="text-[15px] text-ink/80 leading-loose whitespace-pre-line font-light">
-                {resource.description}
-              </p>
-            </div>
+      {/* ─── CONTENT + SIDEBAR ─── */}
+      <section className="w-full pb-24">
+        <div className="container-standard grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-            {/* Source Access */}
+          {/* Main Content */}
+          <div className="lg:col-span-8 flex flex-col gap-8">
+
+            {/* Description */}
+            {resource.description && (
+              <div className="bg-white rounded-[12px] border border-border-ice p-6 md:p-8">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted mb-4">Description</h2>
+                <p className="text-[16px] text-ink/80 leading-[1.7] whitespace-pre-line">
+                  {resource.description}
+                </p>
+              </div>
+            )}
+
+            {/* Source access */}
             {resource.sourceUrl && (
-              <div className="pt-6 border-t border-border-ice/50">
-                <a href={resource.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-border-ice bg-white text-sm font-semibold text-deep-ocean hover:text-cyan-accent hover:border-cyan-accent/30 transition-all shadow-soft group">
-                  <ExternalLink className="w-4 h-4 text-muted group-hover:text-cyan-accent transition-colors" /> Access Primary Source
+              <div className="bg-white rounded-[12px] border border-border-ice p-6">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted mb-4">Source</h2>
+                <a
+                  href={resource.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-[14px] font-semibold text-glacial-blue hover:text-cyan-accent transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Access primary source
                 </a>
               </div>
             )}
 
-            {/* Contextual Actions */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-10 mt-2">
-              <Link to={`/ai?resourceId=${resource.id}`} className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-xl bg-deep-ocean text-white text-sm font-bold hover:bg-ocean-navy transition-colors shadow-elevated group">
-                <Sparkles className="w-4 h-4 text-cyan-accent" /> Ask AI about this <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link to={`/outreach?sourceId=${resource.id}`} className="flex-1 flex justify-center items-center gap-2 px-6 py-4 rounded-xl border border-border-ice bg-white text-sm font-bold text-deep-ocean hover:bg-frost transition-colors shadow-soft group">
-                <Send className="w-4 h-4 text-muted group-hover:text-deep-ocean transition-colors" /> Create Outreach Draft
-              </Link>
+            {/* Actions */}
+            <div className="bg-white rounded-[12px] border border-border-ice p-6">
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted mb-4">Explore this resource</h2>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  to={`/ai?resourceId=${resource.id}`}
+                  className="flex items-center gap-3 px-5 py-3.5 rounded-[10px] bg-deep-ocean text-white hover:bg-glacial-blue transition-colors font-semibold text-[14px]"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Ask AI
+                </Link>
+                <Link
+                  to={`/outreach?sourceId=${resource.id}`}
+                  className="flex items-center gap-3 px-5 py-3.5 rounded-[10px] bg-white border border-border-ice text-deep-ocean hover:border-glacial-blue/40 transition-colors font-semibold text-[14px]"
+                >
+                  <Send className="w-4 h-4 text-glacial-blue" />
+                  Create Outreach Draft
+                </Link>
+              </div>
             </div>
           </div>
 
-          {/* Sidebar Metadata (Open Layout, no heavy cards) */}
-          <aside className="md:col-span-4 flex flex-col gap-12">
-            
-            <div className="flex flex-col gap-5">
-              <h3 className="text-[10px] font-bold text-muted uppercase tracking-widest border-b border-border-ice pb-2">Technical Metadata</h3>
-              <dl className="flex flex-col gap-4 text-sm font-light">
+          {/* Sidebar */}
+          <aside className="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24">
+            <div className="bg-white rounded-[12px] border border-border-ice p-6 flex flex-col gap-5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted border-b border-border-ice pb-3">Resource Information</h3>
+
+              <dl className="flex flex-col gap-4 text-[14px]">
+                <div className="flex flex-col gap-1">
+                  <dt className="text-[11px] text-muted uppercase tracking-[0.12em] font-semibold">Type</dt>
+                  <dd className="text-ink font-medium">{resource.type || 'Resource'}</dd>
+                </div>
+
+                {resource.year && (
+                  <div className="flex flex-col gap-1">
+                    <dt className="text-[11px] text-muted uppercase tracking-[0.12em] font-semibold">Year</dt>
+                    <dd className="text-ink font-medium">{resource.year}</dd>
+                  </div>
+                )}
+
+                {resource.region && (
+                  <div className="flex flex-col gap-1">
+                    <dt className="text-[11px] text-muted uppercase tracking-[0.12em] font-semibold">Region</dt>
+                    <dd className="text-ink font-medium">{resource.region}</dd>
+                  </div>
+                )}
+
                 {resource.author && (
                   <div className="flex flex-col gap-1">
-                    <dt className="text-[11px] text-muted uppercase tracking-wider font-semibold">Author / Institution</dt>
-                    <dd className="text-ink">{resource.author}{resource.institution && <span className="text-muted"> · {resource.institution}</span>}</dd>
+                    <dt className="text-[11px] text-muted uppercase tracking-[0.12em] font-semibold">Author</dt>
+                    <dd className="text-ink font-medium">
+                      {resource.author}
+                      {resource.institution && <span className="text-muted font-normal"> · {resource.institution}</span>}
+                    </dd>
                   </div>
                 )}
+
                 {resource.researchArea && (
                   <div className="flex flex-col gap-1">
-                    <dt className="text-[11px] text-muted uppercase tracking-wider font-semibold">Research Area</dt>
-                    <dd className="text-ink">{resource.researchArea}</dd>
+                    <dt className="text-[11px] text-muted uppercase tracking-[0.12em] font-semibold">Research Area</dt>
+                    <dd className="text-ink font-medium">{resource.researchArea}</dd>
                   </div>
                 )}
+
                 {resource.expeditionId && (
                   <div className="flex flex-col gap-1">
-                    <dt className="text-[11px] text-muted uppercase tracking-wider font-semibold">Associated Expedition</dt>
-                    <dd><Link to={`/expeditions/${resource.expeditionId}`} className="text-glacial-blue font-medium hover:underline">{resource.expeditionId}</Link></dd>
+                    <dt className="text-[11px] text-muted uppercase tracking-[0.12em] font-semibold">Expedition</dt>
+                    <dd>
+                      <Link to={`/expeditions/${resource.expeditionId}`} className="text-glacial-blue font-medium hover:text-cyan-accent transition-colors inline-flex items-center gap-1">
+                        View expedition <ArrowRight className="w-3 h-3" />
+                      </Link>
+                    </dd>
                   </div>
                 )}
-                <div className="flex flex-col gap-1">
-                  <dt className="text-[11px] text-muted uppercase tracking-wider font-semibold">Status</dt>
-                  <dd className="text-ink capitalize">{resource.status}</dd>
-                </div>
+
+                {resource.license && (
+                  <div className="flex flex-col gap-1">
+                    <dt className="text-[11px] text-muted uppercase tracking-[0.12em] font-semibold">License</dt>
+                    <dd className="text-ink font-medium">{resource.license}</dd>
+                  </div>
+                )}
+
+                {resource.storagePath && (
+                  <div className="flex flex-col gap-1">
+                    <dt className="text-[11px] text-muted uppercase tracking-[0.12em] font-semibold">File</dt>
+                    <dd className="text-ink/60 text-[13px]">File available in storage</dd>
+                  </div>
+                )}
               </dl>
             </div>
 
+            {/* Keywords — only if actual data */}
             {resource.keywords && resource.keywords.length > 0 && (
-              <div className="flex flex-col gap-4">
-                <h3 className="text-[10px] font-bold text-muted uppercase tracking-widest border-b border-border-ice pb-2">Keywords</h3>
+              <div className="bg-white rounded-[12px] border border-border-ice p-6 flex flex-col gap-3">
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted">Keywords</h3>
                 <div className="flex flex-wrap gap-2">
                   {resource.keywords.map(kw => (
-                    <span key={kw} className="px-3 py-1.5 rounded-full bg-white text-xs font-medium text-ink border border-border-ice shadow-sm">{kw}</span>
+                    <span key={kw} className="px-2.5 py-1 rounded-md bg-frost text-[11px] font-medium text-ink/60 border border-border-ice">
+                      {kw}
+                    </span>
                   ))}
                 </div>
               </div>
             )}
 
+            {/* Related Resources */}
             {relations.length > 0 && (
-              <div className="flex flex-col gap-4">
-                <h3 className="text-[10px] font-bold text-muted uppercase tracking-widest border-b border-border-ice pb-2">Related Resources</h3>
+              <div className="bg-white rounded-[12px] border border-border-ice p-6 flex flex-col gap-3">
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted">Related Resources</h3>
                 <ul className="flex flex-col gap-3">
                   {relations.map((rel, i) => {
                     const rid = rel.fromResourceId === resource.id ? rel.toResourceId : rel.fromResourceId;
                     return (
-                      <li key={i} className="flex flex-col gap-1">
-                        <span className="text-[10px] text-muted uppercase tracking-widest font-semibold">{rel.relationType}</span>
-                        <Link to={`/research/${rid}`} className="text-sm font-medium text-glacial-blue hover:text-deep-ocean transition-colors break-all leading-snug">{rid}</Link>
+                      <li key={i}>
+                        <span className="text-[10px] text-muted uppercase tracking-[0.1em] font-semibold block mb-1">{rel.relationType}</span>
+                        <Link to={`/research/${rid}`} className="text-[13px] font-medium text-glacial-blue hover:text-cyan-accent transition-colors inline-flex items-center gap-1">
+                          {rid} <ArrowRight className="w-3 h-3" />
+                        </Link>
                       </li>
                     );
                   })}
                 </ul>
               </div>
             )}
-
           </aside>
         </div>
       </section>

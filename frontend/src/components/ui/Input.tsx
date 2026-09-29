@@ -3,10 +3,11 @@ import clsx from 'clsx';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: React.ReactNode;
+  error?: boolean;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, icon, ...props }, ref) => {
+  ({ className, icon, error, ...props }, ref) => {
     return (
       <div className="relative flex items-center w-full">
         {icon && (
@@ -17,7 +18,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={clsx(
-            "w-full h-[48px] px-4 bg-white border border-border-ice rounded-[10px] text-[14px] text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-cyan-accent/30 focus:border-glacial-blue transition-all font-medium",
+            "w-full h-[48px] px-4 bg-white border rounded-[10px] text-[14px] text-ink placeholder:text-muted focus:outline-none focus:ring-2 transition-all font-medium disabled:bg-snow disabled:text-muted disabled:cursor-not-allowed",
+            error ? "border-error focus:border-error focus:ring-error/20" : "border-border-ice focus:ring-cyan-accent/30 focus:border-glacial-blue",
             icon && "pl-11",
             className
           )}

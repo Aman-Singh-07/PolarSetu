@@ -13,7 +13,9 @@ import Outreach from './pages/Outreach';
 import Admin from './pages/Admin';
 import AdminUpload from './pages/AdminUpload';
 import AdminReview from './pages/AdminReview';
+import AdminResources from './pages/AdminResources';
 import Login from './pages/Login';
+import AdminLayout from './components/layout/AdminLayout';
 
 export default function App() {
   return (
@@ -31,9 +33,13 @@ export default function App() {
           <Route path="map" element={<MapPage />} />
           <Route path="ai" element={<AskAI />} />
           <Route path="outreach" element={<Outreach />} />
-          <Route path="admin" element={<Admin />} />
-          <Route path="admin/upload" element={<AdminUpload />} />
-          <Route path="admin/review" element={<AdminReview />} />
+        </Route>
+
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Admin />} />
+          <Route path="resources" element={<AdminResources />} />
+          <Route path="upload" element={<AdminUpload />} />
+          <Route path="review" element={<AdminReview />} />
         </Route>
       </Routes>
     </BrowserRouter>

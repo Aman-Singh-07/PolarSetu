@@ -1,113 +1,138 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UploadCloud, CheckCircle2, ArrowLeft, Loader2, X, AlertTriangle, FileText, Type } from 'lucide-react';
+import { UploadCloud, CheckCircle2, ArrowLeft, Loader2, X, AlertTriangle, FileText, Globe, Database, File, Info } from 'lucide-react';
 import { auth } from '../services/auth';
 import { api } from '../services/api';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 
 export default function AdminUpload() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { if (!auth.isAuthenticated()) navigate('/login'); }, [navigate]);
+  useEffect(() => {
+    if (!auth.isAuthenticated()) {
+      navigate('/login');
+    }
+  }, [navigate]);
 
+  // Form State
+  const [title, setTitle] = useState('');
+  const [type, setType] = useState('');
+  const [description, setDescription] = useState('');
+  const [region, setRegion] = useState('');
+  const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [license, setLicense] = useState('');
+  
+  // File State
   const [file, setFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [metadata, setMetadata] = useState({
-    title: '', resourceType: '', domain: '', description: '', authors: '',
-    year: new Date().getFullYear().toString(), keywords: '', expedition: ''
-  });
-  const [status, setStatus] = useState<'idle' | 'preparing' | 'uploading' | 'success' | 'error' | 'upload_error'>('idle');
+
+  // Workflow State
+  const [status, setStatus] = useState<'idle' | 'submitting_metadata' | 'uploading_file' | 'success' | 'metadata_error' | 'upload_error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  const [createdResourceId, setCreatedResourceId] = useState('');
+  const [createdId, setCreatedId] = useState('');
 
-  const isValid = file && metadata.title && metadata.resourceType && metadata.domain && metadata.description;
+  // Validation
+  const isValid = title.trim() !== '' && type !== '' && description.trim() !== '' && file !== null;
 
-  const formatSize = (b: number) => b < 1024 ? b + ' B' : b < 1024 * 1024 ? (b / 1024).toFixed(1) + ' KB' : (b / (1024 * 1024)).toFixed(1) + ' MB';
-
-  const handleFileSelect = (f: File) => setFile(f);
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files?.[0]) handleFileSelect(e.target.files[0]); };
-  const handleDrop = (e: React.DragEvent) => { e.preventDefault(); setIsDragOver(false); if (e.dataTransfer.files?.[0]) handleFileSelect(e.dataTransfer.files[0]); };
-  const handleClearFile = () => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isValid) return;
-    setStatus('preparing'); setErrorMessage('');
-    const typeMap: Record<string, string> = { 'Research Paper': 'PUBLICATION', 'Dataset': 'DATASET', 'Technical Report': 'REPORT', 'Expedition Resource': 'EXPEDITION', 'Media': 'OTHER' };
-    const backendType = typeMap[metadata.resourceType] || 'OTHER';
-    let newId = createdResourceId;
-    if (!newId) {
-      try {
-        const res = await api.createResource({ title: metadata.title, type: backendType, description: metadata.description, region: metadata.domain, year: parseInt(metadata.year, 10) || new Date().getFullYear() });
-        newId = res.id; setCreatedResourceId(res.id);
-      } catch (err: any) {
-        setStatus('error');
-        setErrorMessage(err.status === 401 ? 'Session expired. Please sign in again.' : 'Unable to create resource.');
-        return;
-      }
-    }
-    if (file && newId) {
-      setStatus('uploading');
-      try { await api.uploadResourceFile(newId, file); setStatus('success'); }
-      catch (err: any) { setStatus('upload_error'); setErrorMessage(err.message || 'File upload failed.'); }
-    } else { setStatus('success'); }
+  const formatSize = (b: number) => {
+    if (b < 1024) return b + ' B';
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+    return (b / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  const handleReset = () => {
-    setFile(null); setMetadata({ title: '', resourceType: '', domain: '', description: '', authors: '', year: new Date().getFullYear().toString(), keywords: '', expedition: '' });
-    setStatus('idle'); setErrorMessage(''); setCreatedResourceId('');
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) setFile(e.target.files[0]);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0]);
+  };
+
+  const handleClearFile = () => {
+    setFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  if (status === 'success' || status === 'upload_error') {
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!isValid && !createdId) return; // If retrying upload, isValid metadata check isn't strict required for metadata resubmit since we skip it
+
+    setErrorMessage('');
+
+    let resourceId = createdId;
+
+    // STEP 1: Metadata
+    if (!resourceId) {
+      setStatus('submitting_metadata');
+      try {
+        const res = await api.createResource({
+          title: title.trim(),
+          type,
+          description: description.trim(),
+          region: region || undefined,
+          year: year ? parseInt(year, 10) : undefined,
+          sourceUrl: sourceUrl.trim() || undefined,
+          license: license.trim() || undefined,
+        });
+        resourceId = res.id;
+        setCreatedId(res.id);
+      } catch (err: any) {
+        setStatus('metadata_error');
+        setErrorMessage(err.status === 401 ? 'Session expired. Please sign in again.' : (err.message || 'Failed to create resource metadata.'));
+        return;
+      }
+    }
+
+    // STEP 2: File Upload
+    if (file && resourceId) {
+      setStatus('uploading_file');
+      try {
+        await api.uploadResourceFile(resourceId, file);
+        setStatus('success');
+      } catch (err: any) {
+        setStatus('upload_error');
+        setErrorMessage(err.message || 'File upload failed after creating the resource.');
+      }
+    } else {
+      // If there's no file (even though validation requires it, just in case)
+      setStatus('success');
+    }
+  };
+
+  const resetForm = () => {
+    setTitle(''); setType(''); setDescription(''); setRegion(''); 
+    setYear(new Date().getFullYear().toString()); setSourceUrl(''); setLicense('');
+    setFile(null);
+    setCreatedId('');
+    setStatus('idle');
+    setErrorMessage('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  if (status === 'success') {
     return (
-      <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-snow relative overflow-hidden">
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white via-snow to-frost opacity-80" />
-        </div>
-        <section className="w-full px-4 lg:px-8 py-20 relative z-10 flex items-center justify-center flex-1">
-          <div className="w-full max-w-[540px] bg-white rounded-[24px] p-10 border border-white shadow-[0_20px_50px_rgba(7,20,38,0.06)] text-center animate-fade-up relative overflow-hidden">
-            <div className={`absolute top-0 left-0 w-full h-[3px] ${status === 'success' ? 'bg-[#10B981]' : 'bg-amber-warn'}`} />
-            
-            <div className={`w-20 h-20 rounded-[20px] flex items-center justify-center mx-auto mb-8 shadow-sm ${status === 'success' ? 'bg-[#10B981]/10 border border-[#10B981]/20' : 'bg-amber-bg border border-amber-warn/20'}`}>
-              {status === 'success' ? <CheckCircle2 className="w-10 h-10 text-[#10B981]" /> : <AlertTriangle className="w-10 h-10 text-amber-warn" />}
+      <div className="flex flex-col w-full min-h-full pb-12">
+        <section className="w-full px-4 lg:px-8 py-20 flex items-center justify-center flex-1">
+          <div className="w-full max-w-[500px] bg-deep-blue rounded-[12px] p-10 border border-emerald/20 text-center shadow-sm">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-emerald/10 border border-emerald/20">
+              <CheckCircle2 className="w-8 h-8 text-emerald" />
             </div>
-            
-            <h2 className="font-display text-2xl font-extrabold text-deep-ocean mb-3">{status === 'success' ? 'Resource Created Successfully' : 'Upload Incomplete'}</h2>
-            <p className="text-[15px] text-muted mb-8 font-medium">
-              {status === 'success' ? 'The scientific data has been successfully ingested into the global repository.' : 'Metadata was saved, but the file upload encountered an error.'}
+            <h2 className="font-display text-xl font-bold text-white mb-2">Resource uploaded successfully.</h2>
+            <p className="text-[14px] text-white/60 mb-8 font-medium">
+              The resource has been added to the repository.
             </p>
-            
-            {status === 'upload_error' && errorMessage && (
-              <div className="bg-error/5 border border-error/20 text-error p-4 rounded-[16px] text-[13px] mb-8 text-left font-bold shadow-sm">
-                {errorMessage}
-              </div>
-            )}
-            
-            <div className="bg-frost p-6 rounded-[20px] text-left text-[14px] text-deep-ocean mb-10 flex flex-col gap-4 border border-border-ice shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
-              <div className="flex items-start gap-4">
-                <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-muted w-16 mt-1">Title</span>
-                <span className="font-bold text-deep-ocean flex-1 leading-snug">{metadata.title}</span>
-              </div>
-              <div className="h-px bg-border-ice/60" />
-              <div className="flex items-start gap-4">
-                <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-muted w-16 mt-1">Type</span>
-                <span className="font-semibold">{metadata.resourceType}</span>
-              </div>
-              <div className="h-px bg-border-ice/60" />
-              <div className="flex items-start gap-4">
-                <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-muted w-16 mt-1">Status</span>
-                <span className={`font-bold px-3 py-1 rounded-[8px] text-[12px] uppercase tracking-[0.1em] ${status === 'success' ? 'bg-[#10B981]/10 text-[#10B981]' : 'bg-error/10 text-error'}`}>{status === 'success' ? 'Fully Synced' : 'File Pending'}</span>
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button onClick={handleReset} className="px-6 py-3.5 bg-deep-ocean text-white font-bold text-[14px] rounded-[14px] hover:bg-cyan-accent hover:text-deep-ocean transition-all shadow-[0_8px_20px_rgba(7,20,38,0.1)] hover:-translate-y-0.5">
-                Upload New Data
-              </button>
-              <Link to="/admin" className="px-6 py-3.5 bg-white text-deep-ocean font-bold text-[14px] rounded-[14px] hover:bg-frost transition-all border border-border-ice shadow-sm flex items-center justify-center">
-                Return to Dashboard
-              </Link>
+            <div className="flex flex-col gap-3">
+              <Button onClick={() => navigate(`/research/${createdId}`)} className="w-full justify-center">
+                View Resource
+              </Button>
+              <Button variant="secondary" onClick={resetForm} className="w-full justify-center !border-white/20 !text-white hover:!bg-white/5">
+                Upload Another
+              </Button>
             </div>
           </div>
         </section>
@@ -116,134 +141,286 @@ export default function AdminUpload() {
   }
 
   return (
-    <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-snow relative overflow-hidden">
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white via-snow to-frost opacity-80" />
-      </div>
-
-      <div className="relative z-10 w-full flex flex-col flex-1">
-        {/* ─── HEADER ─── */}
-        <section className="w-full border-b border-border-ice pt-10 pb-8 px-4 lg:px-8 bg-white/60 backdrop-blur-md">
-          <div className="max-w-[1100px] mx-auto flex items-end justify-between">
-            <div className="flex flex-col gap-2">
-              <Link to="/admin" className="inline-flex items-center gap-1.5 text-[11px] font-bold text-cyan-accent uppercase tracking-[0.2em] hover:text-deep-ocean transition-colors w-fit mb-3 bg-white px-3 py-1.5 rounded-lg border border-border-ice shadow-sm">
-                <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard
-              </Link>
-              <h1 className="font-display text-4xl font-extrabold text-deep-ocean tracking-tight">Upload Resource</h1>
-              <p className="text-[15px] text-muted font-medium">Inject raw scientific data into the main repository.</p>
-            </div>
+    <div className="flex flex-col w-full min-h-full pb-12 relative">
+      
+      {/* ─── HEADER ─── */}
+      <section className="w-full px-4 lg:px-8 pt-10 pb-6 border-b border-white/5">
+        <div className="max-w-[1000px] mx-auto flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+          <div className="flex flex-col gap-2">
+            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/50">RESEARCH REPOSITORY</span>
+            <h1 className="font-display text-3xl font-extrabold text-white tracking-tight">
+              Upload Resource
+            </h1>
+            <p className="text-[14px] text-white/60 font-medium max-w-2xl">
+              Add a research resource to the polar science repository.
+            </p>
           </div>
-        </section>
+          <Link to="/admin/resources" className="inline-flex items-center gap-2 text-[13px] font-bold text-white/50 hover:text-white transition-colors shrink-0 mb-1">
+            <ArrowLeft className="w-4 h-4" /> Back to Resources
+          </Link>
+        </div>
+      </section>
 
-        {/* ─── FORM ─── */}
-        <section className="w-full px-4 lg:px-8 py-12 flex-1">
-          <form onSubmit={handleSubmit} className="max-w-[1100px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-8 xl:gap-12">
-            
-            {/* Left: File Uploader */}
-            <div className="flex flex-col gap-6">
-              <div
-                className={`border-[2px] border-dashed rounded-[24px] p-10 text-center transition-all duration-300 cursor-pointer flex flex-col items-center justify-center min-h-[340px] group ${isDragOver ? 'border-cyan-accent bg-cyan-accent/5 shadow-[0_0_40px_rgba(56,189,248,0.15)] scale-[1.02]' : 'border-border-ice hover:border-cyan-accent/40 bg-white shadow-[0_8px_30px_rgba(7,20,38,0.02)]'}`}
-                onClick={() => fileInputRef.current?.click()}
-                onDrop={handleDrop}
-                onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
-                onDragLeave={() => setIsDragOver(false)}
-              >
-                <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
-                <div className={`w-20 h-20 rounded-[20px] flex items-center justify-center mb-6 transition-colors shadow-sm ${isDragOver ? 'bg-cyan-accent text-white shadow-[0_8px_20px_rgba(56,189,248,0.3)]' : 'bg-frost border border-border-ice group-hover:bg-cyan-accent/10 group-hover:border-cyan-accent/20'}`}>
-                  <UploadCloud className={`w-8 h-8 transition-colors ${isDragOver ? 'text-white' : 'text-cyan-accent'}`} />
+      {/* ─── MAIN CONTENT ─── */}
+      <section className="w-full px-4 lg:px-8 py-8 flex-1">
+        <div className="max-w-[1000px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+          
+          <div className="flex flex-col gap-8">
+            <form id="upload-form" onSubmit={handleSubmit} className="flex flex-col gap-8">
+              
+              {/* SECTION 1: RESOURCE INFORMATION */}
+              <div className="bg-deep-blue rounded-[12px] border border-white/10 shadow-sm overflow-hidden flex flex-col">
+                <div className="px-6 py-4 border-b border-white/5 flex items-center gap-2 bg-white/5">
+                  <FileText className="w-4 h-4 text-white/60" />
+                  <h2 className="text-[14px] font-bold text-white uppercase tracking-[0.05em]">Resource Information</h2>
                 </div>
-                <p className="text-[18px] font-extrabold text-deep-ocean mb-2">Drag & Drop Payload</p>
-                <p className="text-[14px] text-muted font-medium">or click to browse local files</p>
-                <div className="mt-8 flex flex-wrap justify-center gap-2">
-                  {['PDF', 'CSV', 'JSON', 'ZIP'].map(t => (
-                    <span key={t} className="px-3 py-1.5 rounded-[8px] bg-frost border border-border-ice text-[10px] text-muted font-bold uppercase tracking-wider">{t}</span>
-                  ))}
+                <div className="p-6 flex flex-col gap-5">
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="title" className="text-[12px] font-bold text-white/70">Title <span className="text-cyan-accent">*</span></label>
+                    <Input
+                      id="title"
+                      value={title}
+                      onChange={e => setTitle(e.target.value)}
+                      placeholder="e.g., Arctic Sea Ice Concentration 2026"
+                      className="!bg-ocean-navy !border-white/10 !text-white placeholder:!text-white/30 focus:!border-cyan-accent/50 focus:!bg-ocean-navy h-[44px]"
+                      disabled={status !== 'idle' && status !== 'metadata_error'}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="type" className="text-[12px] font-bold text-white/70">Resource Type <span className="text-cyan-accent">*</span></label>
+                    <select
+                      id="type"
+                      value={type}
+                      onChange={e => setType(e.target.value)}
+                      className="w-full h-[44px] px-4 bg-ocean-navy border border-white/10 rounded-[10px] text-[14px] text-white font-medium focus:outline-none focus:border-cyan-accent/50 appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={status !== 'idle' && status !== 'metadata_error'}
+                      required
+                    >
+                      <option value="" disabled className="text-white/30">Select Type</option>
+                      <option value="REPORT">Report</option>
+                      <option value="PUBLICATION">Publication</option>
+                      <option value="DATASET">Dataset</option>
+                      <option value="PHOTO">Photo</option>
+                      <option value="VIDEO">Video</option>
+                      <option value="ACTIVITY">Activity</option>
+                      <option value="EXPEDITION">Expedition</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="description" className="text-[12px] font-bold text-white/70">Description <span className="text-cyan-accent">*</span></label>
+                    <textarea
+                      id="description"
+                      value={description}
+                      onChange={e => setDescription(e.target.value)}
+                      rows={4}
+                      placeholder="Provide a comprehensive abstract or description..."
+                      className="w-full px-4 py-3 bg-ocean-navy border border-white/10 rounded-[10px] text-[14px] text-white font-medium focus:outline-none focus:border-cyan-accent/50 resize-y placeholder:text-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={status !== 'idle' && status !== 'metadata_error'}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
-              {file && (
-                <div className="bg-white rounded-[20px] p-5 border border-cyan-accent/40 flex items-center justify-between shadow-[0_8px_30px_rgba(56,189,248,0.1)] animate-fade-up">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-[12px] bg-cyan-accent/10 flex items-center justify-center border border-cyan-accent/20">
-                      <FileText className="w-6 h-6 text-cyan-accent" />
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-bold text-deep-ocean max-w-[200px] truncate">{file.name}</p>
-                      <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted mt-1">{formatSize(file.size)}</p>
-                    </div>
+              {/* SECTION 2: RESOURCE CONTEXT */}
+              <div className="bg-deep-blue rounded-[12px] border border-white/10 shadow-sm overflow-hidden flex flex-col">
+                <div className="px-6 py-4 border-b border-white/5 flex items-center gap-2 bg-white/5">
+                  <Database className="w-4 h-4 text-white/60" />
+                  <h2 className="text-[14px] font-bold text-white uppercase tracking-[0.05em]">Resource Context</h2>
+                </div>
+                <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="region" className="text-[12px] font-bold text-white/70">Region (Optional)</label>
+                    <select
+                      id="region"
+                      value={region}
+                      onChange={e => setRegion(e.target.value)}
+                      className="w-full h-[44px] px-4 bg-ocean-navy border border-white/10 rounded-[10px] text-[14px] text-white font-medium focus:outline-none focus:border-cyan-accent/50 appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={status !== 'idle' && status !== 'metadata_error'}
+                    >
+                      <option value="">No Region Specified</option>
+                      <option value="Antarctica">Antarctica</option>
+                      <option value="Arctic">Arctic</option>
+                      <option value="Himalayas">Himalayas</option>
+                      <option value="Southern Ocean">Southern Ocean</option>
+                    </select>
                   </div>
-                  <button type="button" onClick={handleClearFile} className="p-2.5 hover:bg-error/10 hover:text-error rounded-[10px] text-muted transition-colors"><X className="w-5 h-5" /></button>
+                  
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="year" className="text-[12px] font-bold text-white/70">Year (Optional)</label>
+                    <Input
+                      id="year"
+                      type="number"
+                      value={year}
+                      onChange={e => setYear(e.target.value)}
+                      className="!bg-ocean-navy !border-white/10 !text-white focus:!border-cyan-accent/50 h-[44px]"
+                      disabled={status !== 'idle' && status !== 'metadata_error'}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3: SOURCE */}
+              <div className="bg-deep-blue rounded-[12px] border border-white/10 shadow-sm overflow-hidden flex flex-col">
+                <div className="px-6 py-4 border-b border-white/5 flex items-center gap-2 bg-white/5">
+                  <Globe className="w-4 h-4 text-white/60" />
+                  <h2 className="text-[14px] font-bold text-white uppercase tracking-[0.05em]">Source</h2>
+                </div>
+                <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="sourceUrl" className="text-[12px] font-bold text-white/70">Source URL (Optional)</label>
+                    <Input
+                      id="sourceUrl"
+                      type="url"
+                      value={sourceUrl}
+                      onChange={e => setSourceUrl(e.target.value)}
+                      placeholder="https://..."
+                      className="!bg-ocean-navy !border-white/10 !text-white placeholder:!text-white/30 focus:!border-cyan-accent/50 h-[44px]"
+                      disabled={status !== 'idle' && status !== 'metadata_error'}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="license" className="text-[12px] font-bold text-white/70">License (Optional)</label>
+                    <Input
+                      id="license"
+                      type="text"
+                      value={license}
+                      onChange={e => setLicense(e.target.value)}
+                      placeholder="e.g., CC BY 4.0"
+                      className="!bg-ocean-navy !border-white/10 !text-white placeholder:!text-white/30 focus:!border-cyan-accent/50 h-[44px]"
+                      disabled={status !== 'idle' && status !== 'metadata_error'}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 4: RESOURCE FILE */}
+              <div className="bg-deep-blue rounded-[12px] border border-white/10 shadow-sm overflow-hidden flex flex-col">
+                <div className="px-6 py-4 border-b border-white/5 flex items-center gap-2 bg-white/5">
+                  <File className="w-4 h-4 text-white/60" />
+                  <h2 className="text-[14px] font-bold text-white uppercase tracking-[0.05em]">Resource File <span className="text-cyan-accent">*</span></h2>
+                </div>
+                <div className="p-6 flex flex-col gap-4">
+                  
+                  {!file ? (
+                    <div
+                      className={`border border-dashed rounded-[12px] p-8 text-center transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[200px] ${
+                        isDragOver ? 'border-cyan-accent bg-white/5' : 'border-white/20 hover:border-white/40 bg-ocean-navy/50'
+                      } ${status !== 'idle' && status !== 'metadata_error' && status !== 'upload_error' ? 'opacity-50 pointer-events-none' : ''}`}
+                      onClick={() => fileInputRef.current?.click()}
+                      onDrop={handleDrop}
+                      onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
+                      onDragLeave={() => setIsDragOver(false)}
+                    >
+                      <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-white/5 border border-white/10">
+                        <UploadCloud className="w-6 h-6 text-white/70" />
+                      </div>
+                      <p className="text-[14px] font-bold text-white mb-1">Click to upload or drag and drop</p>
+                      <p className="text-[12px] text-white/50 font-medium">Standard file formats supported</p>
+                    </div>
+                  ) : (
+                    <div className="bg-ocean-navy rounded-[10px] p-4 border border-white/10 flex items-center justify-between shadow-sm">
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-10 h-10 rounded-[8px] bg-white/5 flex items-center justify-center border border-white/10 shrink-0">
+                          <FileText className="w-5 h-5 text-white/70" />
+                        </div>
+                        <div className="min-w-0 flex flex-col">
+                          <p className="text-[13px] font-bold text-white truncate">{file.name}</p>
+                          <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-white/50 mt-0.5">{formatSize(file.size)}</p>
+                        </div>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={handleClearFile} 
+                        disabled={status === 'uploading_file' || status === 'submitting_metadata'}
+                        className="p-2 hover:bg-error/10 hover:text-error rounded-md text-white/40 transition-colors disabled:opacity-50 disabled:pointer-events-none shrink-0 ml-4"
+                        aria-label="Remove file"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ERRORS */}
+              {(status === 'metadata_error' || status === 'upload_error') && errorMessage && (
+                <div className="bg-error/10 border border-error/20 text-error p-4 rounded-[10px] text-[13px] font-bold flex items-start gap-3">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" /> 
+                  <div className="flex flex-col gap-1">
+                    <span>{status === 'upload_error' ? 'Resource record created, but file upload failed.' : 'Failed to save metadata.'}</span>
+                    <span className="font-medium text-error/80">{errorMessage}</span>
+                  </div>
                 </div>
               )}
-            </div>
 
-            {/* Right: Metadata */}
-            <div className="flex flex-col gap-6 bg-white rounded-[32px] p-10 border border-white shadow-[0_20px_50px_rgba(7,20,38,0.06)] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-[250px] h-[250px] bg-cyan-accent/5 rounded-full blur-[80px] pointer-events-none" />
-              
-              <h3 className="text-[16px] font-extrabold text-deep-ocean flex items-center gap-2 mb-2 pb-5 border-b border-border-ice">
-                <Type className="w-5 h-5 text-cyan-accent" /> Metadata Definition
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <Button 
+                  type="submit" 
+                  disabled={!isValid || status === 'submitting_metadata' || status === 'uploading_file'} 
+                  className="flex-1 justify-center py-6 h-auto text-[14px]"
+                >
+                  {status === 'submitting_metadata' ? (
+                    <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Saving metadata...</>
+                  ) : status === 'uploading_file' ? (
+                    <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Uploading resource...</>
+                  ) : status === 'upload_error' ? (
+                    'Retry Upload'
+                  ) : (
+                    'Upload Resource'
+                  )}
+                </Button>
+                
+                {status !== 'upload_error' && (
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    onClick={() => navigate('/admin/resources')} 
+                    className="flex-1 justify-center py-6 h-auto text-[14px] !border-white/20 !text-white hover:!bg-white/5"
+                    disabled={status === 'submitting_metadata' || status === 'uploading_file'}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </div>
+
+            </form>
+          </div>
+
+          {/* RIGHT PANEL: GUIDELINES */}
+          <div className="hidden lg:flex flex-col gap-6">
+            <div className="bg-deep-blue rounded-[12px] border border-white/10 shadow-sm p-6 flex flex-col gap-4 sticky top-[100px]">
+              <h3 className="text-[13px] font-bold text-white uppercase tracking-[0.05em] flex items-center gap-2">
+                <Info className="w-4 h-4 text-white/50" />
+                Submission Guidelines
               </h3>
               
-              <div className="flex flex-col gap-2 relative z-10">
-                <label htmlFor="meta-title" className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold ml-1">Title *</label>
-                <input id="meta-title" value={metadata.title} onChange={e => setMetadata({ ...metadata, title: e.target.value })} className="w-full px-5 py-4 bg-snow border border-border-ice rounded-[16px] text-[15px] text-ink focus:outline-none focus:border-cyan-accent/50 focus:bg-white focus:ring-4 focus:ring-cyan-accent/10 transition-all font-semibold placeholder:text-muted/40 placeholder:font-medium shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]" placeholder="E.g., Antarctic Ice Core Sample Data" />
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 relative z-10">
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="meta-type" className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold ml-1">Classification *</label>
-                  <select id="meta-type" value={metadata.resourceType} onChange={e => setMetadata({ ...metadata, resourceType: e.target.value })} className="w-full px-5 py-4 bg-snow border border-border-ice rounded-[16px] text-[15px] text-ink focus:outline-none focus:border-cyan-accent/50 focus:bg-white focus:ring-4 focus:ring-cyan-accent/10 transition-all font-semibold appearance-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] cursor-pointer">
-                    <option value="" disabled className="text-muted/50">Select Classification</option>
-                    <option>Research Paper</option><option>Dataset</option><option>Technical Report</option><option>Expedition Resource</option><option>Media</option>
-                  </select>
+              <div className="flex flex-col gap-4 text-[13px] text-white/70 font-medium leading-relaxed">
+                <div className="flex flex-col gap-1">
+                  <span className="text-white font-bold">Metadata Requirements</span>
+                  <p>Title, type, and description are strictly required by the repository schema.</p>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="meta-region" className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold ml-1">Target Region *</label>
-                  <select id="meta-region" value={metadata.domain} onChange={e => setMetadata({ ...metadata, domain: e.target.value })} className="w-full px-5 py-4 bg-snow border border-border-ice rounded-[16px] text-[15px] text-ink focus:outline-none focus:border-cyan-accent/50 focus:bg-white focus:ring-4 focus:ring-cyan-accent/10 transition-all font-semibold appearance-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] cursor-pointer">
-                    <option value="" disabled className="text-muted/50">Select Region</option>
-                    <option>Antarctica</option><option>Arctic</option><option>Himalayas</option><option>Southern Ocean</option>
-                  </select>
+                <div className="h-px bg-white/5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-white font-bold">File Specifications</span>
+                  <p>Provide the raw asset using standard data formats (e.g., PDF, CSV, ZIP). The upload occurs securely via the multipart API.</p>
+                </div>
+                <div className="h-px bg-white/5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-white font-bold">Workflow</span>
+                  <p>The system first registers the metadata record and receives a unique identifier before securely transferring the binary file payload.</p>
                 </div>
               </div>
-              
-              <div className="flex flex-col gap-2 relative z-10">
-                <label htmlFor="meta-desc" className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold ml-1">Detailed Synopsis *</label>
-                <textarea id="meta-desc" value={metadata.description} onChange={e => setMetadata({ ...metadata, description: e.target.value })} rows={5} className="w-full px-5 py-4 bg-snow border border-border-ice rounded-[16px] text-[15px] text-ink focus:outline-none focus:border-cyan-accent/50 focus:bg-white focus:ring-4 focus:ring-cyan-accent/10 transition-all font-semibold shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] resize-none placeholder:text-muted/40 placeholder:font-medium" placeholder="Provide a comprehensive abstract or description..." />
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 relative z-10">
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="meta-year" className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold ml-1">Collection Year</label>
-                  <input id="meta-year" type="number" value={metadata.year} onChange={e => setMetadata({ ...metadata, year: e.target.value })} className="w-full px-5 py-4 bg-snow border border-border-ice rounded-[16px] text-[15px] text-ink focus:outline-none focus:border-cyan-accent/50 focus:bg-white focus:ring-4 focus:ring-cyan-accent/10 transition-all font-semibold shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]" />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="meta-authors" className="text-[11px] text-muted uppercase tracking-[0.2em] font-bold ml-1">Primary Authors</label>
-                  <input id="meta-authors" value={metadata.authors} onChange={e => setMetadata({ ...metadata, authors: e.target.value })} className="w-full px-5 py-4 bg-snow border border-border-ice rounded-[16px] text-[15px] text-ink focus:outline-none focus:border-cyan-accent/50 focus:bg-white focus:ring-4 focus:ring-cyan-accent/10 transition-all font-semibold placeholder:text-muted/40 placeholder:font-medium shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]" placeholder="E.g., Dr. Sharma, Dr. Rao" />
-                </div>
-              </div>
-
-              {(status === 'error') && errorMessage && (
-                <div className="bg-error/5 border border-error/20 text-error p-4 rounded-[14px] text-[13px] font-bold flex items-center gap-2 animate-fade-in shadow-sm relative z-10 mt-2">
-                  <AlertTriangle className="w-5 h-5 shrink-0" /> {errorMessage}
-                </div>
-              )}
-
-              <button 
-                type="submit" 
-                disabled={!isValid || status === 'preparing' || status === 'uploading'} 
-                className="w-full py-4 bg-deep-ocean hover:bg-cyan-accent disabled:opacity-40 disabled:hover:bg-deep-ocean text-white hover:text-deep-ocean font-extrabold text-[15px] rounded-[16px] transition-all duration-300 shadow-[0_8px_20px_rgba(7,20,38,0.15)] hover:shadow-[0_12px_25px_rgba(56,189,248,0.3)] flex items-center justify-center gap-2 mt-6 hover:-translate-y-1 active:translate-y-0 disabled:transform-none cursor-pointer disabled:cursor-not-allowed relative z-10 group/btn"
-              >
-                {status === 'preparing' || status === 'uploading' ? (
-                  <><Loader2 className="w-5 h-5 animate-spin" /> {status === 'preparing' ? 'Initializing Ingestion...' : 'Uploading Payload...'}</>
-                ) : (
-                  'Ingest Resource to Repository'
-                )}
-              </button>
             </div>
-          </form>
-        </section>
-      </div>
+          </div>
+          
+        </div>
+      </section>
     </div>
   );
 }

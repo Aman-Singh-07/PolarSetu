@@ -1,17 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search as SearchIcon, ArrowRight, X, MapPin, SlidersHorizontal, Navigation } from 'lucide-react';
+import { Search as SearchIcon, ArrowRight, X, ChevronDown, MapPin } from 'lucide-react';
 import { api } from '../services/api';
 import type { Expedition } from '../types';
 import { Skeleton, EmptyState, ErrorState } from '../components/ui';
-
-const EXPEDITION_IMAGES: Record<string, string> = {
-  'EXP-43': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZlU0zKQ2fFmf3pyyxCzDmnJXg5L2Xj5SFAtHGSFS24kA0Gy58tAoWbTbUXqoGsekW5ZGVs6dqXXl-slkh9BnQJrowMjTnI9nnGQRWqDnG5dNYMPMEn_sLqSiNuzu-5lmTWUBYAQp6sygCs2C6UWIy4P03eL-w0hWfXwd3WJQ8kwAFp1kB-SnFBBPtQBDHatOHRxJKYaehqvpc6OmwpbpKPRQdMGzgI3cP85LtHag7OJP7QoCs2NerDA',
-  'EXP-ARC-15': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDB96sKfj2s1GP-c4K4liF32nJk6pqICs30jsSS1NnNd5dzn4ykdY0PyEOGQGyci-tWIbPkpGZNDPBgTXzxXGGr3elVT4A7ujheEbfdvpBDzu13jOxlU0GSgwsnizLarYDOymKsDbyYWRzYSAMiCXID7VzCUsIEIQ1znRyY9FIyODNc14oNsWRL17GHi2WhyUnLpa-j40NYGS0pB8F7qsL4sbyO-IoSP2c8FRtD1Dsp3c5de68u1EvlYw',
-  'EXP-SO-2024': 'https://lh3.googleusercontent.com/aida-public/AB6AXuBV_C6b5zrKkQSFIhMOvZZn6R1_m0viH4zJ6telQyT419UgjW68niXGtanxETA0KhUkk7u7ZDCRoo8G_3TX4uRj7IjyjCh1KhhfLBb7VNFm0b5XBUenvylXHIxgPQW5bL-mL8EWZ5H1IoPPjf8WVP4Gg8OLjhDrnAplWyW9F1Fqxewx6cTtETEK9t63P0vpIAzj9pOGuAUmkp_145lHVXmNB39MGwf1_-kTM_ja55If4ejn8Uw_t6rMIw',
-  'EXP-42': 'https://lh3.googleusercontent.com/aida-public/AB6AXuCoh_p2zMxwZwU_Tz-12xqiAZAyn2SGIt01c1Hw3MNhXKESF8DCd1BaJot_jsT0LzOFYzVlA3Hez-MLsuhb_wY8ShfUEDvzvq91fuHEdW1i83wF-d43RhGObbdOOmaYKL7W3E-V6ai2p_IP8ZdEU48cTzcKUuCi6k2mMvaumxoZ3bjmef4tDLaXiP4XAoMcZXGwZJf-_x802BVm6_SnwoCVeo9KQIdjR-mmGrjZxZYxR6Q82lDbi31x6Q',
-  'EXP-HIM-5': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZlU0zKQ2fFmf3pyyxCzDmnJXg5L2Xj5SFAtHGSFS24kA0Gy58tAoWbTbUXqoGsekW5ZGVs6dqXXl-slkh9BnQJrowMjTnI9nnGQRWqDnG5dNYMPMEn_sLqSiNuzu-5lmTWUBYAQp6sygCs2C6UWIy4P03eL-w0hWfXwd3WJQ8kwAFp1kB-SnFBBPtQBDHatOHRxJKYaehqvpc6OmwpbpKPRQdMGzgI3cP85LtHag7OJP7QoCs2NerDA'
-};
 
 export default function Expeditions() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -34,8 +26,9 @@ export default function Expeditions() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    searchQuery ? searchParams.set('q', searchQuery) : searchParams.delete('q');
-    setSearchParams(searchParams);
+    const newParams = new URLSearchParams(searchParams);
+    searchQuery ? newParams.set('q', searchQuery) : newParams.delete('q');
+    setSearchParams(newParams);
   };
 
   const filtered = useMemo(() => {
@@ -50,95 +43,113 @@ export default function Expeditions() {
 
   const clearAll = () => { setSearchParams({}); setSearchQuery(''); };
 
+  const hasFilters = Boolean(q || regionFilter);
+
   return (
     <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-snow">
-      {/* ─── CINEMATIC HEADER ─── */}
-      <section className="relative w-full bg-deep-ocean pt-24 pb-32 px-4 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-ocean-navy via-deep-ocean to-deep-ocean" />
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay" />
-        
-        <div className="relative z-10 max-w-[1000px] mx-auto flex flex-col items-center text-center gap-6 animate-fade-up">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-lg">
-            <Navigation className="w-4 h-4 text-cyan-accent" />
-            <span className="text-white text-[11px] font-bold tracking-[0.25em] uppercase">Journey Archive</span>
-          </div>
-          
-          <h1 className="font-display text-5xl md:text-[64px] font-extrabold text-white tracking-tight leading-[1.1] drop-shadow-2xl">
-            Expedition Records
+      {/* ─── HEADER ─── */}
+      <section className="w-full bg-snow pt-10 md:pt-16 pb-8">
+        <div className="container-standard flex flex-col gap-3">
+          <span className="text-[11px] font-semibold tracking-[0.15em] uppercase text-muted">Field Expeditions</span>
+          <h1 className="font-display text-[32px] md:text-[40px] font-bold text-deep-ocean tracking-tight leading-tight">
+            India's Polar Expeditions
           </h1>
-          
-          <p className="text-lg md:text-xl text-white/70 font-light max-w-2xl leading-relaxed drop-shadow-md">
-            Chronicles of India's polar research journeys across Antarctica, the Arctic, and the Himalayas.
+          <p className="text-[16px] text-ink/60 max-w-[520px]">
+            Explore documented polar expeditions and their available research context.
           </p>
         </div>
       </section>
 
-      {/* ─── FLOATING SEARCH & FILTERS ─── */}
-      <section className="w-full px-4 lg:px-8 -mt-10 relative z-30 mb-16">
-        <div className="max-w-[1000px] mx-auto relative group">
-          {/* Ambient Glow */}
-          <div className="absolute inset-0 bg-cyan-accent/20 blur-[30px] rounded-[24px] opacity-0 group-focus-within:opacity-100 transition-opacity duration-700" />
-          
-          {/* Main Search Container */}
-          <div className="relative bg-white/95 backdrop-blur-xl rounded-[24px] shadow-[0_16px_40px_rgba(7,20,38,0.12)] border border-white flex flex-col md:flex-row overflow-hidden transition-all duration-300 group-focus-within:border-cyan-accent/40 group-focus-within:shadow-[0_20px_50px_rgba(56,189,248,0.15)]">
-            
-            <form onSubmit={handleSearch} className="flex-1 flex items-center px-6 py-5 md:py-0">
-              <label htmlFor="expedition-search" className="sr-only">Search expeditions</label>
-              <SearchIcon className="w-5 h-5 text-muted shrink-0" />
-              <input
-                id="expedition-search"
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search expeditions by name or objective..."
-                className="w-full bg-transparent border-none outline-none px-4 text-lg font-medium text-deep-ocean placeholder:text-muted/50"
-              />
-              <button type="submit" className="hidden" aria-hidden="true">Search</button>
-            </form>
-            
-            <div className="hidden md:block w-px bg-border-ice/60 my-4" />
-            
-            <div className="flex items-center px-4 py-3 bg-frost/50 md:bg-transparent border-t md:border-t-0 border-border-ice/60 gap-3">
-              <div className="relative group/select flex-1 md:flex-none">
-                <label htmlFor="region-filter" className="sr-only">Filter by region</label>
-                <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none group-hover/select:text-cyan-accent transition-colors" />
-                <select
-                  id="region-filter"
-                  value={regionFilter}
-                  onChange={e => { e.target.value ? searchParams.set('region', e.target.value) : searchParams.delete('region'); setSearchParams(searchParams); }}
-                  className="w-full md:w-[180px] pl-10 pr-8 py-3 bg-white hover:bg-ice-blue/30 text-sm text-ink font-semibold rounded-xl cursor-pointer appearance-none outline-none border border-border-ice/50 hover:border-cyan-accent/30 transition-all shadow-sm"
-                >
-                  <option value="">All Regions</option>
-                  <option value="Antarctica">Antarctica</option>
-                  <option value="Arctic">Arctic</option>
-                  <option value="Himalayas">Himalayas</option>
-                  <option value="Southern Ocean">Southern Ocean</option>
-                </select>
-              </div>
+      {/* ─── SEARCH ─── */}
+      <section className="w-full pb-2">
+        <div className="container-standard">
+          <form onSubmit={handleSearch} className="relative w-full">
+            <label htmlFor="expedition-search" className="sr-only">Search expeditions</label>
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted pointer-events-none" />
+            <input 
+              id="expedition-search"
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search expeditions, regions, years..."
+              className="w-full h-[52px] bg-white border border-border-ice rounded-[12px] pl-12 pr-12 text-[16px] text-deep-ocean font-medium placeholder:text-muted/50 outline-none focus:border-glacial-blue/50 focus:ring-2 focus:ring-glacial-blue/10 transition-all"
+            />
+            {searchQuery && (
+              <button 
+                type="button" 
+                onClick={() => {
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.delete('q');
+                  setSearchQuery('');
+                  setSearchParams(newParams);
+                }} 
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted hover:text-ink rounded-full hover:bg-frost transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <button type="submit" className="hidden">Submit</button>
+          </form>
+        </div>
+      </section>
+
+      {/* ─── FILTERS ─── */}
+      <section className="w-full pb-6">
+        <div className="container-standard">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3">
+            <div className="relative w-full sm:w-auto">
+              <label htmlFor="region-filter" className="sr-only">Filter by region</label>
+              <select 
+                id="region-filter"
+                value={regionFilter} 
+                onChange={e => { 
+                  const newParams = new URLSearchParams(searchParams);
+                  e.target.value ? newParams.set('region', e.target.value) : newParams.delete('region'); 
+                  setSearchParams(newParams); 
+                }}
+                className="w-full sm:w-[160px] h-[42px] pl-4 pr-10 bg-white text-[14px] text-ink font-medium rounded-[10px] cursor-pointer appearance-none outline-none border border-border-ice hover:border-glacial-blue/30 focus:border-glacial-blue/50 focus:ring-2 focus:ring-glacial-blue/10 transition-all"
+              >
+                <option value="">All Regions</option>
+                <option value="Antarctica">Antarctica</option>
+                <option value="Arctic">Arctic</option>
+                <option value="Himalayas">Himalayas</option>
+                <option value="Southern Ocean">Southern Ocean</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
             </div>
           </div>
 
-          {/* Active Filters Bar */}
-          {(q || regionFilter) && (
-            <div className="flex flex-wrap items-center gap-2 mt-4 px-2">
+          {/* Active filter pills */}
+          {hasFilters && (
+            <div className="flex flex-wrap items-center gap-2 mt-3">
               {q && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-deep-ocean text-white text-xs font-bold shadow-md tracking-wide">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-deep-ocean text-white text-[11px] font-semibold">
                   "{q}" 
-                  <button aria-label="Clear search" onClick={() => { searchParams.delete('q'); setSearchQuery(''); setSearchParams(searchParams); }} className="hover:text-cyan-accent bg-white/10 p-0.5 rounded-full transition-colors">
+                  <button aria-label="Clear search" onClick={() => { 
+                    const newParams = new URLSearchParams(searchParams);
+                    newParams.delete('q'); 
+                    setSearchQuery(''); 
+                    setSearchParams(newParams); 
+                  }} className="hover:text-cyan-accent p-0.5 rounded transition-colors">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
               )}
               {regionFilter && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-border-ice text-deep-ocean text-xs font-bold shadow-sm tracking-wide">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white border border-border-ice text-deep-ocean text-[11px] font-semibold">
                   Region: {regionFilter} 
-                  <button aria-label="Clear region filter" onClick={() => { searchParams.delete('region'); setSearchParams(searchParams); }} className="hover:text-error hover:bg-error/10 p-0.5 rounded-full transition-colors">
+                  <button aria-label="Clear region filter" onClick={() => { 
+                    const newParams = new URLSearchParams(searchParams);
+                    newParams.delete('region'); 
+                    setSearchParams(newParams); 
+                  }} className="hover:text-error p-0.5 rounded transition-colors">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
               )}
-              <button onClick={clearAll} className="text-[11px] font-bold text-muted hover:text-deep-ocean hover:underline uppercase tracking-widest ml-2 transition-colors">
-                Clear All
+              <button onClick={clearAll} className="text-[11px] font-semibold text-muted hover:text-deep-ocean hover:underline ml-1 transition-colors">
+                Clear all
               </button>
             </div>
           )}
@@ -146,75 +157,97 @@ export default function Expeditions() {
       </section>
 
       {/* ─── RESULTS ─── */}
-      <section className="w-full px-4 lg:px-8 pb-32 flex-1">
-        <div className="max-w-[1000px] mx-auto">
-          <div className="flex items-center justify-between border-b-2 border-border-ice/40 pb-4 mb-8">
-            <span className="text-xs text-muted font-bold uppercase tracking-[0.2em]">
-              {loading ? 'Retrieving records...' : `${filtered.length} Record${filtered.length !== 1 ? 's' : ''} Found`}
+      <section className="w-full pb-24 flex-1">
+        <div className="container-standard">
+          <div className="border-b border-border-ice pb-3 mb-6">
+            <span className="text-[13px] text-muted font-medium">
+              {loading ? 'Loading...' : `${filtered.length} expedition${filtered.length !== 1 ? 's' : ''} found`}
             </span>
           </div>
 
           {loading ? (
-            <div className="flex flex-col gap-5">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="w-full h-[220px] rounded-[24px]" />)}
+            <div className="flex flex-col gap-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="bg-white rounded-[12px] border border-border-ice flex flex-col md:flex-row h-[220px]">
+                  <Skeleton className="w-full md:w-[300px] h-[200px] md:h-full rounded-none rounded-t-[12px] md:rounded-l-[12px] md:rounded-tr-none shrink-0" />
+                  <div className="p-6 flex-1 flex flex-col justify-center gap-3">
+                    <Skeleton className="h-4 w-[120px] rounded" />
+                    <Skeleton className="h-6 w-[60%] rounded mb-2" />
+                    <Skeleton className="h-4 w-full rounded" />
+                    <Skeleton className="h-4 w-[80%] rounded" />
+                    <Skeleton className="h-4 w-[100px] rounded mt-4" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : error ? (
-            <ErrorState message="Unable to load expeditions." onRetry={() => window.location.reload()} />
+            <div className="py-12 bg-white rounded-[12px] border border-border-ice flex items-center justify-center">
+              <ErrorState message="Unable to load expeditions." onRetry={() => window.location.reload()} />
+            </div>
           ) : filtered.length === 0 ? (
-            <EmptyState
-              icon={MapPin}
-              title="No expeditions found"
-              description="Adjust your search terms or filters to find what you're looking for."
-              actionLabel="Clear All Filters"
-              onAction={clearAll}
-            />
+            <div className="py-12 bg-white rounded-[12px] border border-border-ice flex items-center justify-center">
+              <EmptyState
+                icon={SearchIcon}
+                title={expeditions.length === 0 ? "No expeditions are available yet." : "No expeditions matched your search."}
+                description={expeditions.length === 0 ? "Expedition records will appear here when they are added to the repository." : "Adjust your search terms or filters to find what you're looking for."}
+                actionLabel={hasFilters ? "Clear Filters" : undefined}
+                onAction={clearAll}
+              />
+            </div>
           ) : (
             <div className="flex flex-col gap-6">
-              {filtered.map(exp => (
-                <article key={exp.id} className="group bg-white rounded-[24px] p-4 md:p-6 flex flex-col md:flex-row gap-8 items-stretch border border-border-ice/60 shadow-[0_4px_20px_rgba(7,20,38,0.02)] hover:shadow-[0_16px_40px_rgba(29,111,165,0.08)] hover:border-cyan-accent/40 hover:-translate-y-1 transition-all duration-300">
-                  
-                  {/* Image Section */}
-                  {EXPEDITION_IMAGES[exp.id] ? (
-                    <div className="w-full md:w-[320px] shrink-0 rounded-[16px] overflow-hidden relative shadow-sm">
-                      <img 
-                        src={EXPEDITION_IMAGES[exp.id]} 
-                        alt={exp.name} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                        style={{ minHeight: '220px' }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-deep-ocean/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-                  ) : (
-                    <div className="w-full md:w-[320px] shrink-0 rounded-[16px] overflow-hidden relative shadow-sm bg-frost flex items-center justify-center">
-                       <MapPin className="w-12 h-12 text-muted/30" />
-                    </div>
-                  )}
-                  
-                  {/* Content Section */}
-                  <div className="flex-1 flex flex-col justify-center py-2 md:pr-4">
-                    <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.15em] mb-4">
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ice-blue/40 text-ocean-navy">
-                        <MapPin className="w-3.5 h-3.5" />
-                        {exp.region}
+              {filtered.map(exp => {
+                // Determine if we have a real image field (fallback to quiet placeholder if none)
+                const actualImageUrl = (exp as any).imageUrl; // Access if added to backend
+
+                return (
+                  <Link key={exp.id} to={`/expeditions/${exp.id}`} className="block outline-none focus-visible:ring-2 focus-visible:ring-cyan-accent focus-visible:ring-offset-2 rounded-[12px]">
+                    <article className="group bg-white rounded-[12px] flex flex-col md:flex-row items-stretch border border-border-ice hover:border-glacial-blue/40 hover:shadow-sm transition-all duration-200 overflow-hidden">
+                      
+                      {/* Image / Fallback Section */}
+                      {actualImageUrl ? (
+                        <div className="w-full md:w-[320px] shrink-0 border-r border-border-ice/50 bg-frost">
+                          <img 
+                            src={actualImageUrl} 
+                            alt={exp.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full md:w-[240px] shrink-0 bg-frost border-r border-border-ice/50 flex flex-col items-center justify-center p-6">
+                          <MapPin className="w-6 h-6 text-muted/30 mb-2" />
+                          <span className="text-[10px] text-muted/40 font-bold uppercase tracking-[0.2em]">Field Record</span>
+                        </div>
+                      )}
+                      
+                      {/* Content Section */}
+                      <div className="flex-1 flex flex-col justify-center p-6 md:p-8">
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-glacial-blue mb-2">
+                          <span>Field Expedition</span>
+                        </div>
+                        
+                        <h2 className="font-display text-[22px] font-bold text-ink group-hover:text-glacial-blue transition-colors leading-[1.2] mb-3">
+                          {exp.name}
+                        </h2>
+
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted font-medium mb-4">
+                          {exp.region && <span>{exp.region}</span>}
+                          {exp.region && exp.year && <span>·</span>}
+                          {exp.year && <span>{exp.year}</span>}
+                        </div>
+                        
+                        <p className="text-[15px] text-ink/70 font-light leading-relaxed mb-6 line-clamp-2 md:line-clamp-3">
+                          {exp.objective}
+                        </p>
+                        
+                        <div className="mt-auto pt-4 border-t border-border-ice/60 flex items-center text-[13px] font-semibold text-glacial-blue group-hover:text-cyan-accent transition-colors">
+                          View Expedition <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-1 transition-transform" />
+                        </div>
                       </div>
-                      <span className="text-muted">{exp.year}</span>
-                    </div>
-                    
-                    <Link to={`/expeditions/${exp.id}`} className="font-display text-[26px] font-bold text-deep-ocean group-hover:text-glacial-blue transition-colors leading-[1.2] mb-3">
-                      {exp.name}
-                    </Link>
-                    
-                    <p className="text-[15px] text-ink/70 font-light leading-relaxed mb-6 line-clamp-3">
-                      {exp.objective}
-                    </p>
-                    
-                    <Link to={`/expeditions/${exp.id}`} className="inline-flex items-center gap-1.5 text-xs font-bold text-glacial-blue hover:text-cyan-accent transition-all duration-300 self-start group/link">
-                      View Expedition Log 
-                      <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
-                    </Link>
-                  </div>
-                </article>
-              ))}
+                    </article>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

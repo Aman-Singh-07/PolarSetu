@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import clsx from 'clsx';
 
 export const Card = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={clsx("rounded-[12px] border border-border-ice bg-white shadow-soft overflow-hidden transition-all duration-200", className)} {...props} />
+  <div ref={ref} className={clsx("rounded-[12px] border border-border-ice bg-white shadow-soft hover:-translate-y-[2px] hover:shadow-medium overflow-hidden transition-all duration-200", className)} {...props} />
 ));
 Card.displayName = "Card";
 

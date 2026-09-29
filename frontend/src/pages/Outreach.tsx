@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link, useLocation } from 'react-router-dom';
-import { Loader2, ArrowRight, Copy, AlertTriangle, FileText, Share2, Check } from 'lucide-react';
+import { Loader2, ArrowRight, Copy, Check, FileText } from 'lucide-react';
 import { api } from '../services/api';
 import type { Resource, OutreachDraft } from '../types';
-
-const AUDIENCES = ['Researcher', 'Student / Educator', 'General Public', 'Media', 'Policy'];
-const FORMATS = ['Scientific Summary', 'Website Article', 'Social Media Post', 'Educational Explanation', 'Press Note', 'Short Video Script'];
+import { ErrorState, Button } from '../components/ui';
 
 export default function Outreach() {
   const [searchParams] = useSearchParams();
@@ -15,25 +13,37 @@ export default function Outreach() {
 
   const [sourceId, setSourceId] = useState(initialSourceId);
   const [resource, setResource] = useState<Resource | null>(null);
+  
   const [audience, setAudience] = useState('');
   const [format, setFormat] = useState('');
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<OutreachDraft | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (sourceId) { api.getResource(sourceId).then(res => { if (res) setResource(res); }); }
-    else { setResource(null); }
+    if (sourceId) { 
+      api.getResource(sourceId).then(res => { 
+        if (res) setResource(res); 
+        else setError("Invalid source ID provided.");
+      }).catch(() => setError("Failed to load source context."));
+    } else { 
+      setResource(null); 
+    }
   }, [sourceId]);
 
   const handleGenerate = async () => {
     if (!sourceId || !audience || !format) return;
     setLoading(true); setDraft(null); setError(null); setCopied(false);
     try {
-      setDraft(await api.generateOutreach({ sourceId, audience, format }));
-    } catch { setError('Failed to generate outreach draft. Please try again.'); }
-    finally { setLoading(false); }
+      const generated = await api.generateOutreach({ sourceId, audience, format });
+      setDraft(generated);
+    } catch { 
+      setError('Failed to generate outreach draft. Please try again.'); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const handleCopy = () => {
@@ -43,162 +53,178 @@ export default function Outreach() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const ready = !!sourceId && !!audience && !!format;
+  const ready = !!sourceId && !!audience.trim() && !!format.trim();
 
   return (
-    <div className="flex flex-col w-full min-h-[calc(100vh-64px)] bg-snow">
+    <div className="flex flex-col w-full min-h-[calc(100vh-72px)] bg-snow">
       {/* ─── HEADER ─── */}
-      <section className="w-full pt-16 pb-8 px-4 lg:px-8 border-b border-border-ice/50 bg-white">
-        <div className="max-w-[1200px] mx-auto flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-cyan-accent mb-2">
-            <Share2 className="w-5 h-5" />
-            <span className="text-xs uppercase tracking-widest font-semibold text-muted">Translation Engine</span>
-          </div>
-          <h1 className="font-display text-4xl lg:text-5xl font-bold text-deep-ocean tracking-tight">
-            Outreach Studio
+      <section className="w-full pt-10 pb-8 px-4 lg:px-8 border-b border-border-ice">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-3">
+          <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-muted">Science Outreach</span>
+          <h1 className="font-display text-[32px] md:text-[40px] font-bold text-ink tracking-tight">
+            Turn research into public understanding.
           </h1>
-          <p className="text-base text-ink/70 font-light max-w-2xl mt-2 leading-relaxed">
-            Generate evidence-based communication drafts for specific audiences, directly grounded in verified polar research.
+          <p className="text-[16px] text-ink/70 font-medium max-w-2xl mt-1">
+            Transform available scientific material into a clear outreach draft while keeping the original source context visible.
           </p>
         </div>
       </section>
 
-      {/* ─── STUDIO ─── */}
-      <section className="w-full px-4 lg:px-8 py-12 flex-1">
-        <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+      {/* ─── WORKSPACE ─── */}
+      <section className="w-full px-4 lg:px-8 py-8 flex-1">
+        <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           
-          {/* ─── CONFIG PANEL ─── */}
-          <div className="lg:col-span-4 flex flex-col gap-10">
+          {/* ─── LEFT: CONTEXT & CONTROLS ─── */}
+          <div className="lg:col-span-4 flex flex-col gap-8">
             
             {/* Source */}
             <div className="flex flex-col gap-4">
-              <h2 className="text-[10px] font-bold text-muted uppercase tracking-widest border-b border-border-ice pb-2">Source Material</h2>
+              <h2 className="text-[11px] font-bold text-muted uppercase tracking-[0.15em] border-b border-border-ice pb-2">Source Context</h2>
+              
               {!sourceId ? (
                 <div className="flex flex-col gap-4 mt-2">
-                  <p className="text-sm text-ink/60 font-light">No source record selected for translation.</p>
-                  <Link to="/explore" className="inline-flex items-center gap-2 px-5 py-2.5 bg-deep-ocean text-white text-sm font-semibold rounded-lg shadow-soft hover:bg-ocean-navy transition-colors self-start">
+                  <p className="text-[14px] text-ink/70">Select a research resource to create an outreach draft.</p>
+                  <Link to="/explore" className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-border-ice text-ink text-[14px] font-bold rounded-lg hover:border-glacial-blue transition-colors self-start shadow-sm">
                     Browse Repository <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
-              ) : (
+              ) : resource ? (
                 <div className="flex flex-col gap-3 mt-2">
-                  {resource ? (
-                    <div className="flex flex-col gap-1.5 p-4 bg-white border border-border-ice rounded-xl shadow-soft">
-                      <div className="flex items-center gap-2 text-[10px] text-muted font-semibold uppercase tracking-wider mb-1">
-                        <span>{resource.type}</span>
-                        {resource.year && <><span>·</span><span>{resource.year}</span></>}
-                      </div>
-                      <p className="text-sm font-bold text-deep-ocean leading-snug">{resource.title}</p>
+                  <div className="flex flex-col gap-2 p-4 bg-white border border-border-ice rounded-lg shadow-sm">
+                    <h3 className="text-[15px] font-bold text-ink leading-snug">{resource.title}</h3>
+                    <div className="flex items-center gap-2 text-[12px] text-muted font-medium">
+                      {resource.type && <span className="uppercase tracking-[0.05em]">{resource.type}</span>}
+                      {resource.type && resource.year && <span>·</span>}
+                      {resource.year && <span>{resource.year}</span>}
+                      {resource.region && <span>·</span>}
+                      {resource.region && <span>{resource.region}</span>}
                     </div>
-                  ) : (
-                    <div className="h-20 bg-frost rounded-xl animate-pulse" />
-                  )}
-                  <button onClick={() => { setSourceId(''); setDraft(null); navigate('/outreach'); }} className="text-xs font-semibold text-muted hover:text-error transition-colors self-start">
-                    Remove Source
-                  </button>
+                  </div>
+                  <div className="flex items-center gap-4 text-[12px] font-bold mt-1">
+                    <Link to={`/research/${resource.id}`} className="text-glacial-blue hover:text-deep-ocean transition-colors">
+                      View Resource
+                    </Link>
+                    <button onClick={() => { setSourceId(''); setDraft(null); navigate('/outreach'); }} className="text-muted hover:text-error transition-colors">
+                      Remove Context
+                    </button>
+                  </div>
                 </div>
+              ) : error ? (
+                 <div className="mt-2"><ErrorState message={error} /></div>
+              ) : (
+                <div className="h-[80px] bg-frost rounded-lg animate-pulse mt-2" />
               )}
             </div>
 
-            {/* Audience */}
-            <div className={`flex flex-col gap-4 ${!sourceId ? 'opacity-40 pointer-events-none' : ''}`}>
-              <h2 className="text-[10px] font-bold text-muted uppercase tracking-widest border-b border-border-ice pb-2">Target Audience</h2>
-              <div className="flex flex-col gap-1.5 mt-2">
-                {AUDIENCES.map(a => (
-                  <button 
-                    key={a} 
-                    onClick={() => setAudience(a)} 
-                    className={`text-left px-4 py-3 rounded-lg text-sm font-medium transition-all ${audience === a ? 'bg-deep-ocean text-white shadow-soft' : 'bg-transparent text-ink hover:bg-white hover:shadow-soft'}`}
-                  >
-                    {a}
-                  </button>
-                ))}
+            {/* Controls */}
+            <div className={`flex flex-col gap-6 ${!resource ? 'opacity-50 pointer-events-none' : ''}`}>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="audience-input" className="text-[11px] font-bold text-muted uppercase tracking-[0.15em]">Audience</label>
+                <input 
+                  id="audience-input"
+                  type="text"
+                  placeholder="e.g. High school students, General public"
+                  value={audience}
+                  onChange={e => setAudience(e.target.value)}
+                  className="w-full h-[48px] px-4 bg-white border border-border-ice rounded-lg text-[14px] text-ink placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-glacial-blue/50 focus:border-glacial-blue transition-all shadow-sm"
+                  disabled={loading}
+                />
               </div>
-            </div>
 
-            {/* Format */}
-            <div className={`flex flex-col gap-4 ${!audience ? 'opacity-40 pointer-events-none' : ''}`}>
-              <h2 className="text-[10px] font-bold text-muted uppercase tracking-widest border-b border-border-ice pb-2">Output Format</h2>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {FORMATS.map(f => (
-                  <button 
-                    key={f} 
-                    onClick={() => setFormat(f)} 
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${format === f ? 'bg-cyan-accent border-cyan-accent text-deep-ocean shadow-soft' : 'bg-white border-border-ice text-ink hover:border-cyan-accent/50 hover:shadow-soft'}`}
-                  >
-                    {f}
-                  </button>
-                ))}
+              <div className="flex flex-col gap-2">
+                <label htmlFor="format-input" className="text-[11px] font-bold text-muted uppercase tracking-[0.15em]">Format</label>
+                <input 
+                  id="format-input"
+                  type="text"
+                  placeholder="e.g. Short article, Press release"
+                  value={format}
+                  onChange={e => setFormat(e.target.value)}
+                  className="w-full h-[48px] px-4 bg-white border border-border-ice rounded-lg text-[14px] text-ink placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-glacial-blue/50 focus:border-glacial-blue transition-all shadow-sm"
+                  disabled={loading}
+                />
               </div>
-            </div>
 
-            {error && (
-              <div className="bg-error/10 text-error px-4 py-3 rounded-lg text-sm font-medium flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0" />{error}
+              <Button 
+                onClick={handleGenerate} 
+                disabled={!ready || loading} 
+                className="w-full h-[48px] flex items-center justify-center gap-2 mt-2"
+              >
+                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</> : 'Generate Draft'}
+              </Button>
+            </div>
+            
+            {error && !loading && (
+              <div className="bg-white border border-border-ice p-4 rounded-lg mt-2">
+                <ErrorState message={error} onRetry={handleGenerate} />
               </div>
             )}
-
-            <button 
-              onClick={handleGenerate} 
-              disabled={!ready || loading} 
-              className="w-full mt-4 py-4 bg-deep-ocean hover:bg-ocean-navy disabled:opacity-50 text-white font-bold rounded-xl transition-all shadow-elevated flex items-center justify-center gap-2"
-            >
-              {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Generating Draft…</> : 'Generate Draft'}
-            </button>
+            
           </div>
 
-          {/* ─── DRAFT EDITOR ─── */}
-          <div className="lg:col-span-8 flex flex-col gap-4 h-full min-h-[500px]">
+          {/* ─── RIGHT: DRAFT EDITOR ─── */}
+          <div className="lg:col-span-8 flex flex-col gap-4 min-h-[500px]">
+            <h2 className="text-[11px] font-bold text-muted uppercase tracking-[0.15em] border-b border-border-ice pb-2">Generated Draft</h2>
+            
             {!draft && !loading ? (
-              <div className="w-full h-full min-h-[500px] flex flex-col items-center justify-center p-12 text-center rounded-2xl border-2 border-dashed border-border-ice bg-white/50">
-                <FileText className="w-12 h-12 text-border-ice mb-4" />
-                <h2 className="font-display text-xl font-bold text-deep-ocean mb-2">Editor Ready</h2>
-                <p className="text-sm text-ink/60 font-light max-w-sm">Select a source, audience, and format from the configuration panel to generate an evidence-based communication draft.</p>
+              <div className="w-full h-full min-h-[400px] flex flex-col items-center justify-center p-8 bg-frost/50 border border-border-ice rounded-lg text-center mt-2">
+                <FileText className="w-8 h-8 text-muted/50 mb-4" />
+                <p className="text-[14px] text-ink/70 font-medium max-w-sm leading-relaxed">
+                  Your outreach draft will appear here after generation.
+                </p>
               </div>
             ) : draft ? (
-              <div className="w-full flex flex-col bg-white rounded-2xl border border-border-ice shadow-elevated animate-fade-up overflow-hidden">
-                <div className="p-5 border-b border-border-ice bg-frost/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-5 h-5 text-muted" />
-                    <h2 className="font-display text-lg font-bold text-deep-ocean">Generated Draft</h2>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px]">
-                    <span className="px-2.5 py-1 rounded-full bg-white border border-border-ice font-bold text-muted uppercase tracking-widest">{draft.audience}</span>
-                    <span className="px-2.5 py-1 rounded-full bg-deep-ocean text-cyan-accent font-bold uppercase tracking-widest">{draft.outputType}</span>
-                  </div>
+              <div className="w-full flex flex-col bg-white border border-border-ice rounded-lg shadow-sm mt-2 overflow-hidden animate-fade-in">
+                
+                {/* Editor Status Bar */}
+                <div className="p-4 border-b border-border-ice bg-frost flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                   <div className="flex items-center gap-3">
+                     <span className="text-[12px] font-bold text-ink uppercase tracking-[0.05em]">{draft.status === 'IN_REVIEW' ? 'Pending Review' : draft.status || 'Draft'}</span>
+                   </div>
+                   <div className="flex items-center gap-3 text-[12px] text-muted">
+                     <span>Audience: <strong className="text-ink">{draft.audience}</strong></span>
+                     <span>·</span>
+                     <span>Format: <strong className="text-ink">{draft.outputType}</strong></span>
+                   </div>
                 </div>
                 
-                <div className="flex-1 p-0">
-                  <label htmlFor="draft-content" className="sr-only">Draft content</label>
+                {/* Editor Content */}
+                <div className="w-full">
+                  <label htmlFor="draft-content" className="sr-only">Draft Content</label>
                   <textarea
                     id="draft-content"
                     value={draft.content}
                     onChange={e => setDraft({ ...draft, content: e.target.value })}
-                    className="w-full h-[500px] resize-y focus:outline-none p-6 text-sm text-ink leading-loose font-light bg-transparent"
+                    className="w-full min-h-[400px] resize-y p-6 text-[16px] text-ink/90 leading-[1.6] bg-transparent focus:outline-none"
                     spellCheck="false"
                   />
                 </div>
                 
-                <div className="p-4 border-t border-border-ice bg-frost/50 flex items-center justify-between">
+                {/* Editor Action Bar */}
+                <div className="p-4 border-t border-border-ice bg-snow flex items-center justify-between gap-4 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-cyan-accent" />
-                    <span className="text-[10px] text-muted uppercase tracking-widest font-bold">Queued for Administrator Review</span>
+                     <span className="text-[11px] font-bold text-muted uppercase tracking-[0.1em] line-clamp-1">Based on: {resource?.title}</span>
                   </div>
                   <button 
                     onClick={handleCopy} 
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-deep-ocean text-white text-xs font-bold hover:bg-ocean-navy transition-colors shadow-soft"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-border-ice rounded-md text-[13px] font-bold text-ink hover:border-glacial-blue transition-colors shadow-sm shrink-0"
                   >
-                    {copied ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy Text</>}
+                    {copied ? <><Check className="w-4 h-4 text-glacial-blue" /> Copied</> : <><Copy className="w-4 h-4" /> Copy Draft</>}
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="w-full h-full min-h-[500px] flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-border-ice shadow-soft">
-                <div className="w-8 h-8 rounded-full border-2 border-border-ice border-t-cyan-accent animate-spin mb-4" />
-                <p className="text-xs uppercase tracking-widest font-bold text-muted animate-pulse">Synthesizing Source Material...</p>
+              <div className="w-full h-full min-h-[400px] flex flex-col p-8 bg-white border border-border-ice rounded-lg mt-2 animate-pulse">
+                <div className="w-full h-6 bg-frost rounded-md mb-6 max-w-[60%]" />
+                <div className="flex flex-col gap-4">
+                  <div className="w-full h-4 bg-frost rounded-md" />
+                  <div className="w-[95%] h-4 bg-frost rounded-md" />
+                  <div className="w-[90%] h-4 bg-frost rounded-md" />
+                  <div className="w-[40%] h-4 bg-frost rounded-md" />
+                </div>
               </div>
             )}
           </div>
+          
         </div>
       </section>
     </div>

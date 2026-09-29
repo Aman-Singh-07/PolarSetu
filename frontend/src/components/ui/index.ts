@@ -5,3 +5,8 @@ export * from './Input';
 export * from './EmptyState';
 export * from './ErrorState';
 export * from './Skeleton';
+export * from './PageTransition';
+export * from './StatusLabel';
+export * from './MetadataRow';
+export * from './PageHeader';
+export * from './SearchBar';
