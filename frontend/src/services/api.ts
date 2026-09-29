@@ -1,4 +1,17 @@
-import type { Expedition, Resource, MediaItem, Station, AIResponse, OutreachDraft, Activity } from '../types';
+import type {
+  Expedition,
+  Resource,
+  MediaItem,
+  Station,
+  AIResponse,
+  OutreachDraft,
+  Activity,
+  CardTemplate,
+  SocialCardGeneration,
+  CurriculumConcept,
+  LessonPlanGeneration,
+  LessonPlanParams,
+} from '../types';
 import { mockStations } from '../data/mockData';
 
 export class ApiError extends Error {
@@ -33,48 +46,34 @@ async function fetchClient<T>(endpoint: string, options: RequestInit = {}): Prom
     headers,
   });
 
-  if (!response.ok) {
-    let message = 'An unexpected error occurred';
-    let code = 'UNKNOWN_ERROR';
-    try {
-      const errData = await response.json();
-      if (errData?.error) {
-        message = errData.error.message || message;
-        code = errData.error.code || code;
-      }
-    } catch {
-      // If parsing fails, fall back to default error text
-      message = response.statusText || message;
-    }
-    if (response.status === 401) {
-      // Clear token and redirect to login if unauthorized
-      auth.clearToken();
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-    }
-    
-    throw new ApiError(response.status, message, code);
+  if (response.status === 401) {
+    auth.clearToken();
+    window.location.href = '/login';
+    throw new ApiError(401, 'Unauthorized', 'UNAUTHORIZED');
   }
 
-  // Handle 204 No Content
-  if (response.status === 204) {
-    return {} as T;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(
+      response.status,
+      errorData.error?.message || errorData.message || 'API request failed',
+      errorData.error?.code || 'API_ERROR'
+    );
   }
 
   return response.json();
 }
 
 export const api = {
-  // --- AUTH ---
-  login: async (email: string, password: string): Promise<{ token: string; user: any }> => {
-    return fetchClient('/api/auth/login', {
+  login: async (email: string, password: string): Promise<{ token: string; user: { id: string; email: string; role: string } }> => {
+    const res = await fetchClient<{ token: string; user: { id: string; email: string; role: string } }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
+    auth.setToken(res.token);
+    return res;
   },
 
-  // --- EXPEDITIONS (Integrated with backend) ---
   getExpeditions: async (): Promise<Expedition[]> => {
     return fetchClient<Expedition[]>('/api/expeditions');
   },
@@ -83,37 +82,33 @@ export const api = {
     return fetchClient<Expedition & { resources?: Resource[] }>(`/api/expeditions/${id}`);
   },
 
-  // --- RESOURCES (Integrated with backend) ---
-  getResources: async (filters?: { type?: string; region?: string }): Promise<Resource[]> => {
-    const params = new URLSearchParams();
-    if (filters?.type) params.append('type', filters.type);
-    if (filters?.region) params.append('region', filters.region);
+  getResources: async (params?: {
+    type?: string;
+    region?: string;
+    year?: number;
+    status?: string;
+    expeditionId?: string;
+  }): Promise<Resource[]> => {
+    const query = new URLSearchParams();
+    if (params?.type) query.append('type', params.type);
+    if (params?.region) query.append('region', params.region);
+    if (params?.year) query.append('year', params.year.toString());
+    if (params?.status) query.append('status', params.status);
+    if (params?.expeditionId) query.append('expeditionId', params.expeditionId);
 
-    return fetchClient<Resource[]>(`/api/resources?${params.toString()}`);
+    const queryString = query.toString();
+    const endpoint = queryString ? `/api/resources?${queryString}` : '/api/resources';
+    return fetchClient<Resource[]>(endpoint);
   },
 
-  createResource: async (data: {
-    title: string;
-    type: string;
-    description?: string;
-    year?: number;
-    region?: string;
-    sourceUrl?: string;
-    license?: string;
-  }): Promise<Resource> => {
-    // Generate an ID if the backend expects the frontend to provide it
-    const id = crypto.randomUUID ? crypto.randomUUID() : `res-${Date.now()}`;
-    
+  createResource: async (resource: any): Promise<Resource> => {
     return fetchClient<Resource>('/api/resources', {
       method: 'POST',
-      body: JSON.stringify({
-        id,
-        ...data,
-      }),
+      body: JSON.stringify(resource),
     });
   },
 
-  uploadResourceFile: async (id: string, file: File): Promise<{ status: string; message: string; url: string }> => {
+  uploadResourceFile: async (id: string, file: File): Promise<{ storagePath: string }> => {
     const formData = new FormData();
     formData.append('file', file);
     
@@ -152,9 +147,6 @@ export const api = {
   getResource: async (id: string): Promise<Resource | undefined> => {
     try {
       const detail = await fetchClient<{ resource: Resource; expeditions: Expedition[] }>(`/api/resources/${id}`);
-      // Based on models.ResourceDetail which embeds Resource and has Expeditions
-      // The Go backend struct embeds Resource directly, so fields are flattened.
-      // E.g., { id, title, expeditions: [...] }
       return detail as unknown as Resource;
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
@@ -168,7 +160,6 @@ export const api = {
     const params = new URLSearchParams();
     if (query) params.append('q', query);
 
-    // search returns { query: string, results: Resource[] }
     const res = await fetchClient<{ query: string; results: Resource[] }>(`/api/search?${params.toString()}`, { signal });
     return res.results || [];
   },
@@ -179,27 +170,25 @@ export const api = {
 
   // --- OTHERS (Prototype / To Be Integrated) ---
 
-
   getMedia: async (): Promise<MediaItem[]> => {
     try {
-      return await fetchClient<MediaItem[]>('/api/media');
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 404) return [];
-      throw error;
-    }
-  },
-
-  getActivities: async (): Promise<Activity[]> => {
-    try {
-      return await fetchClient<Activity[]>('/api/activities');
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 404) return [];
-      throw error;
+      const liveMedia = await fetchClient<MediaItem[]>('/api/media');
+      return liveMedia;
+    } catch {
+      return [];
     }
   },
 
   getStations: async (): Promise<Station[]> => {
     return mockStations; // Hardcoded prototype stations
+  },
+
+  getActivities: async (): Promise<Activity[]> => {
+    try {
+      return fetchClient<Activity[]>('/api/activities');
+    } catch {
+      return [];
+    }
   },
 
   askPolarAI: async (request: { question: string; resourceId?: string }): Promise<AIResponse> => {
@@ -209,14 +198,69 @@ export const api = {
         body: JSON.stringify({ question: request.question, resource_ids: request.resourceId ? [request.resourceId] : undefined })
       });
     } catch {
-      return { answer: "AI service currently unreachable.", sources: [], evidenceStatus: "Error" };
+      return { answer: "AI service currently unreachable.", sources: [], evidenceStatus: "Insufficient" };
     }
   },
 
-  generateOutreach: async (request: { sourceId: string; audience: string; format: string }): Promise<OutreachDraft> => {
+  generateOutreach: async (request: { sourceId: string; audience: string; format: string; lang?: string }): Promise<OutreachDraft> => {
     return fetchClient<OutreachDraft>('/api/ai/outreach', {
       method: 'POST',
       body: JSON.stringify(request)
+    });
+  },
+
+  generateSocialCard: async (request: {
+    resource_ids: string[];
+    media_id: number;
+    template?: CardTemplate;
+    lang?: string;
+  }): Promise<SocialCardGeneration> => {
+    return fetchClient<SocialCardGeneration>('/api/ai/social-card', {
+      method: 'POST',
+      body: JSON.stringify(request)
+    });
+  },
+
+  // ─── Curriculum & Lesson Plans ───────────────────────────────────
+
+  getCurriculumConcepts: async (params?: { class?: number; subject?: string }): Promise<CurriculumConcept[]> => {
+    const query = new URLSearchParams();
+    if (params?.class) query.append('class', params.class.toString());
+    if (params?.subject) query.append('subject', params.subject);
+    const queryString = query.toString();
+    const endpoint = queryString ? `/api/curriculum/concepts?${queryString}` : '/api/curriculum/concepts';
+    return fetchClient<CurriculumConcept[]>(endpoint);
+  },
+
+  getCurriculumConceptResources: async (conceptId: number | string): Promise<Resource[]> => {
+    return fetchClient<Resource[]>(`/api/curriculum/concepts/${conceptId}/resources`);
+  },
+
+  getLessonPlans: async (classNum?: number): Promise<OutreachDraft[]> => {
+    const query = new URLSearchParams();
+    if (classNum) query.append('class', classNum.toString());
+    const queryString = query.toString();
+    const endpoint = queryString ? `/api/curriculum/lesson-plans?${queryString}` : '/api/curriculum/lesson-plans';
+    return fetchClient<OutreachDraft[]>(endpoint);
+  },
+
+  tagResourceToConcept: async (resourceId: string, conceptId: number): Promise<{ status: string; message: string }> => {
+    return fetchClient<{ status: string; message: string }>('/api/curriculum/tags', {
+      method: 'POST',
+      body: JSON.stringify({ resource_id: resourceId, concept_id: conceptId }),
+    });
+  },
+
+  untagResourceFromConcept: async (resourceId: string, conceptId: number): Promise<{ status: string; message: string }> => {
+    return fetchClient<{ status: string; message: string }>(`/api/curriculum/concepts/${conceptId}/resources/${resourceId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  generateLessonPlan: async (request: LessonPlanParams): Promise<LessonPlanGeneration> => {
+    return fetchClient<LessonPlanGeneration>('/api/ai/lesson-plan', {
+      method: 'POST',
+      body: JSON.stringify(request),
     });
   },
 

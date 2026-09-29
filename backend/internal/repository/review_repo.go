@@ -19,9 +19,9 @@ func NewReviewRepo(pool *pgxpool.Pool) *ReviewRepo {
 // GetPendingQueue returns all AI generations currently in DRAFT status.
 func (r *ReviewRepo) GetPendingQueue(ctx context.Context) ([]models.AIGeneration, error) {
 	query := `
-		SELECT id, user_id, source_ids, audience, output_type, content, status, created_at 
-		FROM ai_generations 
-		WHERE status = 'DRAFT' 
+		SELECT id, user_id, source_ids, audience, output_type, content, status, created_at, COALESCE(metadata, '{}'::jsonb)
+		FROM ai_generations
+		WHERE status = 'DRAFT'
 		ORDER BY created_at DESC
 	`
 	rows, err := r.pool.Query(ctx, query)
@@ -33,7 +33,7 @@ func (r *ReviewRepo) GetPendingQueue(ctx context.Context) ([]models.AIGeneration
 	var queue []models.AIGeneration
 	for rows.Next() {
 		var g models.AIGeneration
-		if err := rows.Scan(&g.ID, &g.UserID, &g.SourceIDs, &g.Audience, &g.OutputType, &g.Content, &g.Status, &g.CreatedAt); err != nil {
+		if err := rows.Scan(&g.ID, &g.UserID, &g.SourceIDs, &g.Audience, &g.OutputType, &g.Content, &g.Status, &g.CreatedAt, &g.Metadata); err != nil {
 			return nil, err
 		}
 		queue = append(queue, g)
@@ -51,13 +51,17 @@ func (r *ReviewRepo) UpdateStatus(ctx context.Context, id int, status string) er
 // SaveDraft inserts a new AI generation straight into the draft queue.
 func (r *ReviewRepo) SaveDraft(ctx context.Context, draft models.AIGeneration) (*models.AIGeneration, error) {
 	var g models.AIGeneration
+	meta := draft.Metadata
+	if len(meta) == 0 {
+		meta = []byte("{}")
+	}
 	query := `
-		INSERT INTO ai_generations (user_id, source_ids, audience, output_type, content, status)
-		VALUES ($1, $2, $3, $4, $5, 'DRAFT')
-		RETURNING id, user_id, source_ids, audience, output_type, content, status, created_at
+		INSERT INTO ai_generations (user_id, source_ids, audience, output_type, content, status, metadata)
+		VALUES ($1, $2, $3, $4, $5, 'DRAFT', $6)
+		RETURNING id, user_id, source_ids, audience, output_type, content, status, created_at, COALESCE(metadata, '{}'::jsonb)
 	`
-	err := r.pool.QueryRow(ctx, query, draft.UserID, draft.SourceIDs, draft.Audience, draft.OutputType, draft.Content).
-		Scan(&g.ID, &g.UserID, &g.SourceIDs, &g.Audience, &g.OutputType, &g.Content, &g.Status, &g.CreatedAt)
+	err := r.pool.QueryRow(ctx, query, draft.UserID, draft.SourceIDs, draft.Audience, draft.OutputType, draft.Content, meta).
+		Scan(&g.ID, &g.UserID, &g.SourceIDs, &g.Audience, &g.OutputType, &g.Content, &g.Status, &g.CreatedAt, &g.Metadata)
 
 	if err != nil {
 		return nil, err

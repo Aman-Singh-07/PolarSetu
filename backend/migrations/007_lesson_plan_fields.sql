@@ -1,0 +1,7 @@
+-- Migration 007_lesson_plan_fields.sql:
+-- Extend ai_generations to store structured lesson plan data
+-- Uses the existing 'metadata' JSONB column added in 005
+-- No additional columns needed; output_type = 'Lesson Plan'
+-- The 'content' column stores the full structured JSON
+-- The 'metadata' column stores curriculum context:
+-- { "class": 10, "subject": "Science", "concept_id": 5, "lang": "en" }

@@ -5,6 +5,7 @@ import (
 	"PolarSetu/internal/handlers"
 	"PolarSetu/internal/middleware"
 	"PolarSetu/internal/repository"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -14,16 +15,17 @@ import (
 func Setup(pool *pgxpool.Pool, cfg *config.Config) *gin.Engine {
 	r := gin.Default()
 
-	// Implement strict CORS for frontend-backend handshake
+	// CORS Setup
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"}, // Vite/React defaults
+		AllowOrigins:     []string{"http://localhost:5173", "http://127.0.0.1:5173"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 	}))
 
-	// Repos
+	// Repositories
 	userRepo := repository.NewUserRepo(pool)
 	expeditionRepo := repository.NewExpeditionRepo(pool)
 	resourceRepo := repository.NewResourceRepo(pool)
@@ -32,6 +34,7 @@ func Setup(pool *pgxpool.Pool, cfg *config.Config) *gin.Engine {
 	searchRepo := repository.NewSearchRepo(pool)
 	reviewRepo := repository.NewReviewRepo(pool)
 	provenanceRepo := repository.NewProvenanceRepo(pool)
+	curriculumRepo := repository.NewCurriculumRepo(pool)
 
 	// Handlers
 	authHandler := handlers.NewAuthHandler(userRepo, cfg.JWTSecret)
@@ -41,8 +44,9 @@ func Setup(pool *pgxpool.Pool, cfg *config.Config) *gin.Engine {
 	activityHandler := handlers.NewActivityHandler(activityRepo)
 	searchHandler := handlers.NewSearchHandler(searchRepo, resourceRepo)
 	reviewHandler := handlers.NewReviewHandler(reviewRepo)
-	aiHandler := handlers.NewAIHandler(resourceRepo, reviewRepo, searchRepo)
+	aiHandler := handlers.NewAIHandler(resourceRepo, reviewRepo, searchRepo, mediaRepo, curriculumRepo)
 	provenanceHandler := handlers.NewProvenanceHandler(provenanceRepo)
+	curriculumHandler := handlers.NewCurriculumHandler(curriculumRepo, resourceRepo)
 
 	api := r.Group("/api")
 	{
@@ -65,8 +69,19 @@ func Setup(pool *pgxpool.Pool, cfg *config.Config) *gin.Engine {
 		// Search Route
 		api.GET("/search", searchHandler.Search)
 
-		// AI Q&A (Read-only generation is usually open)
+		// Curriculum Routes
+		api.GET("/curriculum/concepts", curriculumHandler.ListConcepts)
+		api.GET("/curriculum/concepts/:id/resources", curriculumHandler.GetResourcesForConcept)
+		api.GET("/curriculum/lesson-plans", curriculumHandler.ListLessonPlans)
+		api.POST("/curriculum/tags", curriculumHandler.TagResource)
+		api.POST("/curriculum/concepts/:id/resources", curriculumHandler.TagResource)
+		api.DELETE("/curriculum/concepts/:id/resources/:resourceId", curriculumHandler.UntagResource)
+
+		// AI Q&A & Generation Routes
 		api.POST("/ai/ask", aiHandler.Ask)
+		api.POST("/ai/social-card", aiHandler.GenerateSocialCard)
+		api.POST("/ai/social-card/:id/render", aiHandler.RenderSocialCard)
+		api.POST("/ai/lesson-plan", aiHandler.GenerateLessonPlan)
 
 		// Protected Routes
 		// (Requires a valid JWT Bearer Token generated from /api/auth/login)
@@ -80,6 +95,10 @@ func Setup(pool *pgxpool.Pool, cfg *config.Config) *gin.Engine {
 
 			// AI Generation Write Routes
 			protected.POST("/ai/outreach", aiHandler.GenerateOutreach)
+
+			// Curriculum Tagging (Admin protected alternative)
+			protected.POST("/admin/curriculum/tags", curriculumHandler.TagResource)
+			protected.DELETE("/admin/curriculum/tags/:id/:resourceId", curriculumHandler.UntagResource)
 
 			// General Create Actions
 			protected.POST("/expeditions", expeditionHandler.Create)

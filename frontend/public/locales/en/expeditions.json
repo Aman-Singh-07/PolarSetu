@@ -1,0 +1,33 @@
+{
+  "title": "Indian Polar Expeditions",
+  "subtitle": "Comprehensive chronology of scientific expeditions to Antarctica, the Arctic, and the Southern Ocean since 1981.",
+  "searchPlaceholder": "Search expeditions by name, year, or region...",
+  "region": {
+    "all": "All Regions",
+    "antarctica": "Antarctica",
+    "arctic": "Arctic",
+    "southernocean": "Southern Ocean",
+    "himalayas": "Himalayas"
+  },
+  "count": "{{count}} Expeditions",
+  "count_one": "{{count}} Expedition",
+  "emptyTitle": "No expeditions found",
+  "emptyDesc": "No expeditions matched your selected region or search query.",
+  "card": {
+    "viewDetails": "View Expedition",
+    "year": "Year {{year}}",
+    "objective": "Objective"
+  },
+  "detail": {
+    "back": "Expeditions",
+    "objective": "Mission Objective",
+    "timeline": "Timeline & Operational Window",
+    "coordinates": "Coordinates",
+    "officialRef": "Official Reference",
+    "associatedOutputs": "Associated Research & Outputs",
+    "createCard": "Create Social Card",
+    "noResources": "No research outputs currently linked with this expedition.",
+    "notFound": "Expedition Not Found",
+    "notFoundDesc": "The requested expedition record does not exist or may have been archived."
+  }
+}

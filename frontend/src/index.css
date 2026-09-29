@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
-
 @theme {
   --color-deep-ocean: #071426;
   --color-ocean-navy: #0B1F3A;
@@ -98,6 +97,8 @@
     background: var(--color-snow);
   }
 
+
+
   ::selection {
     background-color: rgba(56, 189, 248, 0.18);
     color: var(--color-deep-ocean);
@@ -184,3 +185,5 @@
   right: 12px !important;
   color: #64748b !important;
 }
+
+

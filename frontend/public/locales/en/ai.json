@@ -1,0 +1,23 @@
+{
+  "title": "PolarSetu AI Assistant",
+  "subtitle": "Grounded scientific Q&A strictly cited from certified MoES and NCPOR polar research records.",
+  "inputPlaceholder": "Ask a question about Indian polar research, expeditions, or climate findings...",
+  "buttonAsk": "Ask Assistant",
+  "buttonThinking": "Analyzing Polar Records...",
+  "speechListening": "Listening... Speak your scientific query",
+  "speechError": "Speech recognition error: {{message}}",
+  "speechNotSupported": "Speech recognition is not supported in this browser.",
+  "suggestedTitle": "Suggested Inquiries",
+  "suggested": [
+    "What are India's operational stations in Antarctica?",
+    "How does Himadri contribute to Arctic climate studies?",
+    "What research does Bharati station conduct in solid earth sciences?",
+    "Explain India's Southern Ocean expedition objectives."
+  ],
+  "sourcesTitle": "Cited Evidence & Publications",
+  "evidence": {
+    "verified": "Verified from PolarSetu Records",
+    "insufficient": "Insufficient Repository Evidence"
+  },
+  "disclaimer": "Responses are synthesized by an AI assistant strictly grounded in indexed NCPOR/MoES publications. Verify official citations before academic publication."
+}

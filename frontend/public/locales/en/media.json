@@ -1,0 +1,19 @@
+{
+  "title": "Polar Media Archive",
+  "subtitle": "High-resolution photographic documentation and video footage from Indian polar stations and research vessels.",
+  "filter": {
+    "all": "All Formats",
+    "photo": "Photography",
+    "video": "Video Footage"
+  },
+  "count": "{{count}} Media Items",
+  "count_one": "{{count}} Media Item",
+  "card": {
+    "createOutreach": "Create Outreach Card",
+    "viewOriginal": "View Original Asset",
+    "photoLabel": "PHOTO",
+    "videoLabel": "VIDEO"
+  },
+  "emptyTitle": "No media assets found",
+  "emptyDesc": "No media items matched the selected format filter."
+}

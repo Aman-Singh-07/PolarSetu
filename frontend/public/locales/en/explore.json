@@ -1,0 +1,33 @@
+{
+  "title": "Polar Research Archive",
+  "subtitle": "Search peer-reviewed papers, expeditions, official datasets, and polar field reports.",
+  "searchPlaceholder": "Search by title, keyword, author, or expedition...",
+  "type": {
+    "all": "All Types",
+    "publication": "Publications",
+    "dataset": "Datasets",
+    "report": "Reports",
+    "expedition": "Expedition Records",
+    "other": "Other Resources"
+  },
+  "region": {
+    "all": "All Regions",
+    "antarctica": "Antarctica",
+    "arctic": "Arctic",
+    "southernocean": "Southern Ocean",
+    "himalayas": "Himalayas"
+  },
+  "resultsCount": "{{count}} records found",
+  "resultsCount_one": "{{count}} record found",
+  "emptyTitle": "No records match your criteria",
+  "emptyDesc": "Try adjusting your search terms or clearing your filters.",
+  "clearFilters": "Clear all filters",
+  "provenanceTitle": "Provenance & Metadata",
+  "relationsTitle": "Linked Expedition & Resources",
+  "associatedExpedition": "Associated Expedition",
+  "backToArchive": "Back to Archive",
+  "openSource": "Access Primary Source",
+  "generateOutreach": "Create Outreach Material",
+  "recordNotFound": "Record Not Found",
+  "recordNotFoundDesc": "The requested resource does not exist or has been removed from the archive."
+}

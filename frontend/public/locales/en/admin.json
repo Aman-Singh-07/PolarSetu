@@ -1,0 +1,63 @@
+{
+  "dashboard": {
+    "title": "Mission Command & Dashboard",
+    "subtitle": "Certified repository governance, AI content review, and infrastructure monitoring.",
+    "stats": {
+      "resources": "Total Resources",
+      "expeditions": "Expeditions",
+      "pendingReview": "Pending Review",
+      "activities": "System Events"
+    },
+    "quickActions": {
+      "title": "Quick Administrative Actions",
+      "upload": "Ingest New Record",
+      "uploadDesc": "Upload research paper, dataset, or multimedia assets to archive.",
+      "review": "Editorial Review Queue",
+      "reviewDesc": "Review and approve pending AI-generated outreach and lesson plans.",
+      "browse": "Public Portal View",
+      "browseDesc": "Verify search indexing and public repository presentation."
+    }
+  },
+  "review": {
+    "title": "Editorial Review Queue",
+    "subtitle": "Human-in-the-loop governance for AI-generated outreach drafts, social cards, and lesson plans.",
+    "empty": "No drafts awaiting editorial review.",
+    "approve": "Approve & Publish",
+    "reject": "Reject Draft",
+    "approving": "Approving...",
+    "rejecting": "Rejecting...",
+    "statusAwaiting": "Awaiting Approval",
+    "statusApproved": "Approved",
+    "statusRejected": "Rejected",
+    "target": "Target Audience",
+    "sourceEntity": "Source Entity",
+    "visualPreview": "Visual Card Preview",
+    "groundedBadge": "Grounded",
+    "checkSourcesBadge": "Check Sources",
+    "langBadgeEn": "EN English"
+  },
+  "upload": {
+    "title": "Resource Ingestion & Cataloging",
+    "subtitle": "Upload and catalog research publications, datasets, expedition logs, or field imagery.",
+    "dragDrop": "Drag & drop files here, or browse files",
+    "titleLabel": "Resource Title",
+    "typeLabel": "Resource Type",
+    "domainLabel": "Geographic Domain",
+    "descLabel": "Scientific Description / Abstract",
+    "authorsLabel": "Authors / Lead Investigators",
+    "yearLabel": "Publication Year",
+    "keywordsLabel": "Keywords (comma-separated)",
+    "expeditionLabel": "Associated Expedition",
+    "submitBtn": "Upload & Index Record",
+    "uploadSuccess": "Resource ingested and cataloged successfully."
+  },
+  "login": {
+    "title": "System Access",
+    "subtitle": "POLARSETU Admin Console",
+    "emailLabel": "Email Address",
+    "passwordLabel": "Password",
+    "submitBtn": "Sign In to Console",
+    "demoBtn": "Fill Demo Admin Credentials",
+    "signingIn": "Authenticating..."
+  }
+}

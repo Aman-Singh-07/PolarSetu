@@ -1,0 +1,30 @@
+{
+  "title": "Interactive Polar Atlas",
+  "subtitle": "Geospatial visualization of Indian polar research stations, field camps, and expedition tracks.",
+  "hud": {
+    "viewTitle": "Projection & Region",
+    "layersTitle": "Map Layers",
+    "statusIndicator": "Live Feed Active",
+    "stationsActive": "Permanent Stations: 4"
+  },
+  "view": {
+    "global": "Global",
+    "antarctica": "Antarctica",
+    "arctic": "Arctic",
+    "himalayas": "Himalayas"
+  },
+  "layers": {
+    "stations": "Research Stations",
+    "expeditions": "Expedition Waypoints"
+  },
+  "popup": {
+    "station": "Research Station",
+    "expedition": "Expedition Waypoint",
+    "operationalStatus": "Operational Status",
+    "yearRound": "Year-Round Operation",
+    "summerOnly": "Seasonal Operation",
+    "coordinates": "Coordinates",
+    "viewExpedition": "View Expedition Log",
+    "exploreResearch": "Explore Station Research"
+  }
+}

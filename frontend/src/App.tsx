@@ -10,6 +10,7 @@ import Media from './pages/Media';
 import MapPage from './pages/MapPage';
 import AskAI from './pages/AskAI';
 import Outreach from './pages/Outreach';
+import LessonPlans from './pages/LessonPlans';
 import Admin from './pages/Admin';
 import AdminUpload from './pages/AdminUpload';
 import AdminReview from './pages/AdminReview';
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="expeditions/:id" element={<ExpeditionDetail />} />
           <Route path="research/:id" element={<ResourceDetail />} />
           <Route path="media" element={<Media />} />
+          <Route path="lesson-plans" element={<LessonPlans />} />
           <Route path="map" element={<MapPage />} />
           <Route path="ai" element={<AskAI />} />
           <Route path="outreach" element={<Outreach />} />

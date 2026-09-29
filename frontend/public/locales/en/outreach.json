@@ -1,0 +1,71 @@
+{
+  "tabs": {
+    "textDraft": "Text Draft",
+    "socialCard": "Social Card"
+  },
+  "header": {
+    "badge": "Outreach Engine",
+    "title": "Outreach Studio",
+    "description": "Generate evidence-based communication drafts and branded visual social cards, grounded in verified polar research."
+  },
+  "config": {
+    "sourceMaterial": "Source Material",
+    "targetAudience": "Target Audience",
+    "outputFormat": "Output Format",
+    "selectExpedition": "Select Expedition",
+    "chooseExpedition": "Choose an expedition...",
+    "selectPhoto": "Select Expedition Photo",
+    "selectTemplate": "Card Aspect Ratio",
+    "language": "Language",
+    "statOverride": "Key Statistic / Headline",
+    "captionOverride": "Outreach Caption",
+    "generateCard": "Generate Card",
+    "generatingCard": "Generating Card...",
+    "generateDraft": "Generate Draft",
+    "generatingDraft": "Generating Draft...",
+    "removeSource": "Remove Source",
+    "noSource": "No source record selected for translation.",
+    "browseRepository": "Browse Repository",
+    "noPhotos": "No photos catalogued for this expedition.",
+    "photoFallback": "Photo unavailable — using gradient fallback",
+    "charsWords": "{{count}} words (recommended max 15)"
+  },
+  "preview": {
+    "title": "Card Preview",
+    "emptyTitle": "Studio Canvas Ready",
+    "emptyDesc": "Select an expedition and photo to generate a branded, publication-ready polar social card.",
+    "browseExpeditions": "Browse Expeditions",
+    "downloadPng": "Download PNG",
+    "downloading": "Exporting PNG...",
+    "submit": "Submit for Review",
+    "submitReview": "Submit for Review",
+    "submitting": "Submitting...",
+    "submitted": "Submitted for Review ✓",
+    "citationValid": "Citation Verified",
+    "citationFlagged": "Source Citation Flagged",
+    "previewScale": "Preview scaled to fit viewport"
+  },
+  "button": {
+    "submit": "Submit for Review",
+    "submitReview": "Submit for Review",
+    "submitting": "Submitting...",
+    "submitted": "Submitted for Review ✓",
+    "download": "Download PNG",
+    "generate": "Generate Card"
+  },
+  "button.submit": "Submit for Review",
+  "button.submitting": "Submitting...",
+  "button.submitted": "Submitted for Review ✓",
+  "submitForReview": "Submit for Review",
+  "submitReview": "Submit for Review",
+  "branding": {
+    "name": "PolarSetu",
+    "tagline": "MoES · NCPOR · PolarSetu"
+  },
+  "errors": {
+    "aiFailed": "AI generation failed. Please try again.",
+    "noResources": "No research resources found for this expedition.",
+    "noPhotoSelected": "Please select a photo from the media gallery.",
+    "exportFailed": "Failed to export image. Please try again."
+  }
+}

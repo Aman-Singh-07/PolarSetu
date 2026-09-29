@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -88,14 +89,75 @@ type Media struct {
 }
 
 type AIGeneration struct {
-	ID         int       `json:"id,string"`
-	UserID     *int      `json:"userId,string"` // Can be null if system generated
-	SourceIDs  []string  `json:"sourceIds"`
-	Audience   string    `json:"audience"`
-	OutputType string    `json:"outputType"`
-	Content    string    `json:"content"`
-	Status     string    `json:"status"` // DRAFT, APPROVED, REJECTED
-	CreatedAt  time.Time `json:"createdAt"`
+	ID         int             `json:"id,string"`
+	UserID     *int            `json:"userId,string"` // Can be null if system generated
+	SourceIDs  []string        `json:"sourceIds"`
+	Audience   string          `json:"audience"`
+	OutputType string          `json:"outputType"`
+	Content    string          `json:"content"`
+	Status     string          `json:"status"` // DRAFT, APPROVED, REJECTED
+	CreatedAt  time.Time       `json:"createdAt"`
+	Metadata   json.RawMessage `json:"metadata,omitempty"`
+}
+
+type CurriculumConcept struct {
+	ID          int      `json:"id,string"`
+	Class       int      `json:"class"`
+	Subject     string   `json:"subject"`
+	Concept     string   `json:"concept"`
+	NEPTags     []string `json:"nepTags"`
+	Description string   `json:"description"`
+}
+
+// ─── Lesson Plan Domain Types ─────────────────────────────────────────
+
+type PlanSource struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+}
+
+type TeacherBrief struct {
+	Content         string       `json:"content"`
+	DurationMinutes int          `json:"duration_minutes"`
+	Sources         []PlanSource `json:"sources"`
+}
+
+type DiscussionQuestion struct {
+	Question string       `json:"question"`
+	Answer   string       `json:"answer"`
+	Sources  []PlanSource `json:"sources"`
+}
+
+type Experiment struct {
+	Title      string       `json:"title"`
+	Materials  []string     `json:"materials"`
+	Steps      []string     `json:"steps"`
+	Connection string       `json:"connection"`
+	Sources    []PlanSource `json:"sources"`
+}
+
+type LessonPlanStructure struct {
+	TeacherBrief        TeacherBrief         `json:"teacher_brief"`
+	DiscussionQuestions []DiscussionQuestion `json:"discussion_questions"`
+	Experiment          Experiment           `json:"experiment"`
+}
+
+type LessonPlanResponse struct {
+	ID            int                 `json:"id"`
+	Plan          LessonPlanStructure `json:"plan"`
+	CitationValid bool                `json:"citation_valid"`
+	Status        string              `json:"status"`
+	Warnings      []string            `json:"warnings,omitempty"`
+}
+
+type LessonPlanMetadata struct {
+	Class         int      `json:"class"`
+	Subject       string   `json:"subject"`
+	ConceptID     int      `json:"concept_id"`
+	Concept       string   `json:"concept"`
+	Lang          string   `json:"lang"`
+	CitationValid bool     `json:"citation_valid"`
+	Warnings      []string `json:"warnings,omitempty"`
 }
 
 type AuditLog struct {

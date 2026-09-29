@@ -44,6 +44,7 @@ export interface MediaItem extends Resource {
   caption?: string;
   location?: string;
   thumbnailUrl?: string;
+  attribution?: string;
 }
 
 export interface Station {
@@ -58,7 +59,7 @@ export interface Station {
     temperature: string;
     wind: string;
     humidity: string;
-  }
+  };
 }
 
 export interface SourceCitation {
@@ -83,6 +84,22 @@ export interface OutreachDraft {
   sourceIds: string[];
   status: ResourceStatus;
   createdAt: string;
+  metadata?: {
+    template?: string;
+    media_id?: number;
+    stat_text?: string;
+    caption?: string;
+    resource_url?: string;
+    citation_valid?: boolean;
+    lang?: string;
+    rendered_image_path?: string;
+    class?: number;
+    subject?: string;
+    concept_id?: number;
+    concept?: string;
+    warnings?: string[];
+    [key: string]: any;
+  };
 }
 
 export interface Activity {
@@ -93,4 +110,103 @@ export interface Activity {
   sourceUrl?: string;
   mediaUrl?: string;
   createdAt?: string;
+}
+
+export type CardTemplate = '1:1' | '16:9' | '9:16';
+
+export interface SocialCardGeneration {
+  id: number;
+  stat_text: string;
+  caption: string;
+  source_ids: string[];
+  citation_valid: boolean;
+  status: ResourceStatus;
+}
+
+export interface CardConfig {
+  template: CardTemplate;
+  media: MediaItem;
+  statText: string;
+  caption: string;
+  resourceUrl: string;
+  lang: string;
+}
+
+// ─── Curriculum & Lesson Plan Types ───────────────────────────────────
+
+export interface CurriculumConcept {
+  id: string;
+  class: number;
+  subject: string;
+  concept: string;
+  nepTags: string[];
+  description: string;
+}
+
+export interface PlanSource {
+  id: string;
+  title: string;
+}
+
+export interface TeacherBrief {
+  content: string;
+  duration_minutes: number;
+  sources: PlanSource[];
+}
+
+export interface DiscussionQuestion {
+  question: string;
+  answer: string;
+  sources: PlanSource[];
+}
+
+export interface Experiment {
+  title: string;
+  materials: string[];
+  steps: string[];
+  connection: string;
+  sources: PlanSource[];
+}
+
+export interface LessonPlanStructure {
+  teacher_brief: TeacherBrief;
+  discussion_questions: DiscussionQuestion[];
+  experiment: Experiment;
+}
+
+export type LessonPlan = LessonPlanStructure;
+
+export interface LessonPlanGeneration {
+  id: number;
+  plan: LessonPlanStructure;
+  citation_valid: boolean;
+  status: ResourceStatus;
+  warnings?: string[];
+}
+
+export interface LessonPlanParams {
+  concept_id: number;
+  resource_ids: string[];
+  lang?: string;
+}
+
+export interface SavedLessonPlan {
+  id: number | string;
+  userId?: number | null;
+  sourceIds: string[];
+  audience: string;
+  outputType: string;
+  content: string;
+  status: ResourceStatus;
+  createdAt: string;
+  metadata?: {
+    class?: number;
+    subject?: string;
+    concept_id?: number;
+    concept?: string;
+    lang?: string;
+    citation_valid?: boolean;
+    warnings?: string[];
+    [key: string]: any;
+  };
 }
