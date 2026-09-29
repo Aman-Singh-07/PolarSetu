@@ -5,6 +5,7 @@ import (
 	"PolarSetu/internal/handlers"
 	"PolarSetu/internal/middleware"
 	"PolarSetu/internal/repository"
+	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -16,8 +17,12 @@ func Setup(pool *pgxpool.Pool, cfg *config.Config) *gin.Engine {
 	r := gin.Default()
 
 	// CORS Setup
+	allowedOrigins := []string{"http://localhost:5173", "http://127.0.0.1:5173"}
+	if frontendURL := os.Getenv("FRONTEND_URL"); frontendURL != "" {
+		allowedOrigins = append(allowedOrigins, frontendURL)
+	}
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://127.0.0.1:5173"},
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
