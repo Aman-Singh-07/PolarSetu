@@ -296,7 +296,7 @@ export const SocialCardStudio: React.FC = () => {
               ) : (
                 <>
                   <Download className="w-4 h-4 text-cyan-accent" />
-                  <span>{t('button.download', { defaultValue: t('preview.downloadPng', 'Download PNG (1080×1080)') })}</span>
+                  <span className="text-white">{t('button.download', 'Download PNG (1080×1080)')}</span>
                 </>
               )}
             </Button>
@@ -315,17 +315,17 @@ export const SocialCardStudio: React.FC = () => {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>{t('button.submitting', { defaultValue: t('preview.submitting', 'Submitting...') })}</span>
+                  <span className="text-deep-ocean group-hover:text-deep-ocean">{t('button.submitting', 'Submitting...')}</span>
                 </>
               ) : submitted ? (
                 <>
                   <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-                  <span>{t('button.submitted', { defaultValue: t('preview.submitted', 'Submitted for Review ✓') })}</span>
+                  <span className="text-deep-ocean group-hover:text-deep-ocean">{t('button.submitted', 'Submitted for Review ✓')}</span>
                 </>
               ) : (
                 <>
                   <Send className="w-4 h-4 text-cyan-accent" />
-                  <span>{t('button.submit', { defaultValue: t('preview.submitReview', 'Submit for Review') })}</span>
+                  <span className="text-deep-ocean group-hover:text-deep-ocean">{t('button.submit', 'Submit for Review')}</span>
                 </>
               )}
             </Button>

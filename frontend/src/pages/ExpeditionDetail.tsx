@@ -11,6 +11,8 @@ export default function ExpeditionDetail() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -25,6 +27,30 @@ export default function ExpeditionDetail() {
         if (exp) { 
           setExpedition(exp); 
           setResources(exp.resources || []); 
+          
+          // Trigger AI summary generation if resources exist
+          if (exp.resources && exp.resources.length > 0) {
+             setLoadingSummary(true);
+             const resourceIds = exp.resources.map((r: any) => r.id);
+             
+             fetch('/api/ai/ask', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({
+                 question: `Based solely on these resources, write a professional, compelling, and concise 2-paragraph summary of the ${exp.name} (${exp.year}). Focus on the main scientific activities, discoveries, and their significance. Do not include citations like [Source: X].`,
+                 resource_ids: resourceIds
+               })
+             })
+             .then(res => res.json())
+             .then(data => {
+                if (data && data.answer) {
+                  let cleaned = data.answer.replace(/\[Source:.*?\]/g, '').trim();
+                  setSummary(cleaned);
+                }
+             })
+             .catch(err => console.error("Summary AI failed:", err))
+             .finally(() => setLoadingSummary(false));
+          }
         } else {
           setNotFound(true);
         }
@@ -134,6 +160,32 @@ export default function ExpeditionDetail() {
                 <p className="text-[16px] text-ink/80 leading-[1.7] whitespace-pre-line">
                   {expedition.objective}
                 </p>
+              </div>
+            )}
+
+            {/* AI Summary Block */}
+            {resources.length > 0 && (
+              <div className="bg-white rounded-[12px] border border-border-ice p-6 md:p-8 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-accent to-glacial-blue" />
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="w-4 h-4 text-cyan-accent" />
+                  <h2 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-deep-ocean">AI SYNTHESIZED EXPEDITION SUMMARY</h2>
+                </div>
+                
+                {loadingSummary ? (
+                  <div className="flex flex-col gap-3">
+                    <Skeleton className="h-4 w-full rounded" />
+                    <Skeleton className="h-4 w-[90%] rounded" />
+                    <Skeleton className="h-4 w-[95%] rounded" />
+                    <Skeleton className="h-4 w-[60%] rounded mt-2" />
+                  </div>
+                ) : summary ? (
+                  <div className="text-[15.5px] text-ink/80 leading-[1.8] whitespace-pre-line font-medium text-justify">
+                    {summary}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted">Summary unavailable.</p>
+                )}
               </div>
             )}
 
