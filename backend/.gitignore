@@ -30,3 +30,12 @@ testserver.exe
 # OS-specific files
 .DS_Store
 Thumbs.db
+# Tests & Binaries
+testserver
+testai.go
+test_api.sh
+server
+*.sql.patch
+fix.sql
+seed_tags.sql
+cleanup.sql

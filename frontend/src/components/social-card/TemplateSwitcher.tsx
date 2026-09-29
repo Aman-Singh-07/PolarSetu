@@ -19,13 +19,13 @@ const TEMPLATES: TemplateOption[] = [
     id: '16:9',
     label: '16:9 Landscape',
     sublabel: 'Twitter, LinkedIn (1920×1080)',
-    ratioClass: 'w-8 h-4.5',
+    ratioClass: 'w-8 h-[18px]',
   },
   {
     id: '9:16',
     label: '9:16 Story',
     sublabel: 'Stories, Reels (1080×1920)',
-    ratioClass: 'w-4.5 h-8',
+    ratioClass: 'w-[18px] h-8',
   },
 ];
 
@@ -53,7 +53,7 @@ export const TemplateSwitcher: React.FC<TemplateSwitcherProps> = ({
               aria-checked={isSelected}
               disabled={disabled}
               onClick={() => onChange(tmpl.id)}
-              className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${
+              className={`h-full w-full flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${
                 isSelected
                   ? 'bg-deep-ocean text-white border-cyan-accent shadow-soft ring-1 ring-cyan-accent'
                   : 'bg-white border-border-ice text-ink hover:border-cyan-accent/50 hover:bg-frost/40'
