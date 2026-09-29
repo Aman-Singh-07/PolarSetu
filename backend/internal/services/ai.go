@@ -29,6 +29,13 @@ type GroqResponse struct {
 	} `json:"choices"`
 }
 
+func getGroqModel() string {
+	if m := os.Getenv("GROQ_MODEL"); m != "" {
+		return m
+	}
+	return "openai/gpt-oss-120b"
+}
+
 // AskPolarSetu executes a grounded Q&A against Groq.
 func AskPolarSetu(question string, contextText string, sourceIds []string) (string, error) {
 	apiKey := os.Getenv("GROQ_API_KEY")
@@ -46,7 +53,7 @@ Rules:
 	userPrompt := fmt.Sprintf("Context:\n%s\n\nQuestion: %s", contextText, question)
 
 	reqBody := GroqRequest{
-		Model: "openai/gpt-oss-120b",
+		Model: getGroqModel(),
 		Messages: []GroqMessage{
 			{Role: "system", Content: systemPrompt},
 			{Role: "user", Content: userPrompt},
@@ -78,7 +85,7 @@ Make sure all generated facts adhere closely to the provided context.`
 	userPrompt := fmt.Sprintf("Context: %s\n\nTarget Audience: %s\nOutput Format: %s\n\nPlease generate the JSON.", contextText, audience, format)
 
 	reqBody := GroqRequest{
-		Model: "openai/gpt-oss-120b",
+		Model: getGroqModel(),
 		Messages: []GroqMessage{
 			{Role: "system", Content: systemPrompt},
 			{Role: "user", Content: userPrompt},

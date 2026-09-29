@@ -27,7 +27,7 @@ func Load() *Config {
 		JWTSecret:   getEnvRequired("JWT_SECRET"),
 		GroqAPIKey:  os.Getenv("GROQ_API_KEY"),
 		SupabaseURL: os.Getenv("SUPABASE_URL"),
-		SupabaseKey: os.Getenv("SUPABASE_KEY"),
+		SupabaseKey: os.Getenv("SUPABASE_SERVICE_KEY"),
 	}
 
 	return cfg

@@ -134,16 +134,16 @@ export const api = {
     if (response.status === 401) {
       auth.clearToken();
       window.location.href = '/login';
-      throw { status: 401, message: 'Unauthorized' };
+      throw new ApiError(401, 'Unauthorized', 'UNAUTHORIZED');
     }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw {
-        status: response.status,
-        message: errorData.error?.message || errorData.message || 'API request failed',
-        code: errorData.error?.code,
-      };
+      throw new ApiError(
+        response.status,
+        errorData.error?.message || errorData.message || 'API request failed',
+        errorData.error?.code || 'UPLOAD_ERROR'
+      );
     }
 
     return response.json();

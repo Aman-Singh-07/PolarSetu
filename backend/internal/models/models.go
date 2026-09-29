@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 // ─── Database Models ─────────────────────────────────────────
 
@@ -70,12 +72,19 @@ type Activity struct {
 }
 
 type Media struct {
-	ID          int    `json:"id,string"`
-	ResourceID  string `json:"resourceId"`
-	MediaType   string `json:"mediaType"`
-	URL         string `json:"url"`
-	Caption     string `json:"caption"`
-	Attribution string `json:"attribution"`
+	ID           int    `json:"id,string"`
+	ResourceID   string `json:"resourceId"`
+	MediaType    string `json:"mediaType"`
+	Type         string `json:"type"`
+	URL          string `json:"url"`
+	ThumbnailURL string `json:"thumbnailUrl"`
+	Caption      string `json:"caption"`
+	Attribution  string `json:"attribution"`
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	Year         int    `json:"year"`
+	Region       string `json:"region"`
+	ExpeditionID string `json:"expeditionId,omitempty"`
 }
 
 type AIGeneration struct {
@@ -86,6 +95,15 @@ type AIGeneration struct {
 	OutputType string    `json:"outputType"`
 	Content    string    `json:"content"`
 	Status     string    `json:"status"` // DRAFT, APPROVED, REJECTED
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+type AuditLog struct {
+	ID         int       `json:"id,string"`
+	ActorID    *int      `json:"actorId,string"`
+	Action     string    `json:"action"`
+	EntityType string    `json:"entityType"`
+	EntityID   string    `json:"entityId"`
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
@@ -134,6 +152,11 @@ type ExpeditionDetail struct {
 type ResourceDetail struct {
 	Resource
 	Expeditions []Expedition `json:"expeditions"`
+}
+
+type SearchResponse struct {
+	Query   string     `json:"query"`
+	Results []Resource `json:"results"`
 }
 
 type ErrorResponse struct {

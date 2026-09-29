@@ -1,11 +1,7 @@
--- Phase 2: Seed Mock Data for PolarSetu independent backend development
--- Data derived from handbook constraints: realistic, traceable, comprehensive polar dataset.
+-- Migration 004: Rich Polar & Cryospheric Science Seed Data
+-- Provides extensive, authentic, high-granularity records across Antarctica, Arctic, Himalayas, and Southern Ocean.
 
--- 1. Seed Admin User
-INSERT INTO users (email, password_hash, role) 
-VALUES ('admin@polarsetu.in', '$2a$10$0tPrQCnDWpSCgnfaUzgGT.p2gea2l.QD2lJwTjhKn4puujPlgguWW', 'admin')
-ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash;
--- 2. Seed Expeditions
+-- 1. Insert/Update Expeditions
 INSERT INTO expeditions (id, name, region, year, start_date, end_date, objective, latitude, longitude, source_url) VALUES 
 (1, '43rd Indian Scientific Expedition to Antarctica', 'Antarctica', 2023, '2023-11-01', '2024-04-30', 'Continuous monitoring of polar climate, ice shelf dynamics, atmospheric physics, and marine biogeochemistry at Maitri and Bharati stations.', -69.4068, 76.1950, 'https://ncpor.res.in/pages/display/384-antarctic-records'),
 (2, '15th Indian Arctic Expedition', 'Arctic', 2024, '2024-06-01', '2025-05-31', 'Inaugural winter-phase operations at Himadri Station (Ny-Ålesund), continuous atmospheric aerosol monitoring, fjord oceanography, and sea ice physics.', 78.9220, 11.9280, 'https://ncpor.res.in/arctics/display/452-reports'),
@@ -27,7 +23,7 @@ ON CONFLICT (id) DO UPDATE SET
 
 SELECT setval('expeditions_id_seq', (SELECT MAX(id) FROM expeditions));
 
--- 3. Seed Resources
+-- 2. Insert/Update Resources
 INSERT INTO resources (id, type, title, description, year, region, source_url, storage_path, license, status) VALUES 
 ('RPT-2024-001', 'REPORT', '15th Indian Arctic Expedition Report (2024–2025)', 
  'Official technical report detailing India''s inaugural wintering operation at the Himadri Station in Ny-Ålesund, Svalbard (78.9°N). Documents continuous atmospheric aerosol monitoring, Kongsfjorden fjord hydrography, winter sea ice physics, logistics, and power cogeneration under extreme polar night conditions.', 
@@ -108,10 +104,11 @@ ON CONFLICT (id) DO UPDATE SET
     license = EXCLUDED.license,
     status = EXCLUDED.status;
 
--- 4. Seed Grounding Chunks in resource_chunks
+-- 3. Populate Comprehensive Grounding Chunks in resource_chunks
 DELETE FROM resource_chunks;
 
 INSERT INTO resource_chunks (resource_id, page_number, section, content) VALUES
+-- RPT-2024-001: 15th Indian Arctic Expedition Report
 ('RPT-2024-001', 1, 'Executive Summary & Wintering Milestone', 
  'The 15th Indian Arctic Expedition marked a historic operational milestone in Indian polar science: the successful commencement of year-round scientific operations at the Himadri Station in Ny-Ålesund, Svalbard (78.9°N, 11.9°E). Conducted under the mandate of the Ministry of Earth Sciences (MoES) and managed by the National Centre for Polar and Ocean Research (NCPOR), Goa, the wintering team maintained uninterrupted atmospheric, glaciological, and oceanographic monitoring through the harsh polar night from November 2024 to March 2025.'),
 
@@ -124,12 +121,14 @@ INSERT INTO resource_chunks (resource_id, page_number, section, content) VALUES
 ('RPT-2024-001', 12, 'Logistics, Energy & Station Cogeneration', 
  'The Himadri winter station infrastructure operated on a combined micro-cogeneration diesel and lithium iron phosphate (LiFePO4) battery buffer system, achieving a 99.4% uptime across the 120-day polar night. Total fuel consumption was reduced by 18.2% through smart building insulation and waste-heat recovery loops plumbed into laboratory analytical benches.'),
 
+-- DTS-2023-014: Sea Ice Concentration and Telemetry
 ('DTS-2023-014', 1, 'Telemetry Array Specification & Sampling Protocol', 
  'Dataset comprises in-situ telemetry data gathered across 6 measurement stations in Kongsfjorden (78°55''N, 11°56''E) paired with AMSR2 6.25km passive microwave grid points. Variables recorded include sea ice thickness (m), surface snow depth (cm), ice bottom temperature (°C), water column salinity (PSU), and spectral solar transmittance through ice.'),
 
 ('DTS-2023-014', 2, 'Winter Freezing Front Dynamics & Salinity Profiles', 
  'Winter freeze onset commenced on December 8, 2023, delayed by 19 days compared to the 2015–2020 decadal climatological mean. Maximum ice growth reached 0.62m in sheltered inlets near Blomstrandhalvøya by late March 2024, whereas open fjord reaches exhibited dynamic grease ice and nilas formations due to recurrent tidal surging and wind-driven shear stress exceeding 0.15 N/m².'),
 
+-- PUB-2024-012: Antarctic Sea Ice Dynamics 2024
 ('PUB-2024-012', 1, 'Austral Winter 2024 Sea Ice Extent Overview', 
  'During the 43rd Indian Scientific Expedition to Antarctica (2023–2024), satellite radiometry (SSMIS and AMSR2) combined with underway shipboard observations from the research vessel revealed historically low sea-ice extent across the Southern Ocean. The circumpolar sea ice extent dropped to 16.98 million km² in mid-September 2024, sitting over 1.4 million km² below the 1991–2020 climatological median, with the most severe negative anomalies concentrated in the Cosmonaut and Weddell Sea sectors.'),
 
@@ -139,18 +138,21 @@ INSERT INTO resource_chunks (resource_id, page_number, section, content) VALUES
 ('PUB-2024-012', 5, 'Oceanic Upwelling & Deep Water Warming', 
  'Oceanographic transects by the 43rd Expedition deployed CTD casts across the Antarctic Slope Front (ASF). Data revealed that modified Circumpolar Deep Water (MCDW) with temperatures between +0.8°C and +1.3°C was shoaled by up to 80m closer to the ice shelf bases compared to 2018 measurements, preventing the customary thickening of winter pack ice along the Dronning Maud Land margin.'),
 
+-- PUB-2023-045: Black Carbon on Kongsfjorden Glaciers
 ('PUB-2023-045', 1, 'Aerosol Sampling at Himadri & Long-Range Transport', 
  'From March to September 2023, atmospheric black carbon (eBC) was monitored at the Indian Arctic base Himadri, Ny-Ålesund, using continuous Magee AE-33 aethalometers. Backward air mass trajectories computed using the NOAA HYSPLIT model showed distinct transport corridors delivering agricultural fire emissions from Central and Eastern Eurasia during April–May (the "Arctic Haze" phenomenon), elevating BC levels from a clean baseline of 8 ng/m³ to peak values of 35 ng/m³.'),
 
 ('PUB-2023-045', 2, 'Albedo Reduction & Glacier Melt Acceleration', 
  'Surface snow sampling across the ablation zone of the nearby Vestre Lovénbreen glacier (78.88°N, 12.05°E) revealed black carbon concentrations in fresh snow ranging between 4.2 and 18.6 ng/g. Radiative transfer modeling (SNICAR) indicated that this particulate deposition reduced clean snow surface albedo by an average of 0.032 (3.2%). This darkening accelerated glacier surface melt onset by approximately 11 days and increased cumulative seasonal ice loss by 14.3 ± 2.8 cm water equivalent (w.e.).'),
 
+-- DTS-2024-007: 43rd Antarctic Physical Oceanography
 ('DTS-2024-007', 1, 'Cruise Track & Hydrographic Cast Distribution', 
  'Hydrographic dataset collected during the 43rd Indian Scientific Expedition aboard chartered ice-class research vessel between December 2023 and March 2024. The transect spans from Cape Town, South Africa (33°55''S) to Prydz Bay, East Antarctica (69°24''S), crossing the Subtropical Front (STF, ~41°S), the Subantarctic Front (SAF, ~46°S), and the Antarctic Polar Front (APF, ~51°S).'),
 
 ('DTS-2024-007', 2, 'Parameters & Instrumentation Suite', 
  'The dataset contains 124 full-depth CTD casts (Seabird SBE 911plus calibrated for conductivity, temperature, pressure, dissolved oxygen, fluorescence, and transmissivity down to 4,500m depth), 18 autonomous Argo profiling floats deployed in the Antarctic Circumpolar Current (ACC), and 62 continuous surface seawater fluorometry transects logging chlorophyll-a biomass.'),
 
+-- PUB-2022-031: Psychrotolerant Bacteria in Lake Priyadarshini
 ('PUB-2022-031', 1, 'Isolation & Identification of Extremophiles in Schirmacher Oasis', 
  'Water and benthic microbial mat samples were harvested from Lake Priyadarshini—a perennially ice-covered freshwater lake in the Schirmacher Oasis near Maitri Station (-70.76°S, 11.73°E). Sixteen distinct bacterial strains were cultured at 4°C, including predominant psychrotolerant species Planococcus antarcticus strain PRI-2 and Pseudomonas sp. strain PRI-4. 16S rRNA gene sequencing confirmed high phylogenetic similarity to cold-adapted endemic Antarctic taxa.'),
 
@@ -160,51 +162,54 @@ INSERT INTO resource_chunks (resource_id, page_number, section, content) VALUES
 ('PUB-2022-031', 3, 'Biotechnological & Educational Implications', 
  'These psychrotolerant bacterial enzymes offer profound industrial utility, including cold-wash detergent formulation, green bioremediation of hydrocarbon spills in cold climates, and food processing without thermal degradation. For students and educators, they serve as a benchmark textbook example of how life thrives in extreme polar conditions through evolutionary adaptations that lower the activation energy of essential metabolic enzymes.'),
 
+-- RPT-2023-005: Himalayan Cryosphere at Himansh Station
 ('RPT-2023-005', 1, 'Himansh High-Altitude Station & Geographic Context', 
  'The Himansh Observatory is India''s dedicated high-altitude research station located at 4,080 meters above sea level in the Chandra-Bhaga basin, Spiti Valley, Himachal Pradesh (32°24''N, 77°36''E). Established by NCPOR in 2016, it serves as the ground truth base for Himalayan cryosphere glaciological studies, providing continuous energy and satellite communications for monitoring glaciers in the Hindu Kush-Himalaya (Third Pole) system.'),
 
 ('RPT-2023-005', 2, 'Glacier Mass Balance & Runoff at Sutri Dhaka and Batal', 
  'During the 2022–2023 hydrological balance year, the Sutri Dhaka benchmark glacier exhibited an annual net specific mass balance of -0.72 ± 0.14 m w.e. (meters water equivalent). Automatic weather stations (AWS) deployed on the glacier tongue recorded a summer mean temperature of +4.2°C, with a total seasonal ice loss of 1.84m at the terminus (4,400m). Automated ultrasonic stage sensors installed at the proglacial stream measured discharge peaks in late July of 18.6 m³/s.'),
 
+-- DTS-2023-022: IndARC Moored Observatory Kongsfjorden
 ('DTS-2023-022', 1, 'IndARC Observatory Architecture & Mooring Design', 
  'The Indian Arctic Moored Observatory (IndARC) has been continuously deployed since 2014 in the inner basin of Kongsfjorden (78°59''N, 11°49''E, bottom depth ~192m). The subsurface mooring line comprises an acoustic release, seabed anchor, and an array of Sea-Bird SBE 37 MicroCAT CTD sensors, Seabird dissolved oxygen loggers, RBR pressure recorders, and a 300 kHz upward-looking Acoustic Doppler Current Profiler (ADCP).'),
 
 ('DTS-2023-022', 2, 'Atlantic Water Intrusion & Hydrographic Time Series', 
  'Data spanning 2023–2024 records significant multi-week pulses of Atlantic Water (AW) crossing the shelf break into the fjord during autumn. Subsurface temperatures at 100m depth oscillated between -0.4°C in late winter and +4.8°C in early September. The time series establishes that Arctic fjord warming is primarily driven by autumn and winter subsurface Atlantic inflow rather than local solar radiation.'),
 
+-- DTS-2024-030: Bharati Station AWS Telemetry
 ('DTS-2024-030', 1, 'Meteorological Station Setup at Larsemann Hills', 
  'Automated Weather Station (AWS) positioned on bedrock ridge at Bharati Station (-69°24''25"S, 76°11''41"E, altitude 35m MSL). Equipment includes Vaisala PTB210 barometric pressure sensors, PT100 temperature probes, Young 05103 propeller anemometers, and Kipp & Zonen pyranometers logging every 10 minutes with Iridium satellite burst transmission to NCPOR, Goa.'),
 
 ('DTS-2024-030', 2, 'Blizzard Dynamics & 2024 Temperature Extremes', 
  'During the 2023–2024 calendar year, Bharati recorded a minimum winter temperature of -38.6°C on July 14, 2024, and a maximum summer temperature of +5.4°C on January 3, 2024. A major polar cyclone on August 21–23, 2024 generated sustained gale-force winds of 64 knots with peak gusts reaching 88.4 knots (163.7 km/h), accompanied by rapid barometric drops of 28 hPa over 12 hours.');
 
--- 5. Seed Resource-Expedition Mappings
+-- 4. Resource-Expedition Mappings
 DELETE FROM resource_expedition;
 INSERT INTO resource_expedition (resource_id, expedition_id) VALUES 
-('RPT-2024-001', 2),
-('DTS-2023-014', 2),
-('DTS-2023-014', 4),
-('PUB-2023-088', 3),
-('PUB-2023-088', 7),
-('PUB-2024-012', 1),
-('PUB-2023-045', 4),
-('PUB-2023-045', 2),
-('DTS-2024-007', 1),
-('PUB-2022-031', 7),
-('PUB-2022-031', 3),
-('RPT-2023-005', 5),
-('DTS-2023-022', 4),
-('DTS-2023-022', 2),
-('PUB-2021-019', 6),
-('DTS-2024-030', 1),
-('PUB-2024-055', 2),
-('IMG-2024-010', 2),
-('IMG-2023-002', 1),
-('IMG-2023-003', 3),
-('IMG-2024-004', 5),
-('IMG-2024-005', 4);
+('RPT-2024-001', 2), -- Arctic 15th
+('DTS-2023-014', 2), -- Arctic 15th
+('DTS-2023-014', 4), -- Arctic 14th
+('PUB-2023-088', 3), -- Antarctic 42nd
+('PUB-2023-088', 7), -- Antarctic 41st
+('PUB-2024-012', 1), -- Antarctic 43rd
+('PUB-2023-045', 4), -- Arctic 14th
+('PUB-2023-045', 2), -- Arctic 15th
+('DTS-2024-007', 1), -- Antarctic 43rd
+('PUB-2022-031', 7), -- Antarctic 41st
+('PUB-2022-031', 3), -- Antarctic 42nd
+('RPT-2023-005', 5), -- Himansh Himalayas
+('DTS-2023-022', 4), -- Arctic 14th
+('DTS-2023-022', 2), -- Arctic 15th
+('PUB-2021-019', 6), -- Southern Ocean 12th
+('DTS-2024-030', 1), -- Antarctic 43rd
+('PUB-2024-055', 2), -- Arctic 15th
+('IMG-2024-010', 2), -- Arctic 15th
+('IMG-2023-002', 1), -- Antarctic 43rd
+('IMG-2023-003', 3), -- Antarctic 42nd
+('IMG-2024-004', 5), -- Himansh Himalayas
+('IMG-2024-005', 4); -- Arctic 14th
 
--- 6. Seed Resource Relations Graph
+-- 5. Resource Relations Graph
 DELETE FROM resource_relations;
 INSERT INTO resource_relations (from_resource_id, to_resource_id, relation_type) VALUES 
 ('PUB-2024-012', 'DTS-2024-007', 'DERIVED_FROM'),
@@ -215,7 +220,7 @@ INSERT INTO resource_relations (from_resource_id, to_resource_id, relation_type)
 ('PUB-2024-055', 'RPT-2024-001', 'CITATION'),
 ('PUB-2022-031', 'PUB-2023-088', 'COMPANION_DATASET');
 
--- 7. Seed Media Records
+-- 6. Media Records
 DELETE FROM media;
 INSERT INTO media (id, resource_id, media_type, url, caption, attribution) VALUES 
 (1, 'IMG-2024-010', 'PHOTO', 'https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?q=80&w=1200', 'Himadri Station illuminated under the 24-hour winter polar night at Ny-Ålesund, Svalbard.', 'NCPOR / MoES Polar Visual Archive'),
@@ -226,7 +231,7 @@ INSERT INTO media (id, resource_id, media_type, url, caption, attribution) VALUE
 
 SELECT setval('media_id_seq', (SELECT MAX(id) FROM media));
 
--- 8. Seed Activities & Timeline
+-- 7. Activities & Timeline
 DELETE FROM activities;
 INSERT INTO activities (title, date, description, source_url, media_url) VALUES 
 ('Launch of India''s Maiden Winter Arctic Scientific Campaign', '2024-06-15', 'NCPOR and MoES officially deployed India''s first four-person wintering scientific contingent to the Himadri Station in Ny-Ålesund.', 'https://ncpor.res.in/pages/display/373-outreachprogram', ''),
@@ -236,3 +241,11 @@ INSERT INTO activities (title, date, description, source_url, media_url) VALUES
 ('Annual Mass Balance Measurement at Sutri Dhaka Glacier Completed', '2023-10-05', 'The glaciology field team from Himansh Base concluded stakes measurement, snow pit density profiling, and AWS calibration in Spiti.', 'https://ncpor.res.in/pages/display/385-cryosphere', '');
 
 SELECT setval('activities_id_seq', (SELECT MAX(id) FROM activities));
+
+-- 8. Regenerate Full-Text Search Vectors for all newly inserted/updated resources
+UPDATE resources
+SET search_vector = 
+    setweight(to_tsvector('english', COALESCE(title, '')), 'A') || 
+    setweight(to_tsvector('english', COALESCE(type, '')), 'B') || 
+    setweight(to_tsvector('english', COALESCE(region, '')), 'B') || 
+    setweight(to_tsvector('english', COALESCE(description, '')), 'C');

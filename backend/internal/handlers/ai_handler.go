@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -55,12 +54,23 @@ func (h *AIHandler) Ask(c *gin.Context) {
 		for _, id := range req.ResourceIDs {
 			res, err := h.resourceRepo.GetByID(c.Request.Context(), id)
 			if err == nil && res != nil {
-				contextBuilder.WriteString(fmt.Sprintf("[Source ID: %s, Title: %s] %s\n", res.ID, res.Title, res.Description))
+				contextBuilder.WriteString(fmt.Sprintf("[Source ID: %s | Title: %s | Region: %s | Year: %d]\nOverview: %s\n", res.ID, res.Title, res.Region, res.Year, res.Description))
+				chunks, err := h.resourceRepo.GetChunksByResourceID(c.Request.Context(), res.ID)
+				if err == nil {
+					for _, ch := range chunks {
+						pageNum := 1
+						if ch.PageNumber != nil {
+							pageNum = *ch.PageNumber
+						}
+						contextBuilder.WriteString(fmt.Sprintf("[Section: %s (Page %d)]: %s\n", ch.Section, pageNum, ch.Content))
+					}
+				}
+				contextBuilder.WriteString("\n")
 				validSourceIDs = append(validSourceIDs, res.ID)
 				fullSources = append(fullSources, map[string]string{
-					"id": id,
+					"id":    id,
 					"title": res.Title,
-					"type": res.Type,
+					"type":  res.Type,
 				})
 			}
 		}
@@ -75,16 +85,27 @@ func (h *AIHandler) Ask(c *gin.Context) {
 			}
 			for i := 0; i < limit; i++ {
 				res := results[i]
-				contextBuilder.WriteString(fmt.Sprintf("[Source ID: %s, Title: %s] %s\n", res.ID, res.Title, res.Description))
+				contextBuilder.WriteString(fmt.Sprintf("[Source ID: %s | Title: %s | Region: %s | Year: %d]\nOverview: %s\n", res.ID, res.Title, res.Region, res.Year, res.Description))
+				chunks, err := h.resourceRepo.GetChunksByResourceID(c.Request.Context(), res.ID)
+				if err == nil {
+					for _, ch := range chunks {
+						pageNum := 1
+						if ch.PageNumber != nil {
+							pageNum = *ch.PageNumber
+						}
+						contextBuilder.WriteString(fmt.Sprintf("[Section: %s (Page %d)]: %s\n", ch.Section, pageNum, ch.Content))
+					}
+				}
+				contextBuilder.WriteString("\n")
 				validSourceIDs = append(validSourceIDs, res.ID)
 				fullSources = append(fullSources, map[string]string{
-					"id": res.ID,
+					"id":    res.ID,
 					"title": res.Title,
-					"type": res.Type,
+					"type":  res.Type,
 				})
 			}
 		}
-		
+
 		if len(validSourceIDs) == 0 {
 			c.JSON(http.StatusOK, gin.H{
 				"answer":  "I couldn't find sufficient evidence in the POLARSETU repository to answer this reliably.",
@@ -118,39 +139,45 @@ func (h *AIHandler) GenerateOutreach(c *gin.Context) {
 	// 1. Fetch source content
 	res, err := h.resourceRepo.GetByID(c.Request.Context(), req.SourceID)
 	if err != nil || res == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"code": "NOT_FOUND", "message": "Source ID not found"}})
+		c.JSON(http.StatusNotFound, gin.H{"error": gin.H{"code": "NOT_FOUND", "message": "Source resource not found"}})
 		return
 	}
-	contextText := fmt.Sprintf("[%s] %s", res.Title, res.Description)
 
-	// 2. Call AI Service (structured generation)
-	rawJSONString, err := services.GenerateOutreach(contextText, req.Audience, req.Format)
+	var contextBuilder strings.Builder
+	contextBuilder.WriteString(fmt.Sprintf("[Title: %s, Region: %s, Year: %d]\nOverview: %s\n", res.Title, res.Region, res.Year, res.Description))
+	chunks, err := h.resourceRepo.GetChunksByResourceID(c.Request.Context(), res.ID)
+	if err == nil {
+		for _, ch := range chunks {
+			contextBuilder.WriteString(fmt.Sprintf("[Section: %s]: %s\n", ch.Section, ch.Content))
+		}
+	}
+
+	// 2. Call AI service
+	content, err := services.GenerateOutreach(contextBuilder.String(), req.Audience, req.Format)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"code": "AI_ERROR", "message": "Outreach generation failed: " + err.Error()}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"code": "AI_ERROR", "message": "Generation failed: " + err.Error()}})
 		return
 	}
 
-	// Double check it unmarshals successfully to prove it generated valid JSON
-	var parsed map[string]interface{}
-	if err := json.Unmarshal([]byte(rawJSONString), &parsed); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"code": "PARSE_ERROR", "message": "Failed to parse structured output from AI"}})
-		return
-	}
-
-	// 3. Construct and save the Draft natively into PostgreSQL (DRAFT Status applied automatically)
-	draftPayload := models.AIGeneration{
+	// 3. Save draft to DB for audit/review
+	adminUserID := 1
+	savedDraft, err := h.reviewRepo.SaveDraft(c.Request.Context(), models.AIGeneration{
+		UserID:     &adminUserID,
 		SourceIDs:  []string{req.SourceID},
 		Audience:   req.Audience,
 		OutputType: req.Format,
-		Content:    rawJSONString, // We store the whole structured JSON string for flexibility
+		Content:    content,
+		Status:     "DRAFT",
+	})
+	genID := 0
+	if err == nil && savedDraft != nil {
+		genID = savedDraft.ID
+	} else if err != nil {
+		fmt.Printf("Warning: failed to save AI generation log: %v\n", err)
 	}
 
-	savedDraft, err := h.reviewRepo.SaveDraft(c.Request.Context(), draftPayload)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"code": "DB_ERROR", "message": "Failed to save draft to queue"}})
-		return
-	}
-
-	// 4. Return to frontend
-	c.JSON(http.StatusCreated, savedDraft)
+	c.JSON(http.StatusOK, gin.H{
+		"id":      genID,
+		"content": content,
+	})
 }

@@ -113,6 +113,31 @@ func (r *ResourceRepo) GetExpeditionsByResourceID(ctx context.Context, resourceI
 	return expeditions, rows.Err()
 }
 
+// GetChunksByResourceID returns chunk excerpts for a resource to augment AI grounding context.
+func (r *ResourceRepo) GetChunksByResourceID(ctx context.Context, resourceID string) ([]models.ResourceChunk, error) {
+	query := `
+		SELECT id, resource_id, page_number, section, content
+		FROM resource_chunks
+		WHERE resource_id = $1
+		ORDER BY id ASC
+	`
+	rows, err := r.pool.Query(ctx, query, resourceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var chunks []models.ResourceChunk
+	for rows.Next() {
+		var c models.ResourceChunk
+		if err := rows.Scan(&c.ID, &c.ResourceID, &c.PageNumber, &c.Section, &c.Content); err != nil {
+			return nil, err
+		}
+		chunks = append(chunks, c)
+	}
+	return chunks, rows.Err()
+}
+
 // Create inserts a new resource.
 func (r *ResourceRepo) Create(ctx context.Context, req models.CreateResourceRequest) (*models.Resource, error) {
 	var res models.Resource

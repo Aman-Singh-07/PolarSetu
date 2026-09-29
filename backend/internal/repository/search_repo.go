@@ -21,18 +21,15 @@ func NewSearchRepo(pool *pgxpool.Pool) *SearchRepo {
 
 // Search queries the resources table utilizing the tsvector GIN index.
 func (r *SearchRepo) Search(ctx context.Context, searchQuery string, resourceType string, year int) ([]models.Resource, error) {
-	// Base query leverages to_tsquery for full-text lookup and ts_rank for relevance sorting.
+	// Base query leverages websearch_to_tsquery for full-text lookup and ts_rank for relevance sorting.
 	query := `
 		SELECT id, type, title, description, year, region, source_url, storage_path, license, status, created_at,
-		ts_rank(search_vector, to_tsquery('english', $1)) as relevance
+		ts_rank(search_vector, websearch_to_tsquery('english', $1)) as relevance
 		FROM resources
-		WHERE search_vector @@ to_tsquery('english', $1)
+		WHERE search_vector @@ websearch_to_tsquery('english', $1)
 	`
 
-	// Format the search string so Postgres parses it as a boolean query (e.g., 'sea & ice')
-	formattedQuery := strings.ReplaceAll(strings.TrimSpace(searchQuery), " ", " & ")
-
-	args := []interface{}{formattedQuery}
+	args := []interface{}{strings.TrimSpace(searchQuery)}
 	argIdx := 2
 
 	// Dynamic Filters

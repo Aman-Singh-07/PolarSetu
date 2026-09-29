@@ -3,6 +3,7 @@ package repository
 import (
 	"PolarSetu/internal/models"
 	"context"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -14,9 +15,27 @@ func NewMediaRepo(pool *pgxpool.Pool) *MediaRepo {
 	return &MediaRepo{pool: pool}
 }
 
-// ListAll returns all media items.
+// ListAll returns all media items joined with resource metadata.
 func (r *MediaRepo) ListAll(ctx context.Context) ([]models.Media, error) {
-	query := `SELECT id, resource_id, media_type, url, caption, attribution FROM media ORDER BY id DESC`
+	query := `
+		SELECT
+			m.id,
+			COALESCE(m.resource_id, ''),
+			COALESCE(m.media_type, 'PHOTO'),
+			COALESCE(m.url, ''),
+			COALESCE(m.caption, ''),
+			COALESCE(m.attribution, ''),
+			COALESCE(r.title, m.caption, 'Polar Specimen'),
+			COALESCE(r.description, m.caption, ''),
+			COALESCE(r.year, 2024),
+			COALESCE(r.region, 'Polar Regions'),
+			COALESCE(e.name, '')
+		FROM media m
+		LEFT JOIN resources r ON m.resource_id = r.id
+		LEFT JOIN resource_expedition re ON r.id = re.resource_id
+		LEFT JOIN expeditions e ON re.expedition_id = e.id
+		ORDER BY m.id DESC
+	`
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
 		return nil, err
@@ -26,9 +45,23 @@ func (r *MediaRepo) ListAll(ctx context.Context) ([]models.Media, error) {
 	var media []models.Media
 	for rows.Next() {
 		var m models.Media
-		if err := rows.Scan(&m.ID, &m.ResourceID, &m.MediaType, &m.URL, &m.Caption, &m.Attribution); err != nil {
+		if err := rows.Scan(
+			&m.ID,
+			&m.ResourceID,
+			&m.MediaType,
+			&m.URL,
+			&m.Caption,
+			&m.Attribution,
+			&m.Title,
+			&m.Description,
+			&m.Year,
+			&m.Region,
+			&m.ExpeditionID,
+		); err != nil {
 			return nil, err
 		}
+		m.Type = m.MediaType
+		m.ThumbnailURL = m.URL
 		media = append(media, m)
 	}
 	return media, rows.Err()
