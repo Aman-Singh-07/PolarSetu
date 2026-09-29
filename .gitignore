@@ -1,43 +1,23 @@
-# Build output
-node_modules/
-dist/
-build/
-*.exe
-*.o
-*.so
-*.obj
-*.out
-
-# Environment variables
+# General Environment
 .env
 .env.*
 !.env.example
 
-# Logs and databases
-*.log
-*.sqlite
-*.sqlite3
-
-# Temp files
-*.tmp
-*.temp
+# OS-specific config
 .DS_Store
-scratchpads/
-frontend_backend_connection_fixes.md
-new_features.md
-ph4_imp.md
-phase3_crud_implementation_plan.md
-polarsetu_backend_action_plan.md
-polarsetu_feature_expansion_ideas.md
-CODEBASE_ARCHITECTURE.md
+Thumbs.db
+Desktop.ini
 
-# Go specific
-backend/bin/
+# Backend (Go) Built binaries & local test
 backend/testserver
-backend/*.test
+backend/testserver.exe
 
-# IDE / OS specific
-.vscode/
+# Editor Folders
 .idea/
+.vscode/
 *.swp
-*.zip
+*.swo
+
+# Project docs (ONLY ignoring random scratchpads, keeping real documentation)
+scratchpads/
+*.pdf
