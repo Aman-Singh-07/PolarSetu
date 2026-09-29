@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"PolarSetu/internal/models"
+	"Aicygram/internal/models"
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

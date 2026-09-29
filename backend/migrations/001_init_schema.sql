@@ -1,4 +1,4 @@
--- Phase 2: Core Database Schema for PolarSetu
+-- Phase 2: Core Database Schema for Aicygram
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,

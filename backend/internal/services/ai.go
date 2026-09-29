@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"PolarSetu/internal/models"
+	"Aicygram/internal/models"
 )
 
 type GroqMessage struct {
@@ -45,13 +45,13 @@ func getGroqModel() string {
 	return "openai/gpt-oss-120b"
 }
 
-func AskPolarSetu(question string, contextText string, validSourceIDs []string) (string, error) {
+func AskAicygram(question string, contextText string, validSourceIDs []string) (string, error) {
 	apiKey := os.Getenv("GROQ_API_KEY")
 	if apiKey == "" {
 		return "", fmt.Errorf("GROQ_API_KEY environment variable is not set")
 	}
 
-	systemPrompt := `You are PolarSetu AI, an expert assistant on Indian Polar research, Antarctic, Arctic, and Southern Ocean expeditions.
+	systemPrompt := `You are Aicygram AI, an expert assistant on Indian Polar research, Antarctic, Arctic, and Southern Ocean expeditions.
 Answer the user's question using ONLY the facts present in the provided source context.
 Do not fabricate facts, statistics, or source IDs.
 If the information is not contained in the context, clearly state that the repository does not have sufficient information.
@@ -117,7 +117,7 @@ func GenerateSocialCard(contextText string) (*SocialCardAIOutput, error) {
 		return nil, fmt.Errorf("GROQ_API_KEY environment variable is not set")
 	}
 
-	systemPrompt := `You are PolarSetu, an expert scientific communicator and outreach specialist for India's National Centre for Polar and Ocean Research (NCPOR/MoES).
+	systemPrompt := `You are Aicygram, an expert scientific communicator and outreach specialist for India's National Centre for Polar and Ocean Research (NCPOR/MoES).
 Your task is to extract a single key scientific statistic or finding and an engaging outreach caption from the provided polar research documents.
 Rules:
 1. "stat_text": A single punchy, high-impact scientific fact or statistic. MUST BE 15 WORDS OR FEWER (e.g., "-42°C Winter Record at Maitri Station" or "100m Ice Core Drilled in Central Dronning Maud Land").
@@ -190,7 +190,7 @@ func GenerateLessonPlan(
 		return nil, false, nil, fmt.Errorf("GROQ_API_KEY environment variable is not set")
 	}
 
-	systemPrompt := fmt.Sprintf(`You are PolarSetu Education AI, an expert at creating curriculum-aligned lesson plans for Indian school students using real polar and ocean research data.
+	systemPrompt := fmt.Sprintf(`You are Aicygram Education AI, an expert at creating curriculum-aligned lesson plans for Indian school students using real polar and ocean research data.
 
 TARGET CURRICULUM:
 - Class: %d

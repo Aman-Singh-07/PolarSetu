@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"PolarSetu/internal/models"
+	"Aicygram/internal/models"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )

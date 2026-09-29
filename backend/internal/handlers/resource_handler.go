@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"PolarSetu/internal/models"
-	"PolarSetu/internal/repository"
-	"PolarSetu/internal/services" // Inject storage service
+	"Aicygram/internal/models"
+	"Aicygram/internal/repository"
+	"Aicygram/internal/services" // Inject storage service
 
 	"github.com/gin-gonic/gin"
 )

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"PolarSetu/internal/models"
-	"PolarSetu/internal/repository"
+	"Aicygram/internal/models"
+	"Aicygram/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )

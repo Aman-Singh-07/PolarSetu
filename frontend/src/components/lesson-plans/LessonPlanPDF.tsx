@@ -213,12 +213,12 @@ export function LessonPlanPDFDoc({
   const conceptTitle = concept?.concept || 'Curriculum-Aligned Polar Science';
 
   return (
-    <Document title={`Lesson Plan - ${conceptTitle}`} author="PolarSetu">
+    <Document title={`Lesson Plan - ${conceptTitle}`} author="Aicygram">
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.headerBar}>
           <Text style={styles.headerOrg}>MoES · NCPOR · Government of India</Text>
-          <Text style={styles.headerPlatform}>POLARSETU CURRICULUM SERIES</Text>
+          <Text style={styles.headerPlatform}>AICYGRAM CURRICULUM SERIES</Text>
         </View>
 
         {/* Title & Metadata */}
@@ -324,7 +324,7 @@ export function LessonPlanPDFDoc({
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            PolarSetu · National Centre for Polar and Ocean Research (NCPOR) · polarsetu.in
+            Aicygram · National Centre for Polar and Ocean Research (NCPOR) · aicygram.in
           </Text>
           <Text style={styles.footerText}>Licensed under CC BY 4.0</Text>
         </View>

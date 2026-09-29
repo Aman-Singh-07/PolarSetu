@@ -1,5 +1,5 @@
 {
-  "title": "PolarSetu AI Assistant",
+  "title": "Aicygram AI Assistant",
   "subtitle": "Grounded scientific Q&A strictly cited from certified MoES and NCPOR polar research records.",
   "inputPlaceholder": "Ask a question about Indian polar research, expeditions, or climate findings...",
   "buttonAsk": "Ask Assistant",
@@ -16,7 +16,7 @@
   ],
   "sourcesTitle": "Cited Evidence & Publications",
   "evidence": {
-    "verified": "Verified from PolarSetu Records",
+    "verified": "Verified from Aicygram Records",
     "insufficient": "Insufficient Repository Evidence"
   },
   "disclaimer": "Responses are synthesized by an AI assistant strictly grounded in indexed NCPOR/MoES publications. Verify official citations before academic publication."

@@ -1,4 +1,4 @@
-const TOKEN_KEY = 'polarsetu_jwt_token';
+const TOKEN_KEY = 'aicygram_jwt_token';
 
 export const auth = {
   getToken: (): string | null => localStorage.getItem(TOKEN_KEY),

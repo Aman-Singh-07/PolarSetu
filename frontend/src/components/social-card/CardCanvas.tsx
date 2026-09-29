@@ -109,7 +109,7 @@ export const CardCanvas = forwardRef<CardCanvasRef, CardCanvasProps>(({
     ? resourceUrl
     : `${window.location.origin}${resourceUrl.startsWith('/') ? '' : '/'}${resourceUrl}`;
 
-  const brandingTitle = 'PolarSetu';
+  const brandingTitle = 'Aicygram';
   const brandingSub = 'MoES · NCPOR · India';
 
   // Template specific layout styles
@@ -234,8 +234,8 @@ export const CardCanvas = forwardRef<CardCanvasRef, CardCanvasProps>(({
             {/* Branding Logos & Title */}
             <div className="flex items-center gap-4">
               <img
-                src="/branding/polarsetu-logo.png"
-                alt="PolarSetu Logo"
+                src="/branding/aicygram-logo.png"
+                alt="Aicygram Logo"
                 className="w-14 h-14 object-contain rounded-xl p-1 bg-white/10 border border-white/20 shadow-md"
                 onError={(e) => {
                   // Fallback icon if logo png missing
@@ -265,7 +265,7 @@ export const CardCanvas = forwardRef<CardCanvasRef, CardCanvasProps>(({
                   Verified Data
                 </span>
                 <span className="text-[10px] text-cyan-accent/80 font-mono tracking-tight">
-                  polarsetu.in
+                  aicygram.in
                 </span>
               </div>
               <QRCodeWidget

@@ -1,9 +1,9 @@
--- Phase 2: Seed Mock Data for PolarSetu independent backend development
+-- Phase 2: Seed Mock Data for Aicygram independent backend development
 -- Data derived from handbook constraints: realistic, traceable, comprehensive polar dataset.
 
 -- 1. Seed Admin User
 INSERT INTO users (email, password_hash, role) 
-VALUES ('admin@polarsetu.in', '$2a$10$0tPrQCnDWpSCgnfaUzgGT.p2gea2l.QD2lJwTjhKn4puujPlgguWW', 'admin')
+VALUES ('admin@aicygram.in', '$2a$10$0tPrQCnDWpSCgnfaUzgGT.p2gea2l.QD2lJwTjhKn4puujPlgguWW', 'admin')
 ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 -- 2. Seed Expeditions
 INSERT INTO expeditions (id, name, region, year, start_date, end_date, objective, latitude, longitude, source_url) VALUES 

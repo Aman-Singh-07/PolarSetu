@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"PolarSetu/internal/models"
-	"PolarSetu/internal/repository"
+	"Aicygram/internal/models"
+	"Aicygram/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )

@@ -53,7 +53,7 @@
   },
   "login": {
     "title": "System Access",
-    "subtitle": "POLARSETU Admin Console",
+    "subtitle": "AICYGRAM Admin Console",
     "emailLabel": "Email Address",
     "passwordLabel": "Password",
     "submitBtn": "Sign In to Console",
