@@ -1,6 +1,6 @@
-# Workspace Rules for PolarSetu
+# Workspace Rules for Aicygram
 
-1. **Source of Truth**: The Stitch UI design in `stitch_polarsetu_polar_knowledge_outreach_platform/polarsetu/DESIGN.md` is the primary visual source of truth. Do NOT invent new visual systems, change colors randomly, or introduce new typography.
+1. **Source of Truth**: The Stitch UI design in `stitch_aicygram_polar_knowledge_outreach_platform/aicygram/DESIGN.md` is the primary visual source of truth. Do NOT invent new visual systems, change colors randomly, or introduce new typography.
 2. **Architecture Constraints**: 
    - Backend MUST be Go + Gin.
    - Frontend MUST be React + Vite + TypeScript.

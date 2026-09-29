@@ -305,17 +305,6 @@ export default function LessonPlans() {
         {/* ─── ACTIVE VIEW: PREVIEW ─── */}
         {previewPlan ? (
           <div className="animate-fade-in flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setPreviewPlan(null)}
-                className="text-xs text-muted hover:text-deep-ocean"
-              >
-                <ArrowLeft className="w-4 h-4 mr-1.5" />
-                {t('backToBrowse', 'Back to Browse')}
-              </Button>
-            </div>
 
             <LessonPlanPreview
               plan={previewPlan.plan}

@@ -157,7 +157,7 @@ export const SocialCardStudio: React.FC = () => {
     try {
       const dataUrl = await cardRef.current.exportPng();
       const link = document.createElement('a');
-      link.download = `polarsetu-${selectedTemplate.replace(':', 'x')}-${generation?.id || 'card'}.png`;
+      link.download = `aicygram-${selectedTemplate.replace(':', 'x')}-${generation?.id || 'card'}.png`;
       link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
@@ -333,7 +333,7 @@ export const SocialCardStudio: React.FC = () => {
 
           <div className="flex items-center justify-between text-[11px] text-muted px-2">
             <span>{t('preview.previewScale', 'Card preview scaled to fit viewport. Export will be full 1080px native resolution.')}</span>
-            <span className="font-mono">POLARSETU-STUDIO-v3</span>
+            <span className="font-mono">AICYGRAM-STUDIO-v3</span>
           </div>
         </div>
       </div>

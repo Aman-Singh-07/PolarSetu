@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"PolarSetu/internal/models"
-	"PolarSetu/internal/repository"
-	"PolarSetu/internal/services"
+	"Aicygram/internal/models"
+	"Aicygram/internal/repository"
+	"Aicygram/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -103,14 +103,14 @@ func (h *AIHandler) Ask(c *gin.Context) {
 			}
 		} else {
 			c.JSON(http.StatusOK, gin.H{
-				"answer":  "I couldn't find sufficient evidence in the POLARSETU repository to answer this reliably.",
+				"answer":  "I couldn't find sufficient evidence in the AICYGRAM repository to answer this reliably.",
 				"sources": []interface{}{},
 			})
 			return
 		}
 	}
 
-	answer, err := services.AskPolarSetu(req.Question, contextBuilder.String(), validSourceIDs)
+	answer, err := services.AskAicygram(req.Question, contextBuilder.String(), validSourceIDs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{"code": "AI_ERROR", "message": "Generation failed: " + err.Error()}})
 		return

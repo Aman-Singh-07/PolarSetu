@@ -1,4 +1,4 @@
-module PolarSetu
+module Aicygram
 
 go 1.27.0
 

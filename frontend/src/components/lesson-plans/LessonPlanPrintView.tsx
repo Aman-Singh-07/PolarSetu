@@ -116,7 +116,7 @@ export function LessonPlanPrintView({
           </div>
           <div className="text-right">
             <span className="text-xs font-black tracking-wider text-cyan-accent uppercase">
-              POLARSETU CURRICULUM SERIES
+              AICYGRAM CURRICULUM SERIES
             </span>
           </div>
         </header>
@@ -260,7 +260,7 @@ export function LessonPlanPrintView({
         {/* Footer */}
         <footer className="pt-4 border-t border-border-ice flex flex-col sm:flex-row items-center justify-between text-[11px] text-muted gap-2">
           <span>
-            National Centre for Polar and Ocean Research (NCPOR) · polarsetu.in
+            National Centre for Polar and Ocean Research (NCPOR) · aicygram.in
           </span>
           <span>
             Licensed under CC BY 4.0

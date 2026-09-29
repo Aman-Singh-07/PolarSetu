@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	"PolarSetu/internal/config"
-	"PolarSetu/internal/db"
-	"PolarSetu/internal/routes"
+	"Aicygram/internal/config"
+	"Aicygram/internal/db"
+	"Aicygram/internal/routes"
 
 	"github.com/joho/godotenv"
 )
@@ -51,7 +51,7 @@ func main() {
 	// kill -9 is syscall. SIGKILL (can't be catch, so don't add it)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutdown Signal Received. Commencing graceful shutdown of PolarSetu Backend...")
+	log.Println("Shutdown Signal Received. Commencing graceful shutdown of Aicygram Backend...")
 
 	// Create a deadline to wait for active HTTP requests to finish
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"PolarSetu/internal/config"
-	"PolarSetu/internal/handlers"
-	"PolarSetu/internal/middleware"
-	"PolarSetu/internal/repository"
+	"Aicygram/internal/config"
+	"Aicygram/internal/handlers"
+	"Aicygram/internal/middleware"
+	"Aicygram/internal/repository"
 	"os"
 	"time"
 

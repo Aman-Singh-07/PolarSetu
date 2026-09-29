@@ -85,7 +85,7 @@ export function LessonPlanPreview({
       const cleanName = (concept?.concept || 'lesson-plan')
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-');
-      link.download = `polarsetu-${cleanName}-class${targetClass}.pdf`;
+      link.download = `aicygram-${cleanName}-class${targetClass}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -100,7 +100,7 @@ export function LessonPlanPreview({
 
   const handleCopyText = () => {
     const textLines = [
-      `POLARSETU LESSON PLAN: ${conceptTitle}`,
+      `AICYGRAM LESSON PLAN: ${conceptTitle}`,
       `Class ${targetClass} · ${targetSubject}`,
       concept?.nepTags?.length ? `NEP 2020: ${concept.nepTags.join(', ')}` : '',
       '',

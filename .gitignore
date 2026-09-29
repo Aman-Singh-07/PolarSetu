@@ -5,8 +5,24 @@
 
 # OS-specific config
 .DS_Store
+scratchpads/
+frontend_backend_connection_fixes.md
+new_features.md
+ph4_imp.md
+phase3_crud_implementation_plan.md
+aicygram_backend_action_plan.md
+aicygram_feature_expansion_ideas.md
+CODEBASE_ARCHITECTURE.md
 Thumbs.db
 Desktop.ini
+scratchpads/
+frontend_backend_connection_fixes.md
+new_features.md
+ph4_imp.md
+phase3_crud_implementation_plan.md
+aicygram_backend_action_plan.md
+aicygram_feature_expansion_ideas.md
+CODEBASE_ARCHITECTURE.md
 
 # Backend (Go) Built binaries & local test
 backend/testserver

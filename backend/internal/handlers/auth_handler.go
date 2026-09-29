@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"PolarSetu/internal/middleware"
-	"PolarSetu/internal/models"
-	"PolarSetu/internal/repository"
+	"Aicygram/internal/middleware"
+	"Aicygram/internal/models"
+	"Aicygram/internal/repository"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
