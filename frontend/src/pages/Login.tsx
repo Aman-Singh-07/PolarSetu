@@ -136,7 +136,7 @@ export default function Login() {
                     type="button"
                     variant="secondary"
                     onClick={() => {
-                      setEmail('admin@nce.gov.in');
+                      setEmail('admin@ice.gov.in');
                       setPassword('admin@123');
                     }}
                     className="shrink-0 !h-8 !px-3 !text-[12px]"
