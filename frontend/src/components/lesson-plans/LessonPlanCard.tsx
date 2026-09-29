@@ -40,7 +40,7 @@ export function LessonPlanCard({ draft, onSelect }: LessonPlanCardProps) {
       className="bg-white rounded-2xl border border-border-ice p-6 shadow-soft hover:shadow-elevated hover:border-cyan-accent/60 transition-all duration-200 cursor-pointer flex flex-col justify-between group relative overflow-hidden"
     >
       {/* Top Accent Strip */}
-      <div className={`absolute top-0 left-0 right-0 h-1 ${isApproved ? 'bg-[#10B981]' : 'bg-[#F59E0B]'}`} />
+      <div className={`absolute top-0 left-0 right-0 h-1 ${isApproved ? 'bg-[#10B981]' : 'bg-cyan-accent'}`} />
 
       <div className="flex flex-col gap-3.5">
         {/* Meta Header */}
@@ -58,7 +58,7 @@ export function LessonPlanCard({ draft, onSelect }: LessonPlanCardProps) {
             className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ${
               isApproved
                 ? 'bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20'
-                : 'bg-amber-bg text-amber-warn border border-[#F59E0B]/20'
+                : 'bg-cyan-accent/10 text-cyan-accent border border-cyan-accent/30'
             }`}
           >
             {isApproved ? (
