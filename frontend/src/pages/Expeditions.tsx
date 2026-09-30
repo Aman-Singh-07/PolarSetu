@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search as SearchIcon, ArrowRight, X, ChevronDown, MapPin } from 'lucide-react';
+import { Search as SearchIcon, ArrowRight, X, ChevronDown } from 'lucide-react';
 import { api } from '../services/api';
 import type { Expedition } from '../types';
 import { Skeleton, EmptyState, ErrorState } from '../components/ui';
