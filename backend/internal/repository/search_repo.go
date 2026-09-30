@@ -27,6 +27,7 @@ func (r *SearchRepo) Search(ctx context.Context, searchQuery string, resourceTyp
 		ts_rank(search_vector, websearch_to_tsquery('english', $1)) as relevance
 		FROM resources
 		WHERE search_vector @@ websearch_to_tsquery('english', $1)
+		   OR search_vector @@ to_tsquery('english', regexp_replace(plainto_tsquery('english', $1)::text, '&', '|', 'g'))
 	`
 
 	args := []interface{}{strings.TrimSpace(searchQuery)}

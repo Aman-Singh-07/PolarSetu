@@ -33,7 +33,8 @@ export default function ExpeditionDetail() {
              setLoadingSummary(true);
              const resourceIds = exp.resources.map((r: any) => r.id);
              
-             fetch('/api/ai/ask', {
+             const baseUrl = import.meta.env.VITE_API_URL || '';
+             fetch(`${baseUrl}/api/ai/ask`, {
                method: 'POST',
                headers: { 'Content-Type': 'application/json' },
                body: JSON.stringify({
