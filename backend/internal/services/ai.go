@@ -196,7 +196,6 @@ TARGET CURRICULUM:
 - Class: %d
 - Subject: %s
 - Concept: %s
-- Language: %s
 
 RULES:
 1. Use ONLY the provided source material for all factual claims.
