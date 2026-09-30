@@ -53,8 +53,8 @@ export default function Login() {
         {/* ─── LEFT ATMOSPHERE ─── */}
         <div className="hidden lg:flex lg:w-[55%] relative bg-deep-ocean flex-col justify-center px-16 xl:px-24 overflow-hidden">
           <img 
-            src="https://images.unsplash.com/photo-1549480614-722a7f5ea55a?auto=format&fit=crop&q=80" 
-            alt="Polar Landscape" 
+            src="/images/polar/feature-maitri.webp" 
+            alt="Maitri Research Station, Antarctica" 
             className="absolute inset-0 w-full h-full object-cover z-0"
           />
           <div className="absolute inset-0 bg-deep-ocean/70 backdrop-blur-[1px] z-0" />

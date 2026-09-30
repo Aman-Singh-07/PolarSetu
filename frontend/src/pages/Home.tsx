@@ -51,8 +51,8 @@ export default function Home() {
       <section className="relative w-full h-[550px] md:h-[640px] flex items-center bg-deep-ocean overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZlU0zKQ2fFmf3pyyxCzDmnJXg5L2Xj5SFAtHGSFS24kA0Gy58tAoWbTbUXqoGsekW5ZGVs6dqXXl-slkh9BnQJrowMjTnI9nnGQRWqDnG5dNYMPMEn_sLqSiNuzu-5lmTWUBYAQp6sygCs2C6UWIy4P03eL-w0hWfXwd3WJQ8kwAFp1kB-SnFBBPtQBDHatOHRxJKYaehqvpc6OmwpbpKPRQdMGzgI3cP85LtHag7OJP7QoCs2NerDA"
-            alt="Polar scientific research vessel in icy waters"
+            src="/images/polar/hero-rothera.webp"
+            alt="Rothera research station in Antarctica"
             className="w-full h-full object-cover object-[center_30%]"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-deep-ocean via-deep-ocean/80 to-transparent" />
@@ -248,7 +248,7 @@ export default function Home() {
             <div className="w-full rounded-[12px] border border-border-ice bg-white overflow-hidden flex flex-col lg:flex-row group">
               <div className="w-full lg:w-[55%] h-[300px] lg:h-auto relative overflow-hidden bg-deep-ocean shrink-0">
                 <img
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZlU0zKQ2fFmf3pyyxCzDmnJXg5L2Xj5SFAtHGSFS24kA0Gy58tAoWbTbUXqoGsekW5ZGVs6dqXXl-slkh9BnQJrowMjTnI9nnGQRWqDnG5dNYMPMEn_sLqSiNuzu-5lmTWUBYAQp6sygCs2C6UWIy4P03eL-w0hWfXwd3WJQ8kwAFp1kB-SnFBBPtQBDHatOHRxJKYaehqvpc6OmwpbpKPRQdMGzgI3cP85LtHag7OJP7QoCs2NerDA"
+                  src="/images/polar/feature-maitri.webp"
                   alt={featuredExpedition.name}
                   className="w-full h-full object-cover"
                 />
