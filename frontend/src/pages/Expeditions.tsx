@@ -205,20 +205,18 @@ export default function Expeditions() {
                     <article className="group bg-white rounded-[12px] flex flex-col md:flex-row items-stretch border border-border-ice hover:border-glacial-blue/40 hover:shadow-sm transition-all duration-200 overflow-hidden">
                       
                       {/* Image / Fallback Section */}
-                      {actualImageUrl ? (
-                        <div className="w-full md:w-[320px] shrink-0 border-r border-border-ice/50 bg-frost">
-                          <img 
-                            src={actualImageUrl} 
-                            alt={exp.name} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-full md:w-[240px] shrink-0 bg-frost border-r border-border-ice/50 flex flex-col items-center justify-center p-6">
-                          <MapPin className="w-6 h-6 text-muted/30 mb-2" />
-                          <span className="text-[10px] text-muted/40 font-bold uppercase tracking-[0.2em]">Field Record</span>
-                        </div>
-                      )}
+                      <div className="w-full md:w-[280px] shrink-0 border-r border-border-ice/50 bg-deep-ocean/5 relative overflow-hidden">
+                        <img 
+                          src={actualImageUrl || "/images/polar/polar_map_placeholder.jpg"} 
+                          alt={exp.name} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[1.5s] ease-out"
+                        />
+                        {!actualImageUrl && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-deep-ocean/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                            <span className="text-[10px] text-white font-bold uppercase tracking-[0.2em] px-3 py-1 bg-deep-ocean/80 rounded-md backdrop-blur-sm">View Map Area</span>
+                          </div>
+                        )}
+                      </div>
                       
                       {/* Content Section */}
                       <div className="flex-1 flex flex-col justify-center p-6 md:p-8">
